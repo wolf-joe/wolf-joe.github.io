@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言ownCloud一直是市场上最受欢迎的个人云存储解决方案之一，有着使用广泛、客户端兼容性好、自由开源等优点。但ownCloud的部署涉及LAMP环境，部署过程较为繁琐。这篇文章介绍如何用docker-compose快速部署ownCloud，并配置Nginx转发+HTTPS提高服务器安全性。 配置docker-compose 以下部分内容来自ownCloud官方安装文档  首先，下载官方dock">
+<meta name="keywords" content="nginx,docker,owncloud">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker快速部署ownCloud并配置HTTPS">
+<meta property="og:url" content="https://www.yooo.ltd/2019/12/16/Docker快速部署ownCloud并配置HTTPS/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言ownCloud一直是市场上最受欢迎的个人云存储解决方案之一，有着使用广泛、客户端兼容性好、自由开源等优点。但ownCloud的部署涉及LAMP环境，部署过程较为繁琐。这篇文章介绍如何用docker-compose快速部署ownCloud，并配置Nginx转发+HTTPS提高服务器安全性。 配置docker-compose 以下部分内容来自ownCloud官方安装文档  首先，下载官方dock">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-12-16.01.webp">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.880Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker快速部署ownCloud并配置HTTPS">
+<meta name="twitter:description" content="前言ownCloud一直是市场上最受欢迎的个人云存储解决方案之一，有着使用广泛、客户端兼容性好、自由开源等优点。但ownCloud的部署涉及LAMP环境，部署过程较为繁琐。这篇文章介绍如何用docker-compose快速部署ownCloud，并配置Nginx转发+HTTPS提高服务器安全性。 配置docker-compose 以下部分内容来自ownCloud官方安装文档  首先，下载官方dock">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2019-12-16.01.webp">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2019/12/16/Docker快速部署ownCloud并配置HTTPS/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Docker快速部署ownCloud并配置HTTPS | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2019/12/16/Docker快速部署ownCloud并配置HTTPS/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker快速部署ownCloud并配置HTTPS
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-16 11:50:22" itemprop="dateCreated datePublished" datetime="2019-12-16T11:50:22+08:00">2019-12-16</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2019-12-16.01.webp" alt=""><br>ownCloud一直是市场上最受欢迎的个人云存储解决方案之一，有着使用广泛、客户端兼容性好、自由开源等优点。但ownCloud的部署涉及LAMP环境，部署过程较为繁琐。这篇文章介绍如何用docker-compose快速部署ownCloud，并配置Nginx转发+HTTPS提高服务器安全性。</p>
+<h1 id="配置docker-compose"><a href="#配置docker-compose" class="headerlink" title="配置docker-compose"></a>配置docker-compose</h1><blockquote>
+<p>以下部分内容来自<a href="https://doc.owncloud.com/server/latest/admin_manual/installation/docker/" target="_blank" rel="noopener">ownCloud官方安装文档</a></p>
+</blockquote>
+<p>首先，下载官方docker-compose文件，并创环境变量文件用以指定ownCloud版本、账户密码和HTTP端口。</p>
+<pre><code class="shell">$ mkdir owncloud-docker-server
+$ cd owncloud-docker-server
+$ wget https://raw.githubusercontent.com/owncloud/docs/master/modules/admin_manual/examples/installation/docker/docker-compose.yml
+$ cat &lt;&lt; EOF &gt; .env
+OWNCLOUD_VERSION=10.3
+OWNCLOUD_DOMAIN=localhost
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+HTTP_PORT=8080
+EOF
+</code></pre>
+<p>从下载下来的<code>docker-compose.yml</code>文件里可以看出，ownCloud共有三个docker服务：<code>owncloud</code>、<code>db</code>、<code>redis</code>，这三个docker服务都将创建独立的docker数据卷，将各自的数据文件持久化到数据卷里。</p>
+<pre><code class="yaml">version: &#39;2.1&#39;
+
+volumes:
+  files:
+    driver: local
+...
+services:
+  owncloud:
+...
+    volumes:
+      - files:/mnt/data
+...
+</code></pre>
+<p>我个人更习惯将ownCloud的数据保存目录指定为某个具体文件夹，方便我进行管理。所以我对<code>docker-compose.yml</code>做如下改动：</p>
+<pre><code class="yaml">version: &#39;2.1&#39;
+
+volumes:
+#  files:
+#    driver: local
+...
+services:
+  owncloud:
+...
+    volumes:
+#      - files:/mnt/data
+      - /path/to/my/data/owncloud:/mnt/data
+...
+</code></pre>
+<h1 id="用docker-compose启动ownCloud"><a href="#用docker-compose启动ownCloud" class="headerlink" title="用docker-compose启动ownCloud"></a>用docker-compose启动ownCloud</h1><p>启动ownCloud的命令很简单，只需让docker-compose按照配置好的<code>docker-compose.yml</code>启动容器。第一次运行需要拉取镜像，只需耐心等待即可。</p>
+<pre><code class="shell">$ docker-compose up -d
+</code></pre>
+<p>命令执行完成后可以通过docker-compose命令查看拉取的镜像和服务运行状态：</p>
+<pre><code class="shell">$ docker-compose images
+     Container           Repository        Tag       Image Id      Size
+-------------------------------------------------------------------------
+owncloud_db_1         webhippie/mariadb   latest   3f6237885724   626 MB
+owncloud_owncloud_1   owncloud/server     10.3     b7c82576c651   785 MB
+owncloud_redis_1      webhippie/redis     latest   42ab00c664c2   56.4 MB
+
+$ docker-compose ps
+       Name                      Command                  State               Ports
+--------------------------------------------------------------------------------------------
+owncloud_db_1         /usr/bin/entrypoint /bin/s ...   Up (healthy)   3306/tcp
+owncloud_owncloud_1   /usr/bin/entrypoint /usr/b ...   Up (healthy)   0.0.0.0:8080-&gt;8080/tcp
+owncloud_redis_1      /usr/bin/entrypoint /bin/s ...   Up (healthy)   6379/tcp
+</code></pre>
+<p>此时也可以用curl来验证服务是否启动：</p>
+<pre><code class="shell">$ curl 127.0.0.1:8080 -I
+HTTP/1.1 302 Found
+Date: Mon, 16 Dec 2019 03:14:55 GMT
+Server: Apache
+...
+</code></pre>
+<h1 id="配置Nginx转发-HTTPS"><a href="#配置Nginx转发-HTTPS" class="headerlink" title="配置Nginx转发+HTTPS"></a>配置Nginx转发+HTTPS</h1><p>Nginx+HTTPS的配置不算麻烦，只要在Nginx的配置文件（比如<code>/etc/nginx/sites-available/default</code>）中添加一个server项即可。在这里的配置中，我让Nginx在8000端口上启动HTTPS服务，并将所有请求以HTTP方式转发至8080端口上的ownCloud。</p>
+<pre><code class="nginx">server {
+    listen 8000 ssl;
+    server_name owncloud;
+
+    ssl_certificate     /etc/nginx/ssl/owncloud.crt;
+    ssl_certificate_key /etc/nginx/ssl/owncloud.key;
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    client_max_body_size 0;
+
+    location / {
+        proxy_set_header   Host             $host:8000;
+        proxy_redirect     http://          https://;
+        proxy_pass         http://127.0.0.1:8080/;
+    }
+}
+</code></pre>
+<p>配置时有一些需要注意的地方。</p>
+<ul>
+<li><code>client_max_body_size</code>项，其默认的值为<code>1m</code>，也就是说Nginx最大只能接受1M大小的HTTP请求，这对于ownCloud的文件上传功能来说是不可接受的。在这里我将其设为<code>0</code>，让Nginx不限制HTTP请求的大小。理论上来说这个参数应该限定在文件上传的<code>url</code>以提高安全性，但这里就图个方便。</li>
+<li><code>location</code>中的<code>proxy_set_header</code>项，将请求转发头的Host设置为Nginx的Host（$host:8000）而不是ownCloud的Host（$host:8080），避免ownCloud在响应重定向时返回8080端口地址。</li>
+<li><code>location</code>中的<code>proxy_redirect</code>项，将所有重定向响应中的HTTP地址转换为HTTPS地址。</li>
+</ul>
+<p>当然，在配置了以上转发规则后，ownCloud的响应还是存在一些问题：网页上的注销链接地址没有加上HTTPS前缀，导致点击后出现400错误，需要手动将地址前缀改成<code>https://</code>才能顺利注销。这个就属于ownCloud本身的BUG了。</p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>个人云存储的优势在公共云存储商家不断倒闭之后逐渐显现出来了。如果有使用个人云存储服务的需求，ownCloud无疑是一个值得尝试的选择。不管是局域网内部使用、公网IP宽带+DDNS、内网穿透，还是VPS（包括低价大带宽的NAT VPS），HAVE FUN and ENJOY。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/nginx/" rel="tag"># nginx</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/owncloud/" rel="tag"># owncloud</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/18/自用linux-server性能测试/" rel="next" title="自用linux server性能测试">
+                <i class="fa fa-chevron-left"></i> 自用linux server性能测试
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/17/APT、Docker、PyPI使用国内镜像加速/" rel="prev" title="APT、Docker、PyPI使用国内镜像加速">
+                APT、Docker、PyPI使用国内镜像加速 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置docker-compose"><span class="nav-number">2.</span> <span class="nav-text">配置docker-compose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用docker-compose启动ownCloud"><span class="nav-number">3.</span> <span class="nav-text">用docker-compose启动ownCloud</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Nginx转发-HTTPS"><span class="nav-number">4.</span> <span class="nav-text">配置Nginx转发+HTTPS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">5.</span> <span class="nav-text">结语</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2019/12/16/Docker快速部署ownCloud并配置HTTPS/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba">
+<meta name="keywords" content="Web开发,Python,Django">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django视图函数捕捉异常">
+<meta property="og:url" content="https://www.yooo.ltd/2019/05/23/Django视图函数捕捉异常/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-05-23.01.png">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.879Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django视图函数捕捉异常">
+<meta name="twitter:description" content="前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2019-05-23.01.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2019/05/23/Django视图函数捕捉异常/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Django视图函数捕捉异常 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2019/05/23/Django视图函数捕捉异常/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Django视图函数捕捉异常
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-23 18:56:59" itemprop="dateCreated datePublished" datetime="2019-05-23T18:56:59+08:00">2019-05-23</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2019-05-23.01.png" alt=""><br>不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为<code>500 Internal Server Error</code>的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。</p>
+<blockquote>
+<p>注：本文所使用的运行环境为<code>uWSGI 2.0.18</code>+<code>Python3.6</code>+<code>Django 2.2</code></p>
+</blockquote>
+<h1 id="在uWSGI的日志中显示Traceback"><a href="#在uWSGI的日志中显示Traceback" class="headerlink" title="在uWSGI的日志中显示Traceback"></a>在uWSGI的日志中显示Traceback</h1><p>这种方法算是一种比较消极的异常捕捉方式——仅将<code>Traceback</code>异常信息记录在uWSGI的日志中，不做进一步处理。日志可以用于日后分析，但用户收到的仍然是<code>500 Internal Server Error</code>响应。而这种捕捉方式也是默认启用的，只要所使用的Django版本高于或等于<code>1.9</code>就行。例子如下：</p>
+<pre><code class="python"># django_test/urls.py
+from django.urls import path
+from .views import index
+
+urlpatterns = [
+    path(&#39;index&#39;, index),
+]
+
+# django_test/views.py
+from django.http.response import HttpResponse
+
+def index(request):
+    1 / 0
+    return HttpResponse(b&#39;hello world&#39;)
+</code></pre>
+<p>配置好路由和视图函数并用<code>uWSGI</code>启动应用后，访问<code>/index</code>页面就会触发<code>ZeroDivisionError</code>异常，该异常的Traceback信息也会输出至<code>uWSGI</code>的日志中，效果如下：</p>
+<pre><code class="shell">$ uwsgi --module django_test.wsgi --http 0.0.0.0:5000
+*** Starting uWSGI 2.0.18 (64bit) on [Thu May 23 16:27:42 2019] ***
+......
+spawned uWSGI worker 1 (and the only) (pid: 13888, cores: 1)
+Traceback (most recent call last):
+  ......
+  File &quot;./django_test/views.py&quot;, line 3, in index
+    1 / 0
+ZeroDivisionError: division by zero
+[pid: 13888|app: 0|req: 1/1] 127.0.0.1 () {40 vars in 964 bytes} [Thu May 23 08:27:44 2019] GET /index =&gt; generated 55641 bytes in 47 msecs (HTTP/1.1 500) 1 headers in 63 bytes (1 switches on core 0)
+</code></pre>
+<h1 id="用函数装饰器捕捉异常"><a href="#用函数装饰器捕捉异常" class="headerlink" title="用函数装饰器捕捉异常"></a>用函数装饰器捕捉异常</h1><p>Django中的视图函数只是一个普通的函数（废话），这就意味着我们可以用一个能够捕捉异常的函数装饰器来包裹这个视图函数，例子如下：</p>
+<pre><code class="python"># django_test/views.py
+from django.http.response import HttpResponse
+
+def catch_exc(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            # put your code here
+            # logger.error(traceback.format_exc())
+
+            # return Response or just raise
+            return HttpResponse(str(ex))
+
+    return wrapper
+
+
+@catch_exc
+def index(request):
+    1 / 0
+    return HttpResponse(b&#39;hello world&#39;)
+</code></pre>
+<p>在例子第18行～第19行，我用<code>catch_exc</code>这个装饰器包裹了<code>index</code>这个视图函数。而在<code>catch_exc</code>这个装饰器内部，我用<code>except Exception</code>语句捕捉了<code>index</code>函数所有可能出现的异常。然后，我们就可以按照需要来进行各种操作了，比如：</p>
+<ul>
+<li>用<code>traceback.format_exc()</code>获取详细的<code>Traceback</code>信息；</li>
+<li>将错误信息输出至日志；</li>
+<li>通知某人；</li>
+</ul>
+<p>等等等等。对异常的处理完成后，我们既可以通过<code>raise</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应，还可以渲染一个提示HTML页面返回给用户。总之，Everything is under control.</p>
+<h1 id="用Django中间件捕捉异常"><a href="#用Django中间件捕捉异常" class="headerlink" title="用Django中间件捕捉异常"></a>用Django中间件捕捉异常</h1><p>函数装饰器很好用，但装饰器只能针对单个视图函数。有没有一种应用于所有视图函数之上的异常捕捉方法？有的，这就是Django的中间件。和我上一篇文章（<a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">使用中间件对视图函数进行性能分析</a>）不同的是，那篇文章里所使用的中间件hook为<code>process_request&amp;process_response</code>，而这里使用中间件hook为<code>process_exception</code>，因为前者无法捕捉异常。</p>
+<pre><code class="python"># django_test/my_middleware.py
+from django.http import HttpResponse
+
+class CatchExcMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        # put your code here
+        # logging.error(traceback.format_exc())
+
+        # return Response or None
+        return HttpResponse(str(exception))
+
+# django_test/settings.py
+# ......
+MIDDLEWARE = [
+    # ......
+    &#39;django_test.my_middleware.CatchExcMiddleware&#39;,  # 启用中间件
+]
+# ......
+</code></pre>
+<p>和上一节的装饰器类似，当视图函数出现异常时，Django就会遍历所有中间件的<code>process_exception</code>hook，包括例子里的。在这个<code>process_exception</code>方法里，我们同样可以完成上一节提到的各种操作，操作完成后可以通过<code>return None</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应……这里就不再重复了。</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>其实在非DEBUG模式（<code>settings.py</code>里<code>DEBUG = False</code>）下，Django可以将视图函数里出现的异常信息以电子邮件的形式发送给<code>ADMINS</code>里配置的邮箱地址。这个功能需要配置邮箱参数、LOGGING，这里就不详细展开了，有兴趣的话可以查看<a href="https://docs.djangoproject.com/en/2.2/howto/error-reporting/" target="_blank" rel="noopener">Django2.2官方文档(Error reporting)</a>或搜索相关教程。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web开发/" rel="tag"># Web开发</a>
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Django/" rel="tag"># Django</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/11/Django视图函数性能分析/" rel="next" title="Django视图函数性能分析">
+                <i class="fa fa-chevron-left"></i> Django视图函数性能分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/30/修改Kong官方Docker镜像/" rel="prev" title="修改Kong官方Docker镜像">
+                修改Kong官方Docker镜像 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在uWSGI的日志中显示Traceback"><span class="nav-number">2.</span> <span class="nav-text">在uWSGI的日志中显示Traceback</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用函数装饰器捕捉异常"><span class="nav-number">3.</span> <span class="nav-text">用函数装饰器捕捉异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用Django中间件捕捉异常"><span class="nav-number">4.</span> <span class="nav-text">用Django中间件捕捉异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后记"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2019/05/23/Django视图函数捕捉异常/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

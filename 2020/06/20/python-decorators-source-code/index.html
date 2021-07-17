@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam">
+<meta name="keywords" content="Python,源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python部分内置函数装饰器源码浅析">
+<meta property="og:url" content="https://www.yooo.ltd/2020/06/20/python-decorators-source-code/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.882Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python部分内置函数装饰器源码浅析">
+<meta name="twitter:description" content="前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/06/20/python-decorators-source-code/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Python部分内置函数装饰器源码浅析 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/06/20/python-decorators-source-code/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Python部分内置函数装饰器源码浅析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-20 13:01:20" itemprop="dateCreated datePublished" datetime="2020-06-20T13:01:20+08:00">2020-06-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这是这个博客里第一篇带有<code>源码</code>Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。</p>
+<blockquote>
+<p>注：本篇文章所用环境为CPython3.6</p>
+</blockquote>
+<h1 id="functools-wraps"><a href="#functools-wraps" class="headerlink" title="functools.wraps"></a>functools.wraps</h1><p><code>wraps</code>这个内置函数装饰器在笔者的<a href="/2020/06/19/%E8%AF%BB%E3%80%8A%E6%B5%81%E7%95%85%E7%9A%84Python%E3%80%8B%EF%BC%9A%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E4%B8%8E%E9%97%AD%E5%8C%85/#functool-wraps">上一篇文章</a>里有过介绍，功能很单纯（拷贝<code>__name__</code>、<code>__doc__</code>等属性），源码也很短（不到50行）。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><pre><code class="python">def deco(func: Callable) -&gt; Callable:
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        print(f&#39;inner({args}, {kwargs})&#39;)
+
+    return inner
+
+@deco
+def target(name: str):
+    &quot;&quot;&quot;target doc&quot;&quot;&quot;
+    print(f&#39;target(name={name})&#39;)
+</code></pre>
+<p>在不用<code>wraps</code>装饰器的情况下，<code>target</code>的<code>__name__</code>和<code>__doc__</code>属性都来自<code>deco()</code>里的<code>inner</code>：</p>
+<pre><code class="python">print(&#39;__doc__  :&#39;, target.__doc__)   # __doc__  : inner doc
+print(&#39;__name__ :&#39;, target.__name__)  # __name__ : inner
+target(name=&#39;bob&#39;)                    # inner((), {&#39;name&#39;: &#39;bob&#39;})
+</code></pre>
+<p>这一点也不奇怪，因为此时<code>target</code>是<code>deco()</code>的返回值，其<code>__name__</code>等属性自然也不会是来自被装饰的原始<code>target</code>。但从调用者的角度来说，这是很让人费解的。所以Python内置了<code>wraps</code>装饰器，可以拷贝被装饰函数的部分属性，让装饰后的函数<code>看起来</code>和装饰前一样：</p>
+<pre><code class="python">def deco(func: Callable) -&gt; Callable:
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        print(f&#39;inner({args}, {kwargs})&#39;)
+
+    return inner
+</code></pre>
+<pre><code class="python">print(&#39;__doc__  :&#39;, target.__doc__)   # __doc__  : target doc
+print(&#39;__name__ :&#39;, target.__name__)  # __name__ : target
+target(name=&#39;bob&#39;)                    # inner((), {&#39;name&#39;: &#39;bob&#39;})
+</code></pre>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p><code>wraps</code>装饰器的入口函数在<code>functools.py</code>的第<a href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L74" target="_blank" rel="noopener">74行</a>，函数很短小：</p>
+<pre><code class="python">def wraps(wrapped,
+          assigned = WRAPPER_ASSIGNMENTS,
+          updated = WRAPPER_UPDATES):
+    &quot;&quot;&quot; ... 省略
+    &quot;&quot;&quot;
+    return partial(update_wrapper, wrapped=wrapped,
+                   assigned=assigned, updated=updated)
+</code></pre>
+<p><a href="/2020/06/19/%E8%AF%BB%E3%80%8A%E6%B5%81%E7%95%85%E7%9A%84Python%E3%80%8B%EF%BC%9A%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E4%B8%8E%E9%97%AD%E5%8C%85/#%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8">上一篇文章</a>我介绍过，带参数的函数装饰器会返回一个函数，用返回的函数来对目标函数进行装饰。于是，上面提到的<code>deco()</code>函数就可以转换为如下形式：</p>
+<pre><code class="python">from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
+
+def deco(func: Callable) -&gt; Callable:
+    # @functools.wraps(func)
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        print(f&#39;inner({args}, {kwargs})&#39;)
+
+    # 关键的两行
+    tmp = partial(update_wrapper, wrapped=func,
+                  assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES)
+    inner = tmp(inner)
+
+    return inner
+</code></pre>
+<p>由于<code>functools.partial</code>的功能只是固定参数，所以以上提到的关键的两行可以转换为如下形式：</p>
+<pre><code class="python">inner = update_wrapper(inner, wrapped=func, assigned=WRAPPER_ASSIGNMENTS,
+                       updated=WRAPPER_UPDATES)
+</code></pre>
+<p>再让我们把目光聚集在<code>update_wrapper()</code>函数的源码上（<code>functools.py</code><a href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L44" target="_blank" rel="noopener">第44行</a>）：</p>
+<pre><code class="python">WRAPPER_ASSIGNMENTS = (&#39;__module__&#39;, &#39;__name__&#39;, &#39;__qualname__&#39;, &#39;__doc__&#39;,
+                       &#39;__annotations__&#39;)
+WRAPPER_UPDATES = (&#39;__dict__&#39;,)
+def update_wrapper(wrapper,
+                   wrapped,
+                   assigned = WRAPPER_ASSIGNMENTS,
+                   updated = WRAPPER_UPDATES):
+    &quot;&quot;&quot; ... 省略
+    &quot;&quot;&quot;
+    for attr in assigned:
+        try:
+            value = getattr(wrapped, attr)
+        except AttributeError:
+            pass
+        else:
+            setattr(wrapper, attr, value)
+    for attr in updated:
+        getattr(wrapper, attr).update(getattr(wrapped, attr, {}))
+    # Issue #17482: set __wrapped__ last so we don&#39;t inadvertently copy it
+    # from the wrapped function when updating __dict__
+    wrapper.__wrapped__ = wrapped
+    # Return the wrapper so this can be used as a decorator via partial()
+    return wrapper
+</code></pre>
+<p>结合前两段代码，<code>functools.wraps</code>所做的事情就比较清晰了：通过<code>getattr()</code>从被装饰的函数中提取<code>__module__</code>、<code>__name__</code>等属性，再通过<code>setattr()</code>将提取到的属性赋值给装饰后的函数。也就是说，<code>deco()</code>装饰器最后可以转换为如下形式：</p>
+<pre><code class="python">def deco(func: Callable) -&gt; Callable:
+    # @functools.wraps(func)
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        print(f&#39;inner({args}, {kwargs})&#39;)
+
+    # 节省空间，不考虑AttributeError
+    setattr(inner, &#39;__module__&#39;, getattr(func, &#39;__module__&#39;)) 
+    # ... 省略
+    getattr(inner, &#39;__dict__&#39;).update(getattr(func, &#39;__dict__&#39;, {}))
+    inner.__wrapped__ = func
+
+    return inner
+</code></pre>
+<p>不考虑注释，<code>functools.wraps</code>的代码总共只有23行，可以说是相当短小了🤣</p>
+<h1 id="functools-lru-cache"><a href="#functools-lru-cache" class="headerlink" title="functools.lru_cache"></a>functools.lru_cache</h1><p><code>lru_cache</code>是个非常实用的装饰器，这个装饰器可以将函数的结果缓存起来，避免传入相同的参数时重复计算。<code>lru</code>代表这个装饰器在缓存结果时采用<code>最近最少使用</code>算法，在缓存的结果到达一定数量时抛弃那些很久没命中过的缓存。</p>
+<p><code>lru_cache</code>接收两个参数：<code>maxsize</code>和<code>typed</code>。前者用于指定缓存结果数量上限，而后者用于判断缓存是是否考虑参数类型。比如<code>func(1)</code>和<code>func(1.0)</code>在默认情况下会共用缓存，但当<code>typed</code>为<code>True</code>时，这两个函数就会分开缓存。</p>
+<h2 id="使用示例-1"><a href="#使用示例-1" class="headerlink" title="使用示例"></a>使用示例</h2><p>递归计算<code>fibonacci</code>数列这种需要多次重复计算的场景特别适合使用<code>lru_cache</code>装饰器。比如下面这个实现：</p>
+<pre><code class="python">def fibonacci(k: int) -&gt; int:
+    return k if k &lt; 2 else fibonacci(k - 1) + fibonacci(k - 2)
+</code></pre>
+<p>当计算<code>fibonacci(6)</code>时，总共需要调用25次<code>fibonacci()</code>函数，其中8次是<code>fibonacci(1)</code>。但使用<code>lru_cache</code>装饰器后，只需要调用7次<code>fibonacci()</code>函数即可得出计算结果，而且只需要在原函数上加上一行代码即可实现：</p>
+<pre><code class="python">@functools.lru_cache()
+def fibonacci(k: int) -&gt; int:
+    return k if k &lt; 2 else fibonacci(k - 1) + fibonacci(k - 2)
+</code></pre>
+<p>比较有意思的是，使用了<code>lru_cache</code>装饰器的函数还会被”附赠”两个方法：<code>cache_info</code>和<code>cache_clear</code>，分别用于展示缓存情况和清空缓存：</p>
+<pre><code class="python">&gt;&gt;&gt; fibonacci(6)
+8
+&gt;&gt;&gt; fibonacci.cache_info()
+CacheInfo(hits=4, misses=7, maxsize=128, currsize=7)
+&gt;&gt;&gt; fibonacci.cache_clear()
+&gt;&gt;&gt; fibonacci.cache_info()
+CacheInfo(hits=0, misses=0, maxsize=128, currsize=0)
+</code></pre>
+<h2 id="源码-1"><a href="#源码-1" class="headerlink" title="源码"></a>源码</h2><p><code>functool.lru_cache</code>在CPython里有两种实现，一种基于C语言（<code>_functool._lru_cache_wrapper</code>），另一种基于Python（<code>functool._lru_cache_wraper</code>）。后者只有在前者无法导入时才会启用，但本篇文章还是聚焦于后者的源码。</p>
+<p><code>lru_cache</code>装饰器的入口函数在<code>functools.py</code>第<a href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L448" target="_blank" rel="noopener">448行</a>：</p>
+<pre><code class="python">_CacheInfo = namedtuple(&quot;CacheInfo&quot;, [&quot;hits&quot;, &quot;misses&quot;, &quot;maxsize&quot;, &quot;currsize&quot;])
+# ... 略
+def lru_cache(maxsize=128, typed=False):
+    &quot;&quot;&quot; ... 略
+    &quot;&quot;&quot;
+    if maxsize is not None and not isinstance(maxsize, int):
+        raise TypeError(&#39;Expected maxsize to be an integer or None&#39;)
+
+    def decorating_function(user_function):
+        wrapper = _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo)
+        return update_wrapper(wrapper, user_function)
+
+    return decorating_function
+</code></pre>
+<p>和<code>wraps</code>一样，<code>lru_cache</code>也是一个带参数的装饰器。同时，<code>lru_cache</code>还用到了上一节提到的<code>update_wrapper()</code>函数，自动将被装饰函数的属性拷贝到新函数中。这段代码的关键是<code>wrapper = _lru_cache_wrapper(...)</code>，那就让我们来看看<code>_lru_cache_wrapper</code>函数的源码结构（<code>functools.py</code>第<a href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L485" target="_blank" rel="noopener">485行</a>）：</p>
+<pre><code class="python">def _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo):
+    # 初始化变量，省略
+
+    if maxsize == 0:
+        def wrapper(*args, **kwds):
+            # No caching -- just a statistics update after a successful call
+            # ... 省略
+    elif maxsize is None:
+        def wrapper(*args, **kwds):
+            # Simple caching without ordering or size limit
+            # ... 省略
+    else:
+        def wrapper(*args, **kwds):
+            # Size limited caching that tracks accesses by recency
+            # ... 省略
+
+    def cache_info():
+        &quot;&quot;&quot;Report cache statistics&quot;&quot;&quot;
+        # ... 省略
+
+    def cache_clear():
+        &quot;&quot;&quot;Clear the cache and cache statistics&quot;&quot;&quot;
+        # ... 省略
+
+    wrapper.cache_info = cache_info
+    wrapper.cache_clear = cache_clear
+    return wrapper
+</code></pre>
+<p>所以，当某个函数使用了<code>lru_cache</code>装饰器后，调用这个函数时被执行的实际上是源码里定义的各个<code>wrapper</code>，<code>cache_info()</code>和<code>cache_clear()</code>这两个方法也是在源码里为<code>wrapper</code>加上的。接下来，就让我们具体分析源码里定义的各个模块。</p>
+<h3 id="maxsize为0"><a href="#maxsize为0" class="headerlink" title="maxsize为0"></a>maxsize为0</h3><p>当<code>maxsize</code>为0时，<code>lru_cache</code>不会缓存任何结果，除了调用原始函数并返回结果外，只增加<code>misses</code>（缓存未命中）计数器。</p>
+<pre><code class="python">def _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo):
+    # ...
+    hits = misses = 0
+    # ...
+    if maxsize == 0:
+        def wrapper(*args, **kwds):
+            # No caching -- just a statistics update after a successful call
+            nonlocal misses
+            result = user_function(*args, **kwds)
+            misses += 1
+            return result
+    # ...
+</code></pre>
+<h3 id="maxsize为None"><a href="#maxsize为None" class="headerlink" title="maxsize为None"></a>maxsize为None</h3><p>当<code>maxsize</code>为<code>None</code>时，<code>lru_cache</code>会无限制地缓存结果，<code>lru</code>算法并不会生效。</p>
+<pre><code class="python">def _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo):
+    # Constants shared by all lru cache instances:
+    sentinel = object()          # unique object used to signal cache misses
+    make_key = _make_key         # build a key from the function arguments
+    cache = {}
+    hits = misses = 0
+    cache_get = cache.get    # bound method to lookup a key or return None
+    # ...
+    elif maxsize is None:
+        def wrapper(*args, **kwds):
+            # Simple caching without ordering or size limit
+            nonlocal hits, misses
+            key = make_key(args, kwds, typed)
+            result = cache_get(key, sentinel)
+            if result is not sentinel:
+                hits += 1
+                return result
+            result = user_function(*args, **kwds)
+            cache[key] = result
+            misses += 1
+            return result
+    # ...
+</code></pre>
+<p>可以看到，<code>lru_cache</code>首先会通过函数的参数生成<code>key</code>值（<code>make_key</code>），再用<code>key</code>值去缓存池（<code>dict</code>）里查找结果。如果命中缓存，则返回缓存并增加<code>hits</code>计数器；否则调用函数返回结果，将结果加入缓存池并增加<code>misses</code>（缓存未命中）计数器。</p>
+<h3 id="make-key"><a href="#make-key" class="headerlink" title="_make_key"></a>_make_key</h3><p>再让我们将目光转到<code>_make_key</code>上来。这个函数会通过函数的参数、<code>typed</code>的值来为函数调用生成<code>key</code>值，用于在缓存池里查找或缓存结果。其源码如下：</p>
+<pre><code class="python">class _HashedSeq(list):
+    &quot;&quot;&quot; ... 省略
+    &quot;&quot;&quot;
+
+    __slots__ = &#39;hashvalue&#39;
+
+    def __init__(self, tup, hash=hash):
+        self[:] = tup
+        self.hashvalue = hash(tup)
+
+    def __hash__(self):
+        return self.hashvalue
+
+def _make_key(args, kwds, typed,
+             kwd_mark = (object(),),
+             fasttypes = {int, str, frozenset, type(None)},
+             tuple=tuple, type=type, len=len):
+    &quot;&quot;&quot; ... 省略
+    &quot;&quot;&quot;
+    key = args
+    if kwds:
+        key += kwd_mark
+        for item in kwds.items():
+            key += item
+    if typed:
+        key += tuple(type(v) for v in args)
+        if kwds:
+            key += tuple(type(v) for v in kwds.values())
+    elif len(key) == 1 and type(key[0]) in fasttypes:
+        return key[0]
+    return _HashedSeq(key)
+</code></pre>
+<p>从这段源码可以看出，当函数的参数只有一个、<code>typed</code>为<code>False</code>、且类型为<code>int</code>、<code>str</code>等时，<code>_make_key</code>会直接将该参数作为<code>key</code>值返回。否则，<code>_make_key</code>会生成一个<code>_HashedSeq</code>来存储函数的参数，当<code>typed</code>为<code>True</code>时还会存储参数的类型，且<code>*args</code>和<code>**kwargs</code>这两种参数之间会插入一个<code>object</code>用作分隔。下面这几个例子能帮助理解这段源码：</p>
+<pre><code class="python">&gt;&gt;&gt; from functools import _make_key
+&gt;&gt;&gt; _make_key((1, &#39;123&#39;), {&#39;name&#39;: &#39;bob&#39;}, False)
+[1, &#39;123&#39;, &lt;object object at ...&gt;, &#39;name&#39;, &#39;bob&#39;]
+&gt;&gt;&gt; _make_key((1, &#39;123&#39;), {&#39;name&#39;: &#39;bob&#39;}, True)
+[1, &#39;123&#39;, &lt;object object at ...&gt;, &#39;name&#39;, &#39;bob&#39;, &lt;class &#39;int&#39;&gt;, &lt;class &#39;str&#39;&gt;, &lt;class &#39;str&#39;&gt;]
+&gt;&gt;&gt; _make_key((1,), {}, False)
+1
+&gt;&gt;&gt; _make_key((1,), {}, True)
+[1, &lt;class &#39;int&#39;&gt;]
+</code></pre>
+<h4 id="谁错了？"><a href="#谁错了？" class="headerlink" title="谁错了？"></a>谁错了？</h4><p>理解了这段源码之后，又会出现新的问题：不管<code>typed</code>为<code>True</code>还是<code>False</code>，对于单参数<code>1</code>和<code>1.0</code>，<code>_make_key()</code>得到的结果的哈希值都不一致：</p>
+<pre><code class="python">&gt;&gt;&gt; from functools import _make_key
+&gt;&gt;&gt; hash(_make_key((1,), {}, False))    # 1
+1
+&gt;&gt;&gt; hash(_make_key((1.0,), {}, False))  # [1.0]
+3430019387558
+&gt;&gt;&gt; hash(_make_key((1,), {}, True))     # [1, &lt;class &#39;int&#39;&gt;]
+3713082220284583106
+&gt;&gt;&gt; hash(_make_key((1.0,), {}, True))   # [1.0, &lt;class &#39;float&#39;&gt;]
+3713082219329796056
+</code></pre>
+<p>但此时如果使用<code>lru_cache</code>，就会发现<code>lru_cache</code>是将单参数<code>1</code>和<code>1.0</code>一起缓存的，和本文一开始对<code>lru_cache</code>的描述一致：</p>
+<pre><code class="python">@functools.lru_cache()
+def test(val):
+    print(val)
+
+test(1)    # 输出1
+test(1.0)  # 已缓存，不输出
+</code></pre>
+<p>所以这到底是哪里出了问题？答案就是前文提到的C语言实现和Python实现的区别。C语言实现的<code>_lru_cache_wrapper()</code>并不使用Python实现的<code>_make_key()</code>，而CPython默认使用的是前者，所以会造成这里提到的问题。</p>
+<p>此时如果将修改CPython内置的<code>functools.py</code>，只使用Python实现的<code>_lru_cache_wrapper()</code>，就会发现结果是符合预期的。<code>1</code>和<code>1.0</code>通过<code>_make_key()</code>得到的哈希值不同，自然也就会分开缓存：</p>
+<pre><code class="python">try:
+    # 不使用C语言实现的版本
+    # from _functools import _lru_cache_wrapper
+    pass
+except ImportError:
+    pass
+</code></pre>
+<pre><code class="python">@functools.lru_cache()
+def test(val):
+    print(val)
+
+test(1)    # 输出1
+test(1.0)  # 输出1.0
+</code></pre>
+<h3 id="maxsize为正整数"><a href="#maxsize为正整数" class="headerlink" title="maxsize为正整数"></a>maxsize为正整数</h3><p>当<code>maxsize</code>为正整数时，<code>lru_cache</code>不能无限制地缓存函数结果，必须用<code>lru</code>算法清除缓存。遗憾的是，由于受限于篇幅，且笔者并没有弄懂这部分的代码（这才是重点吧……），所以这部分源码就先按下不表。</p>
+<h3 id="cache-info和cache-clear"><a href="#cache-info和cache-clear" class="headerlink" title="cache_info和cache_clear"></a>cache_info和cache_clear</h3><pre><code class="python">def _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo):
+    # ...
+    hits = misses = 0
+    full = False
+    cache_len = cache.__len__  # get cache size without calling len()
+    lock = RLock()           # because linkedlist updates aren&#39;t threadsafe
+    root = []                # root of the circular doubly linked list
+    root[:] = [root, root, None, None]     # initialize by pointing to self
+    # ...
+    def cache_info():
+        &quot;&quot;&quot;Report cache statistics&quot;&quot;&quot;
+        with lock:
+            return _CacheInfo(hits, misses, maxsize, cache_len())
+
+    def cache_clear():
+        &quot;&quot;&quot;Clear the cache and cache statistics&quot;&quot;&quot;
+        nonlocal hits, misses, full
+        with lock:
+            cache.clear()
+            root[:] = [root, root, None, None]
+            hits = misses = 0
+            full = False
+</code></pre>
+<p>这两个函数的作用比较单纯，分别是返回当前缓存状态和清空缓存。源码也简单易懂，这里就不过多介绍。其中<code>root</code>、<code>lock</code>、<code>full</code>等变量是只有在<code>maxsize</code>为正整数，或者说启用<code>lru</code>算法时才需要的，本文介绍的、针对其它情况的源码不需要这几个变量。</p>
+<h1 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h1><p>本来笔者还想分析<code>singledispatch</code>装饰器的源码的，但一个<code>lru_cache</code>就把笔者折腾得够呛，这还是跳过了最复杂的<code>lru</code>算法的情况下……路漫漫其修远兮啊。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/源码/" rel="tag"># 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/06/19/fluent-python-chap-7/" rel="next" title="读《流畅的Python》：函数装饰器与闭包">
+                <i class="fa fa-chevron-left"></i> 读《流畅的Python》：函数装饰器与闭包
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/07/04/python-parameters-and-arguments/" rel="prev" title="Python中的函数参数与参数传递">
+                Python中的函数参数与参数传递 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#functools-wraps"><span class="nav-number">2.</span> <span class="nav-text">functools.wraps</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例"><span class="nav-number">2.1.</span> <span class="nav-text">使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码"><span class="nav-number">2.2.</span> <span class="nav-text">源码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#functools-lru-cache"><span class="nav-number">3.</span> <span class="nav-text">functools.lru_cache</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例-1"><span class="nav-number">3.1.</span> <span class="nav-text">使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码-1"><span class="nav-number">3.2.</span> <span class="nav-text">源码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maxsize为0"><span class="nav-number">3.2.1.</span> <span class="nav-text">maxsize为0</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maxsize为None"><span class="nav-number">3.2.2.</span> <span class="nav-text">maxsize为None</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#make-key"><span class="nav-number">3.2.3.</span> <span class="nav-text">_make_key</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#谁错了？"><span class="nav-number">3.2.3.1.</span> <span class="nav-text">谁错了？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maxsize为正整数"><span class="nav-number">3.2.4.</span> <span class="nav-text">maxsize为正整数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cache-info和cache-clear"><span class="nav-number">3.2.5.</span> <span class="nav-text">cache_info和cache_clear</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#尾声"><span class="nav-number">4.</span> <span class="nav-text">尾声</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/06/20/python-decorators-source-code/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

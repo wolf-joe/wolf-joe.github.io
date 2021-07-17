@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言 读书笔记这种内容，放在Evernote等笔记软件里似乎要比放在博客里更合适。但其一是笔者还没有找到适合我的笔记同步方案，其二是博客相比笔记软件更能锻炼自身的表达能力（或许吧），其三是将读书笔记放在博客里可以避免在求职的时候被面试官吐槽博客内容太少（笑），所以还是决定将这篇文章放在博客里。 但不管怎样，读书笔记终归是读书笔记，对其他人的作用还是有限，如有读者觉得碍眼烦请无视。  注：本篇文章使">
+<meta name="keywords" content="流畅的Python,读书笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="读《流畅的Python》：函数装饰器与闭包">
+<meta property="og:url" content="https://www.yooo.ltd/2020/06/19/fluent-python-chap-7/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言 读书笔记这种内容，放在Evernote等笔记软件里似乎要比放在博客里更合适。但其一是笔者还没有找到适合我的笔记同步方案，其二是博客相比笔记软件更能锻炼自身的表达能力（或许吧），其三是将读书笔记放在博客里可以避免在求职的时候被面试官吐槽博客内容太少（笑），所以还是决定将这篇文章放在博客里。 但不管怎样，读书笔记终归是读书笔记，对其他人的作用还是有限，如有读者觉得碍眼烦请无视。  注：本篇文章使">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/06/19/fluent_python.webp">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.882Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="读《流畅的Python》：函数装饰器与闭包">
+<meta name="twitter:description" content="前言 读书笔记这种内容，放在Evernote等笔记软件里似乎要比放在博客里更合适。但其一是笔者还没有找到适合我的笔记同步方案，其二是博客相比笔记软件更能锻炼自身的表达能力（或许吧），其三是将读书笔记放在博客里可以避免在求职的时候被面试官吐槽博客内容太少（笑），所以还是决定将这篇文章放在博客里。 但不管怎样，读书笔记终归是读书笔记，对其他人的作用还是有限，如有读者觉得碍眼烦请无视。  注：本篇文章使">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/06/19/fluent_python.webp">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/06/19/fluent-python-chap-7/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>读《流畅的Python》：函数装饰器与闭包 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/06/19/fluent-python-chap-7/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">读《流畅的Python》：函数装饰器与闭包
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-19 17:02:47" itemprop="dateCreated datePublished" datetime="2020-06-19T17:02:47+08:00">2020-06-19</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2020/06/19/fluent_python.webp" alt=""></p>
+<p>读书笔记这种内容，放在<code>Evernote</code>等笔记软件里似乎要比放在博客里更合适。但其一是笔者还没有找到适合我的笔记同步方案，其二是博客相比笔记软件更能锻炼自身的表达能力（或许吧），其三是将读书笔记放在博客里可以避免在求职的时候被面试官吐槽博客内容太少（笑），所以还是决定将这篇文章放在博客里。</p>
+<p>但不管怎样，读书笔记终归是读书笔记，对其他人的作用还是有限，如有读者觉得碍眼烦请无视。</p>
+<blockquote>
+<p>注：本篇文章使用CPython3.6</p>
+</blockquote>
+<h1 id="函数装饰器"><a href="#函数装饰器" class="headerlink" title="函数装饰器"></a>函数装饰器</h1><p>函数装饰器是可调用的对象，其参数是另一个函数（被装饰的函数）。下面是一个简单的装饰器：</p>
+<pre><code class="python">def deco(func: Callable) -&gt; Callable:
+    def inner():
+        print(&#39;running inner()&#39;)
+
+    return inner
+</code></pre>
+<p>用法也很容易理解，下面两段代码效果一样：</p>
+<pre><code class="python">@deco
+def target():
+    print(&#39;running target()&#39;)
+</code></pre>
+<pre><code class="python">def target():
+    print(&#39;running target()&#39;)
+
+target = deco(target)
+</code></pre>
+<p>从上面的例子就可以看出，装饰器只是一个语法糖。即使没有这个语法糖，也只是在进行类似的操作时需要更繁琐的代码，但不会造成功能上的缺失。</p>
+<p>既然上面两段代码效果一样，那装饰器何时运行就很明显了：<strong>在被装饰的函数定义之后（通常是函数被导入时）立即运行</strong>。毕竟，真正被导入的不是<code>target()</code>，而是<code>deco()</code>的返回值。而要获得<code>deco()</code>的返回值，就必须让<code>deco()</code>先运行。</p>
+<h1 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h1><p>下面两段代码有什么区别？</p>
+<pre><code class="python">b = 9
+def f1():
+    print(b)
+
+f1()
+</code></pre>
+<pre><code class="python">b = 9
+def f2():
+    print(b)  # UnboundLocalError: local variable &#39;b&#39; referenced before assignment
+    b = 3
+
+f2()
+</code></pre>
+<p>答案是后一段代码在执行<code>print(b)</code>时会抛出<code>UnboundLocalError</code>。因为在<code>f2()</code>中变量<code>b</code>被赋值了（<code>b = 3</code>），于是Python在编译<code>f2()</code>的定义体时将<code>b</code>视为局部变量，而不是像<code>f1()</code>那样在全局变量里查找<code>b</code>。如果想让<code>f2()</code>也将<code>b</code>视为全局变量，就需要使用<code>global</code>关键字：</p>
+<pre><code class="python">b = 9
+def f1():
+    global b
+    print(b)
+    b = 3
+
+f1()  # 正常运行
+</code></pre>
+<h1 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h1><p>为什么会突然提到变量作用域这个概念呢？我们知道，Python中的局部变量在离开作用域会后被GC（垃圾回收）机制销毁，比如：</p>
+<pre><code class="python">&gt;&gt;&gt; import weakref
+&gt;&gt;&gt; def foo():
+...     s = set(range(3))
+...     weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
+... 
+&gt;&gt;&gt; foo()
+s has gone
+</code></pre>
+<p>很明显，<code>foo()</code>运行完成后，运行期间创建的变量<code>s</code>被销毁了。但如果我们想在<code>foo()</code>内部再定义一个函数，并让这个函数能访问变量<code>s</code>，那<code>s</code>就不会被销毁：</p>
+<pre><code class="python">&gt;&gt;&gt; import weakref
+&gt;&gt;&gt; def foo():
+...     s = set(range(3))
+...     weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
+...
+...     def bar():
+...         print(s)
+...     return bar
+... 
+&gt;&gt;&gt; bar = foo()
+&gt;&gt;&gt; bar()
+{0, 1, 2}
+</code></pre>
+<p>像<code>bar()</code>这种<strong>延伸了作用域的函数</strong>叫做<strong>闭包</strong>，它能访问不在定义体内定义的非全局变量。从这点可以看出，只有嵌套函数才有闭包这个概念。</p>
+<p>变量<code>s</code>在<code>foo()</code>运行函数后已经是孤魂野鬼，被称作自由变量（<code>free variable</code>）。但<code>bar()</code>要能够访问变量<code>s</code>，就需要持有变量<code>s</code>的引用，这点可以从<code>__code__</code>属性（编译后的函数定义体）和<code>__closure__</code>属性中可以看出：</p>
+<pre><code class="python">&gt;&gt;&gt; bar.__code__.co_varnames  # 局部变量
+()
+&gt;&gt;&gt; bar.__code__.co_freevars  # 自由变量
+(&#39;s&#39;,)
+&gt;&gt;&gt; bar.__closure__
+(&lt;cell at ...: set object at ...&gt;,)
+&gt;&gt;&gt; bar.__closure__[0].cell_contents
+{0, 1, 2}
+</code></pre>
+<h2 id="危险地带：被删除的自由变量"><a href="#危险地带：被删除的自由变量" class="headerlink" title="危险地带：被删除的自由变量"></a>危险地带：被删除的自由变量</h2><p>Python在编译<code>foo()</code>时发现<code>bar()</code>需要访问变量<code>s</code>，于是将<code>s</code>视为自由变量，即使离开作用域也不会销毁。但Python不是静态语言，对象的实际状态需要等到运行时才能确定。看下面这个例子：</p>
+<pre><code class="python">def foo():
+    s = set(range(3))
+    weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
+    del s         # 1. 输出s has gone
+
+    def bar():
+        print(s)  # 4. NameError: free variable &#39;s&#39; referenced before assignment in enclosing scope
+
+    return bar
+
+
+bar = foo()
+print(bar.__code__.co_freevars)  # 2. 输出(&#39;s&#39;,)
+print(bar.__closure__[0])        # 3. 输出&lt;cell at ...: empty&gt;
+bar()
+</code></pre>
+<p>这段代码的执行顺序和输出结果已经以注释的形式附加。Python在编译完<code>bar()</code>之后知道应该将<code>s</code>视为自由变量，但实际上<code>bar()</code>在运行时变量<code>s</code>已经被删除了……这个例子告诉我们，Python的动态特性是把双刃剑，更直白点就是：不要作死.</p>
+<h2 id="nonlocal关键字"><a href="#nonlocal关键字" class="headerlink" title="nonlocal关键字"></a>nonlocal关键字</h2><p>再来看看这样一个返回值为<code>统计平均值的函数</code>的函数：</p>
+<pre><code class="python">def make_averager():
+    nums = []
+
+    def averager(num: int) -&gt; float:
+        nums.append(num)
+        return sum(nums) / len(nums)
+
+    return averager
+
+averager = make_averager()
+print(averager(10))  # 10.0
+print(averager(5))  # 7.5
+</code></pre>
+<p>嗯，运行很完美。优化一下这个函数，让它不需要将所有的数字都保存起来：</p>
+<pre><code class="python">def make_averager():
+    total, count = 0, 0
+
+    def averager(num: int) -&gt; float:
+        total += num  # UnboundLocalError
+        count += 1
+        return total / count
+
+    return averager
+</code></pre>
+<p>和上一节的第二个例子类似，<code>averager()</code>在运行时会抛出<code>UnboundLocalError</code>异常。但这次不能用<code>global</code>关键字来解决这个异常了：因为<code>total</code>和<code>num</code>压根就不是全局变量，而是作用域仅限<code>make_averager()</code>的局部变量。那怎样让<code>averager()</code>能修改<code>total</code>和<code>num</code>呢？答案是<code>nonlocal</code>关键字。和<code>global</code>关键字类似，<code>nonlocal</code>会告知Python：<strong>这个变量在更外层的作用域</strong>。如代码所示：</p>
+<pre><code class="python">def make_averager():
+    total, count = 0, 0
+
+    def averager(num: int) -&gt; float:
+        nonlocal total, count
+        total += num
+        count += 1
+        return total / count  # 正常运行
+
+    return averager
+</code></pre>
+<p>但<code>nonlocal</code>关键字并不能取代<code>global</code>关键字，因为局部变量（<code>locals()</code>）和全局变量（<code>globals()</code>）是互相独立的，比如如下的代码会抛出<code>SyntaxError</code>，即使<code>f2()</code>并没有被实际执行：</p>
+<pre><code class="python">b = 9
+def f2():
+    nonlocal b
+    print(b)
+    b = 3
+</code></pre>
+<p>同时<code>nonlocal</code>关键字的声明是不限深度的，也就是说Python会一直向更外层的作用域寻找这个变量，直到找到为止。如代码所示：</p>
+<pre><code class="python">def make_averager():
+    total, count = 0, 0
+
+    def averager(num: int) -&gt; float:
+        def deeper():
+            nonlocal total, count
+            total += num
+            count += 1
+            return total / count  # 正常运行
+
+        return deeper()
+
+    return averager
+</code></pre>
+<h1 id="计时函数装饰器"><a href="#计时函数装饰器" class="headerlink" title="计时函数装饰器"></a>计时函数装饰器</h1><p>了解了函数装饰器、闭包等概念后，就可以编写一个稍微具有一点实用性的函数装饰器了：</p>
+<pre><code class="python">def clock(func: Callable) -&gt; Callable:
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        t0 = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - t0
+        fmt = &#39;[{elapsed:.4f}s] {func.__name__}({args}, {kwargs}): {result}&#39;
+        print(fmt.format(**locals()))
+        return result
+
+    return inner
+</code></pre>
+<p>同样的，<code>inner</code>函数属于闭包函数，<code>func</code>属于自由变量。使用方法和效果如下：</p>
+<pre><code class="python">@clock
+def snooze(second: float):
+    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
+    time.sleep(second)
+
+snooze(0.1)  # 输出：[0.1001s] snooze((0.1,), {}): None
+</code></pre>
+<h2 id="functool-wraps"><a href="#functool-wraps" class="headerlink" title="functool.wraps"></a>functool.wraps</h2><p>上面这个装饰器的缺点是无法继承被装饰函数的属性（如<code>__name__</code>、<code>__doc__</code>）：</p>
+<pre><code class="python">print(snooze.__name__)  # inner
+print(snooze.__doc__)  # inner doc
+</code></pre>
+<p>这个时候就需要请出Python内置的装饰器<code>functool.wraps</code>了，这个装饰器会自动复制被装饰函数的属性到返回值函数里（换句话说就是让<code>inner()</code>按目标函数<code>snnoze()</code>的样子整个容）：</p>
+<pre><code class="python">def clock(func: Callable) -&gt; Callable:
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+        # ... 略
+    return inner
+
+@clock
+def snooze(second: float):
+    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
+    time.sleep(second
+
+print(snooze.__name__)  # snooze
+print(snooze.__doc__)  # snooze doc
+</code></pre>
+<h1 id="带参数的函数装饰器"><a href="#带参数的函数装饰器" class="headerlink" title="带参数的函数装饰器"></a>带参数的函数装饰器</h1><p>上节提到的<code>functool.wraps</code>装饰器比较特别，这个装饰器可以传入参数。我们知道，对于不带参数的装饰器，下面两段代码是相等的：</p>
+<pre><code class="python">@deco
+def target():
+    print(&#39;running target()&#39;)
+</code></pre>
+<pre><code class="python">def target():
+    print(&#39;running target()&#39;)
+
+target = deco(target)
+</code></pre>
+<p>而对于带参数的装饰器，下面两段代码也是相等的：</p>
+<pre><code class="python">@deco(123)
+def target():
+    print(&#39;running target()&#39;)
+</code></pre>
+<pre><code class="python">def target():
+    print(&#39;running target()&#39;)
+
+target = deco(123)(target)
+</code></pre>
+<p>从上面的例子可以看出，装饰器带不带参数，决定了是用这个函数本身来当装饰器，还是用函数的返回值来当装饰器（可能有点绕）。用这个思路改进一下前面提到的函数计时装饰器：</p>
+<pre><code class="python">DEFAULT_FMT = &#39;[{elapsed:.4f}s] {func.__name__}({args}, {kwargs}): {result}&#39;
+
+def clock_plus(fmt=DEFAULT_FMT):
+    def clock(func: Callable) -&gt; Callable:
+        def inner(*args, **kwargs):
+            &quot;&quot;&quot;inner doc&quot;&quot;&quot;
+            t0 = time.perf_counter()
+            result = func(*args, **kwargs)
+            elapsed = time.perf_counter() - t0
+            print(fmt.format(**locals()))
+            return result
+
+        return inner
+    return clock
+</code></pre>
+<p>用法和效果如下：</p>
+<pre><code class="python">@clock_plus(fmt=&#39;{elapsed:.4f}&#39;)
+def snooze(second: float):
+    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
+    time.sleep(second)
+
+snooze(0.1)  # 输出：0.1001
+</code></pre>
+<p>所以，带参数的函数装饰器只是在不带函数的装饰器外面裹了一层，并没有太多魔术操作。</p>
+<h1 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h1><p>《流畅的Python》第七章（函数装饰器和闭包）的概念不算少，同时笔者也没能在提取关键信息的基础上控制好篇幅，再加上文章里还有笔者的一些个人理解，所以文章最后只能草草收尾，没有介绍叠放装饰器、<code>functools.lru_cache</code>等内容。</p>
+<p>也许在读完这类书籍后，画一个思维导图，或单纯写一篇给自己看的笔记才是最好的选择，至少不会在博客里丢人（逃</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/流畅的Python/" rel="tag"># 流畅的Python</a>
+          
+            <a href="/tags/读书笔记/" rel="tag"># 读书笔记</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/06/14/如何在Python中引起内存泄露/" rel="next" title="如何在Python中引起内存泄露">
+                <i class="fa fa-chevron-left"></i> 如何在Python中引起内存泄露
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/06/20/python-decorators-source-code/" rel="prev" title="Python部分内置函数装饰器源码浅析">
+                Python部分内置函数装饰器源码浅析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数装饰器"><span class="nav-number">2.</span> <span class="nav-text">函数装饰器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量作用域"><span class="nav-number">3.</span> <span class="nav-text">变量作用域</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#闭包"><span class="nav-number">4.</span> <span class="nav-text">闭包</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#危险地带：被删除的自由变量"><span class="nav-number">4.1.</span> <span class="nav-text">危险地带：被删除的自由变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nonlocal关键字"><span class="nav-number">4.2.</span> <span class="nav-text">nonlocal关键字</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#计时函数装饰器"><span class="nav-number">5.</span> <span class="nav-text">计时函数装饰器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#functool-wraps"><span class="nav-number">5.1.</span> <span class="nav-text">functool.wraps</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#带参数的函数装饰器"><span class="nav-number">6.</span> <span class="nav-text">带参数的函数装饰器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#尾声"><span class="nav-number">7.</span> <span class="nav-text">尾声</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/06/19/fluent-python-chap-7/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

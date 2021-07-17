@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言我们怎样知道执行某个Python文件、某个函数、某段代码所耗费的总体时间？这是这篇文章尝试去回答的问题。作为样例，本文使用slow_func.py来进行性能分析，内容如下： # coding:utf-8 import time import random  def func1():     time.sleep(1)  # 等待一秒  def func2():     for _ in ran">
+<meta name="keywords" content="Python,性能分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python代码性能分析（前篇）">
+<meta property="og:url" content="https://www.yooo.ltd/2019/03/06/Python代码性能分析（前篇）/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言我们怎样知道执行某个Python文件、某个函数、某段代码所耗费的总体时间？这是这篇文章尝试去回答的问题。作为样例，本文使用slow_func.py来进行性能分析，内容如下： # coding:utf-8 import time import random  def func1():     time.sleep(1)  # 等待一秒  def func2():     for _ in ran">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.879Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python代码性能分析（前篇）">
+<meta name="twitter:description" content="前言我们怎样知道执行某个Python文件、某个函数、某段代码所耗费的总体时间？这是这篇文章尝试去回答的问题。作为样例，本文使用slow_func.py来进行性能分析，内容如下： # coding:utf-8 import time import random  def func1():     time.sleep(1)  # 等待一秒  def func2():     for _ in ran">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2019/03/06/Python代码性能分析（前篇）/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Python代码性能分析（前篇） | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2019/03/06/Python代码性能分析（前篇）/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Python代码性能分析（前篇）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-06 15:02:37" itemprop="dateCreated datePublished" datetime="2019-03-06T15:02:37+08:00">2019-03-06</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我们怎样知道执行某个Python文件、某个函数、某段代码所耗费的总体时间？这是这篇文章尝试去回答的问题。<br>作为样例，本文使用<code>slow_func.py</code>来进行性能分析，内容如下：</p>
+<pre><code class="python"># coding:utf-8
+import time
+import random
+
+def func1():
+    time.sleep(1)  # 等待一秒
+
+def func2():
+    for _ in range(2 ** 24):
+        random.random()  # 生成1600万个随机数
+
+if __name__ == &#39;__main__&#39;:
+    func1()
+    func2()
+</code></pre>
+<p>函数<code>func1</code>和<code>func2</code>的区别在于：CPU在执行<code>func1</code>时基本处在闲置状态，在执行<code>func2()</code>时基本处于忙碌状态。这点会在之后的测试中有所体现。<br>在笔者的测试平台（<code>Ubuntu 18.04</code>+<code>Python 3.6</code>）上，两个函数所耗费的时间均在<code>1s</code>左右。</p>
+<h1 id="time命令"><a href="#time命令" class="headerlink" title="time命令"></a>time命令</h1><p>类UNIX平台提供了<code>time</code>命令以统计执行执行命令所花费的时间。当然，这是一个通用型的工具，而不局限于Python。<br>执行如下shell命令：</p>
+<pre><code class="shell">time python3 slow_func.py
+</code></pre>
+<p>获得如下结果：</p>
+<pre><code class="shell">real    0m1.960s  # 命令执行时间
+user    0m0.946s  # 用户态CPU时间
+sys     0m0.008s
+</code></pre>
+<p>根据前两行结果中我们可以得知，<code>slow_func.py</code>从开始到结束共消耗了2秒左右的时间，但实际消耗的用户态CPU时间只有1秒左右。这是因为CPU在执行<code>func1()</code>时处于等待状态（<code>sleep</code>），这段时间里是不消耗CPU时间的。</p>
+<h1 id="time库"><a href="#time库" class="headerlink" title="time库"></a>time库</h1><p>Python提供了标准库<code>time</code>来进行关于时间的操作，我们可以通过这个库来测量代码执行所耗费的时间。<br>执行如下Python代码：</p>
+<pre><code class="python">import time
+from slow_func import func1, func2
+
+start1, start2 = time.perf_counter(), time.process_time()
+func1()
+func2()
+print(&#39;perf_counter: {:.4f}s&#39;.format(time.perf_counter() - start1))
+print(&#39;process_time: {:.4f}s&#39;.format(time.process_time() - start2))
+</code></pre>
+<p>获得如下结果：</p>
+<pre><code class="shell">perf_counter: 2.1201s
+process_time: 1.1119s
+</code></pre>
+<p><code>time.perf_counter()</code>的时间差是代码开始与代码结束两个时间点的时间差，而<code>time.process_time()</code>的时间差是消耗的CPU时间长度，所以得出了不同的结果，这与先前的<code>time</code>命令的原因和结果相类似。</p>
+<h1 id="time库-上下文管理器"><a href="#time库-上下文管理器" class="headerlink" title="time库+上下文管理器"></a>time库+上下文管理器</h1><p>上面提到的用time库来测量代码耗时用起来很方便，但如果经常要用到的话写起来也很繁琐。这时我们可以写一个自定义的上下文管理器来避免重复代码。<br>执行如下Python代码：</p>
+<pre><code class="python">import time
+from contextlib import contextmanager
+
+@contextmanager
+def time_block(label):  # 代码块计时上下文管理器
+    # 进入上下文
+    start = time.perf_counter()
+    try:
+        yield  # 执行代码块
+    finally:
+        # 执行完成后输出代码块耗时
+        used = time.perf_counter() - start
+        print(&#39;{}: {:.4f}s&#39;.format(label, used))
+
+# 用法
+with time_block(&#39;sleep&#39;):
+    time.sleep(1)
+</code></pre>
+<p>获得如下结果：</p>
+<pre><code class="shell">sleep: 1.0011s
+</code></pre>
+<h1 id="time库-函数装饰器"><a href="#time库-函数装饰器" class="headerlink" title="time库+函数装饰器"></a>time库+函数装饰器</h1><p>上下文管理器针对的是代码块，如果只想统计函数执行所消耗的时间，用函数装饰器更为方便和快捷。<br>执行如下Python代码：</p>
+<pre><code class="python">import time
+from functools import wraps
+
+def time_wrap(func):  # 函数计时装饰器
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        r = func(*args, **kwargs)
+        used = time.perf_counter() - start
+        print(&#39;{f.__module__}.{f.__name__}: {t:.4f}s&#39;.format(f=func, t=used))
+        return r
+
+    return wrapper
+
+@time_wrap  # 函数定义时使用装饰器
+def slow_func():
+    time.sleep(1)
+
+# 执行函数时自动调用装饰器
+slow_func()
+</code></pre>
+<p>获得如下结果：</p>
+<pre><code class="shell">__main__.slow_func: 1.0008s
+</code></pre>
+<h1 id="timeit库"><a href="#timeit库" class="headerlink" title="timeit库"></a>timeit库</h1><p>当需要多次重复测量Python代时以获取精确的耗时结果时，我们可以通过循环控制配合上文提到的方法来实现，也可以通过一个更便捷的、适合重复测试的标准库：<code>timeit</code>来实现。<br>执行如下代码：</p>
+<pre><code class="python">import timeit
+
+setup = &#39;from slow_func import func1&#39;
+
+used = timeit.timeit(&#39;func1()&#39;, setup=setup, number=5)
+print(&#39;{:.4f}&#39;.format(used))
+</code></pre>
+<p>获得如下结果：</p>
+<pre><code class="shell">5.0039
+</code></pre>
+<p><code>timeit</code>库默认使用的计时器为<code>time.perf_counter()</code>，如果想换成测量CPU耗时的计时器，只需要附加上<code>timer</code>参数即可：</p>
+<pre><code class="python">...
+import time
+timer = time.process_time
+
+used = timeit.timeit(&#39;func1()&#39;, timer=timer, setup=setup, number=5)  # 附加timer参数
+...
+</code></pre>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/性能分析/" rel="tag"># 性能分析</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/20/Nginx-uWSGI静态文件性能对比/" rel="next" title="Nginx&uWSGI静态文件性能对比">
+                <i class="fa fa-chevron-left"></i> Nginx&uWSGI静态文件性能对比
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/08/Python代码性能分析（后篇）/" rel="prev" title="Python代码性能分析（后篇）">
+                Python代码性能分析（后篇） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#time命令"><span class="nav-number">2.</span> <span class="nav-text">time命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#time库"><span class="nav-number">3.</span> <span class="nav-text">time库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#time库-上下文管理器"><span class="nav-number">4.</span> <span class="nav-text">time库+上下文管理器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#time库-函数装饰器"><span class="nav-number">5.</span> <span class="nav-text">time库+函数装饰器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#timeit库"><span class="nav-number">6.</span> <span class="nav-text">timeit库</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2019/03/06/Python代码性能分析（前篇）/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

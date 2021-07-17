@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前情提要这篇文章基于上一篇文章Django多数据库历险记（一），将继续讲述关于Django多数据库的历险记。 在上一篇文章中，我创建了一个Django项目：multi_db，在这个项目里指定了两个app：app_1和app_2，每个app下各自创建了一个Model：Model1和Model2，并为这两个app各自分配了独立的数据库db_1和db_2。历险继续～ 第三关：TestCase在multi">
+<meta name="keywords" content="Web开发,Python,Django,多数据库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django多数据库历险记（二）">
+<meta property="og:url" content="https://www.yooo.ltd/2020/04/25/Django多数据库历险记（二）/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前情提要这篇文章基于上一篇文章Django多数据库历险记（一），将继续讲述关于Django多数据库的历险记。 在上一篇文章中，我创建了一个Django项目：multi_db，在这个项目里指定了两个app：app_1和app_2，每个app下各自创建了一个Model：Model1和Model2，并为这两个app各自分配了独立的数据库db_1和db_2。历险继续～ 第三关：TestCase在multi">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/04/27/document.webp">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.881Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django多数据库历险记（二）">
+<meta name="twitter:description" content="前情提要这篇文章基于上一篇文章Django多数据库历险记（一），将继续讲述关于Django多数据库的历险记。 在上一篇文章中，我创建了一个Django项目：multi_db，在这个项目里指定了两个app：app_1和app_2，每个app下各自创建了一个Model：Model1和Model2，并为这两个app各自分配了独立的数据库db_1和db_2。历险继续～ 第三关：TestCase在multi">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/04/27/document.webp">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/04/25/Django多数据库历险记（二）/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Django多数据库历险记（二） | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/04/25/Django多数据库历险记（二）/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Django多数据库历险记（二）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-25 18:22:33" itemprop="dateCreated datePublished" datetime="2020-04-25T18:22:33+08:00">2020-04-25</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h1><p>这篇文章基于上一篇文章<a href="/2020/04/23/Django多数据库历险记（一）/">Django多数据库历险记（一）</a>，将继续讲述关于Django多数据库的历险记。</p>
+<p>在上一篇文章中，我创建了一个Django项目：<code>multi_db</code>，在这个项目里指定了两个app：<code>app_1</code>和<code>app_2</code>，每个app下各自创建了一个<code>Model</code>：<code>Model1</code>和<code>Model2</code>，并为这两个app各自分配了独立的数据库<code>db_1</code>和<code>db_2</code>。历险继续～</p>
+<h1 id="第三关：TestCase"><a href="#第三关：TestCase" class="headerlink" title="第三关：TestCase"></a>第三关：TestCase</h1><p>在<code>multi_db</code>这个Django项目能够运行起来之后，下一步让我们来运行一些TestCase（对，即使这个项目里一个视图函数都还没有，<del>毕竟是TDD😂</del>）。编辑TestCase文件并运行：</p>
+<pre><code class="python"># tests/test_multi_db.py
+from django.test import TestCase
+
+from app_1.models import Model1
+from app_2.models import Model2
+
+class TestDB1(TestCase):
+    databases = [&quot;db_1&quot;]
+
+    def test_query(self):
+        count = Model1.objects.count()
+        self.assertEqual(count, 0)
+
+class TestDB2(TestCase):
+    databases = [&quot;db_2&quot;]
+
+    def test_query(self):
+        count = Model2.objects.count()
+        self.assertEqual(count, 0)
+</code></pre>
+<pre><code class="shell">$ time python manage.py test tests/
+Creating test database for alias &#39;db_1&#39;...
+Creating test database for alias &#39;db_2&#39;...
+System check identified no issues (0 silenced).
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.006s
+
+OK
+Destroying test database for alias &#39;db_1&#39;...
+Destroying test database for alias &#39;db_2&#39;...
+python manage.py test tests/  1.02s user 0.04s system 14% cpu 7.288 total
+</code></pre>
+<p>很好，两个TestCase都测试通过（毕竟没有比这更简单的TestCase了）。一切都看起来非常美好，除了这惊人的命令耗时：为什么创建&amp;销毁两个测试数据库会消耗7秒以上的时间！如果你看过上一篇文章，那么你可能已经隐约猜到原因了。没错，幕后黑手还是<code>migrate</code>命令。</p>
+<p>从Django测试模块源码（<a href="https://github.com/django/django/blob/2.2.12/django/test/runner.py#L614" target="_blank" rel="noopener">runner.py#L614</a>）中可以看出，对于TestCase里所有的<code>databases</code>（比如上面的<code>db_1</code>、<code>db_2</code>），Django都会创建对应的测试数据库（<code>test_db_1</code>、<code>test_db_2</code>），并为每个测试数据库执行一次<code>migrate</code>命令（<a href="https://github.com/django/django/blob/2.2.12/django/db/backends/base/creation.py#L67" target="_blank" rel="noopener">creation.py#L67</a>）。在上一篇文章中，我们就已经知道<code>migrate</code>命令会一股脑地将所有迁移方案都应用到数据库，这里也不例外。用<code>test</code>命令的<code>--keepdb</code>选项验证一下：</p>
+<pre><code class="shell">$ python manage.py test tests/ --keepdb
+# ... 略
+</code></pre>
+<pre><code class="sql">mariadb root@127.0.0.1:test_db_1&gt; show tables
++----------------------------+
+| Tables_in_test_db_1        |
++----------------------------+
+| app_1_model1               |
+| app_2_model2               |
+| auth_group                 |
+# ... 略
+</code></pre>
+<pre><code class="sql">mariadb root@127.0.0.1:test_db_2&gt; show tables
++----------------------------+
+| Tables_in_test_db_2        |
++----------------------------+
+| app_1_model1               |
+| app_2_model2               |
+| auth_group                 |
+# ... 略
+</code></pre>
+<p>那么，有没有办法在对<code>db_1</code>进行测试时，只在<code>test_db_1</code>这个测试数据库上创建只属于<code>app_1</code>的<code>Model</code>呢？答案是肯定的。</p>
+<h2 id="allow-migrate"><a href="#allow-migrate" class="headerlink" title="allow_migrate"></a>allow_migrate</h2><p>在上一篇文章的<code>DBRouter</code>数据库路由类中，我将<code>allow_migrate()</code>方法的返回值固定为<code>True</code>，意味着Django可以在任何数据库上、对任何app进行数据库迁移。这当然是一种有点不负责任的做法，所以，只要严格限制在<code>db_1</code>上只能进行<code>app_1</code>的迁移、在<code>db_2</code>上只能进行<code>app_2</code>的迁移，就可以达成我上文提到的需求了。</p>
+<pre><code class="python"> # multi_db/db_routers.py
+from django.conf import settings
+from django.db import DEFAULT_DB_ALIAS
+
+class DBRouter:
+    # ... 略
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return db == settings.DB_ROUTING.get(app_label, DEFAULT_DB_ALIAS)
+</code></pre>
+<h2 id="大功告成"><a href="#大功告成" class="headerlink" title="大功告成"></a>大功告成</h2><p>再次执行<code>test</code>命令，可以很明显地感受到效果：</p>
+<pre><code class="shell">$ time python manage.py test tests/
+Creating test database for alias &#39;db_1&#39;...
+Creating test database for alias &#39;db_2&#39;...
+# ... 略
+python manage.py test tests/  0.74s user 0.02s system 57% cpu 1.320 total
+</code></pre>
+<p>总耗时由7秒下降至1秒。再用<code>--keepdb</code>选项验证一下：</p>
+<pre><code>mariadb root@127.0.0.1:test_db_1&gt; show tables                                   
++---------------------+
+| Tables_in_test_db_1 |
++---------------------+
+| app_1_model1        |
+| django_migrations   |
++---------------------+
+</code></pre><p>完美。</p>
+<h1 id="第四关：跨库外键约束"><a href="#第四关：跨库外键约束" class="headerlink" title="第四关：跨库外键约束"></a>第四关：跨库外键约束</h1><p><img src="/images/2020/04/27/document.webp" alt="document.webp"></p>
+<p>必须要说的是，Django（至少在文档里）并不支持跨数据库的外键约束。当然，这里指的是物理约束，即数据库层面的<code>CONSTRAINT</code>字段约束。但在实际业务中，由Django管理的、逻辑上的跨库外键约束却并不少见，这给程序员带来了巨大的便利——但代价是什么呢？代价往往是抛弃Django的数据迁移机制。</p>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>在<code>app_1</code>里创建一个新Model（省略内容见<a href="/2020/04/23/Django多数据库历险记（一）/">上一篇文章</a>），并生成对应迁移方案：</p>
+<pre><code class="python"># app_1/models.py
+# ... 略
+
+class ChildModel1(models.Model):
+    name = models.CharField(max_length=255)
+    parent1 = models.ForeignKey(&quot;Model1&quot;, on_delete=models.CASCADE)
+    parent2 = models.ForeignKey(&quot;app_2.Model2&quot;, on_delete=models.CASCADE)
+</code></pre>
+<pre><code class="shell">$ python manage.py makemigrations               
+Migrations for &#39;app_1&#39;:
+  app_1/migrations/0002_childmodel1.py
+    - Create model ChildModel1
+</code></pre>
+<h2 id="迁移"><a href="#迁移" class="headerlink" title="迁移"></a>迁移</h2><pre><code class="shell">$ python manage.py migrate app_1 --database db_1
+Operations to perform:
+  Apply all migrations: app_1
+Running migrations:
+  Applying app_2.0001_initial... OK
+  Applying app_1.0002_childmodel1...
+# ... 略
+django.db.utils.OperationalError: (1005, &#39;Can\&#39;t create table `db_1`.`app_1_childmodel1` (errno: 150 &quot;Foreign key constraint is incorrectly formed&quot;)&#39;)
+</code></pre>
+<p>果不其然，报错了。Django想要在<code>db_1</code>上应用<code>app_2</code>的迁移方案<code>0001_initial</code>来为<code>ChildModel1</code>的迁移铺路，但在上一关的<code>allow_migrate()</code>中我已经严格限制了数据库和app的对应关系，所以实际上<code>app_2.0001_initial</code>被跳过了（虽然还是在迁移进度里留下了成功标记）。</p>
+<p>于是到了物理约束部分，Django想要在<code>db1</code>上创建从<code>ChildModel1</code>到<code>Model2</code>的<code>CONSTRAINT</code>约束就不可能成功：因为<code>app_2.0001_inital</code>这个前提并没有实际应用。打开数据库验证一下：</p>
+<pre><code class="sql">mariadb root@127.0.0.1:db_1&gt; show tables                                        
++-------------------+
+| Tables_in_db_1    |
++-------------------+
+| app_1_childmodel1 |
+| app_1_model1      |
+| django_migrations |
++-------------------+
+mariadb root@127.0.0.1:db_1&gt; select * from django_migrations
++----+-------+------------------+----------------------------+
+| id | app   | name             | applied                    |
++----+-------+------------------+----------------------------+
+| 1  | app_1 | 0001_initial     | 2020-04-27 xx:xx:xx.xxxxxx |
+| 2  | app_2 | 0001_initial     | 2020-04-27 xx:xx:xx.xxxxxx |
+| 3  | app_1 | 0002_childmodel1 | 2020-04-27 xx:xx:xx.xxxxxx |
++----+-------+------------------+----------------------------+
+mariadb root@127.0.0.1:db_1&gt; show create table app_1_childmodel1
+CREATE TABLE `app_1_childmodel1` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parent1_id` int(11) NOT NULL,
+  `parent2_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `xxx` (`parent1_id`),
+  CONSTRAINT `xxx` FOREIGN KEY (`parent1_id`) REFERENCES `app_1_model1` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+</code></pre>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>当然，即使Django在应用迁移方案的时候报错了，但缺失的只有一个数据库层面的约束字段，并不影响逻辑层面的外键约束。所以，我们可以直接在Django里使用这个Model了：</p>
+<pre><code class="python"># app_1/views.py
+from django.http import JsonResponse
+
+from app_1.models import ChildModel1, Model1
+from app_2.models import Model2
+
+def test(request):
+    child = ChildModel1.objects.create(
+        name=&quot;carl&quot;, parent1=Model1.objects.create(name=&quot;alice&quot;),
+        parent2=Model2.objects.create(name=&quot;bob&quot;),
+    )
+    return JsonResponse({
+        &quot;name&quot;: child.name, &quot;parent1&quot;: child.parent1.name,
+        &quot;parent2&quot;: child.parent2.name
+    })
+</code></pre>
+<pre><code class="python"># multi_db/urls.py
+# ... 略
+from app_1.views import test
+
+urlpatterns = [
+    path(&#39;admin/&#39;, admin.site.urls),
+    path(&#39;&#39;, test)
+]
+</code></pre>
+<pre><code class="shell">$ python manage.py runserver 8000
+Performing system checks...
+
+Watching for file changes with StatReloader
+System check identified no issues (0 silenced).
+April 27, 2020 - xx:xx:xx
+
+# 新termial
+$ curl 127.0.0.1:8000
+{&quot;name&quot;: &quot;carl&quot;, &quot;parent1&quot;: &quot;alice&quot;, &quot;parent2&quot;: &quot;bob&quot;}
+</code></pre>
+<h2 id="TestCase"><a href="#TestCase" class="headerlink" title="TestCase"></a>TestCase</h2><p>在上一节中可以这样蒙混过关，是因为<code>migrate</code>命令的失败并不会影响<code>runserver</code>命令的执行，但在TestCase里这样就行不通了。在第三关中提到，Django在进行TestCase前会对测试数据库执行<code>migrate</code>命令，而<code>migrate</code>的失败会导致TestCase直接结束。</p>
+<p>解决方案主要有取消<code>allow_migrate()</code>对app&amp;数据库对应关系的限制、在运行TestCase时使用sqlite3（默认禁用外键约束）作为测试数据库。但这些都不能从根本上解决问题，这也就是为什么我在本关开头提到，跨库外键的代价往往是抛弃Django的数据迁移机制。</p>
+<p>要想从根本上解决这个问题，就只有避免出现物理上的外键约束，只由Django进行逻辑上的外键约束管理。这个话题，就留到下篇文章再讲吧。（我怎么感觉我要被打了……）</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web开发/" rel="tag"># Web开发</a>
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Django/" rel="tag"># Django</a>
+          
+            <a href="/tags/多数据库/" rel="tag"># 多数据库</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/04/23/Django多数据库历险记（一）/" rel="next" title="Django多数据库历险记（一）">
+                <i class="fa fa-chevron-left"></i> Django多数据库历险记（一）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/05/02/Django多数据库历险记（三）/" rel="prev" title="Django多数据库历险记（番外）">
+                Django多数据库历险记（番外） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前情提要"><span class="nav-number">1.</span> <span class="nav-text">前情提要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三关：TestCase"><span class="nav-number">2.</span> <span class="nav-text">第三关：TestCase</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#allow-migrate"><span class="nav-number">2.1.</span> <span class="nav-text">allow_migrate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#大功告成"><span class="nav-number">2.2.</span> <span class="nav-text">大功告成</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第四关：跨库外键约束"><span class="nav-number">3.</span> <span class="nav-text">第四关：跨库外键约束</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义"><span class="nav-number">3.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移"><span class="nav-number">3.2.</span> <span class="nav-text">迁移</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用"><span class="nav-number">3.3.</span> <span class="nav-text">应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TestCase"><span class="nav-number">3.4.</span> <span class="nav-text">TestCase</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/04/25/Django多数据库历险记（二）/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

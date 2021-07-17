@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言用工具测试下手头用着的linux server，三个vps平台、一台物理机，测试结果看看就好，不用太较真。 测试结果汇总   服务商 Google Cloud Google Cloud 阿里云 某NAT VPS商家 个人PC     机器型号 f1-micro 1vCPU 0.6GB 10GB g1-small 1vCPU 1.7GB 40GB ecs.n4.small 1vCPU 2GiB">
+<meta name="keywords" content="性能分析,vps,linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自用linux server性能测试">
+<meta property="og:url" content="https://www.yooo.ltd/2019/11/18/自用linux-server性能测试/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言用工具测试下手头用着的linux server，三个vps平台、一台物理机，测试结果看看就好，不用太较真。 测试结果汇总   服务商 Google Cloud Google Cloud 阿里云 某NAT VPS商家 个人PC     机器型号 f1-micro 1vCPU 0.6GB 10GB g1-small 1vCPU 1.7GB 40GB ecs.n4.small 1vCPU 2GiB">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-07-17T02:57:06.880Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自用linux server性能测试">
+<meta name="twitter:description" content="前言用工具测试下手头用着的linux server，三个vps平台、一台物理机，测试结果看看就好，不用太较真。 测试结果汇总   服务商 Google Cloud Google Cloud 阿里云 某NAT VPS商家 个人PC     机器型号 f1-micro 1vCPU 0.6GB 10GB g1-small 1vCPU 1.7GB 40GB ecs.n4.small 1vCPU 2GiB">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2019/11/18/自用linux-server性能测试/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>自用linux server性能测试 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2019/11/18/自用linux-server性能测试/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">自用linux server性能测试
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-18 10:23:36" itemprop="dateCreated datePublished" datetime="2019-11-18T10:23:36+08:00">2019-11-18</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-17 10:57:06" itemprop="dateModified" datetime="2021-07-17T10:57:06+08:00">2021-07-17</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>用工具测试下手头用着的linux server，三个vps平台、一台物理机，测试结果看看就好，不用太较真。</p>
+<h1 id="测试结果汇总"><a href="#测试结果汇总" class="headerlink" title="测试结果汇总"></a>测试结果汇总</h1><table>
+<thead>
+<tr>
+<th>服务商</th>
+<th>Google Cloud</th>
+<th>Google Cloud</th>
+<th>阿里云</th>
+<th>某NAT VPS商家</th>
+<th>个人PC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机器型号</td>
+<td>f1-micro 1vCPU 0.6GB 10GB</td>
+<td>g1-small 1vCPU 1.7GB 40GB</td>
+<td>ecs.n4.small 1vCPU 2GiB 40GB</td>
+<td>1vCPU 1GB 20GB</td>
+<td>4CPU 8GB 480GB(nvme)</td>
+</tr>
+<tr>
+<td>参考价格</td>
+<td>$6/mo</td>
+<td>$20/mo</td>
+<td>￥98/mo</td>
+<td>￥26/mo</td>
+<td></td>
+</tr>
+<tr>
+<td>系统</td>
+<td>Ubuntu 18.04 LTS</td>
+<td>Ubuntu 18.04 LTS</td>
+<td>CentOS 7</td>
+<td>Ubuntu 18.04 LTS</td>
+<td>Ubuntu 18.04 LTS</td>
+</tr>
+<tr>
+<td>CPU信息</td>
+<td>Xeon(R) CPU @ 2.00GHz</td>
+<td>Xeon(R) CPU @ 2.00GHz</td>
+<td>E5-2682 v4 @ 2.50GHz</td>
+<td>E3-12xx v2 @ 2.50GHz</td>
+<td>i3-8100 CPU @ 3.60GHz</td>
+</tr>
+<tr>
+<td>sysbench(cpu)</td>
+<td>9469 (v1.0.11)</td>
+<td>9477 (v1.0.11)</td>
+<td>7909 (v1.0.17)</td>
+<td>6157 (v1.0.11)</td>
+<td>12799 (v1.0.11)</td>
+</tr>
+<tr>
+<td>4K W/R</td>
+<td>6.5 MB/s 8.1 MB/s</td>
+<td>6.6 MB/s 7.8 MB/s</td>
+<td>8.3 MB/s 8.7 MB/s</td>
+<td>1.2 MB/s 1.2 MB/s</td>
+<td>245 MB/s 80 MB/s</td>
+</tr>
+<tr>
+<td>1M W/R</td>
+<td>37.7 MB/s 128 MB/s</td>
+<td>37.7 MB/s 128 MB/s</td>
+<td>109 MB/s 111 MB/s</td>
+<td>101 MB/s 103MB/s</td>
+<td>1 GB/s 1 GB/s</td>
+</tr>
+<tr>
+<td>RAM 4K</td>
+<td>975 MB/s 1.5 GB/s</td>
+<td>1.2 GB/s 2.3 GB/s</td>
+<td>1.2 GB/s 2.1 GB/s</td>
+<td>89.1 MB/s 94.2 MB/s</td>
+<td>2.2 GB/s 2.9 GB/s</td>
+</tr>
+<tr>
+<td>MariaDB ENCODE</td>
+<td></td>
+<td>1.457s (19.03.5)</td>
+<td>1.772s (18.06.1)</td>
+<td>2.135s (19.03.5)</td>
+<td>1.126s (19.03.4)</td>
+</tr>
+<tr>
+<td>公网带宽</td>
+<td>&gt;100Mb</td>
+<td>&gt;100Mb</td>
+<td>1Mb</td>
+<td>共享50Mb</td>
+<td>家宽</td>
+</tr>
+</tbody>
+</table>
+<h1 id="测试项说明"><a href="#测试项说明" class="headerlink" title="测试项说明"></a>测试项说明</h1><h2 id="sysbench-cpu"><a href="#sysbench-cpu" class="headerlink" title="sysbench(cpu)"></a>sysbench(cpu)</h2><p>直接运行如下shell命令，并取运行输出中的<code>Threads fairness avg events</code>作为测试结果（表中括号内为sysbench软件版本），数值越大越好：</p>
+<pre><code class="shell">sysbench --test=cpu --cpu-max-prime=10000 run
+</code></pre>
+<h2 id="4K-W-R"><a href="#4K-W-R" class="headerlink" title="4K W/R"></a>4K W/R</h2><p>用如下dd命令以4K为块单位测试硬盘写读速度（测3次取平均值），数值越大越好：</p>
+<pre><code class="shell">dd if=/dev/zero of=tmpfile bs=4096 count=32768 oflag=direct
+dd of=/dev/null if=tmpfile bs=4096 count=32768 iflag=direct
+</code></pre>
+<h2 id="1M-W-R"><a href="#1M-W-R" class="headerlink" title="1M W/R"></a>1M W/R</h2><p>用如下dd命令以1M为块单位测试硬盘写读速度（测3次取平均值），数值越大越好：</p>
+<pre><code class="shell">dd if=/dev/zero of=tmpfile bs=1048576 count=1024 oflag=direct
+dd of=/dev/null if=tmpfile bs=1048576 count=1024 iflag=direct
+</code></pre>
+<h2 id="RAM-4K"><a href="#RAM-4K" class="headerlink" title="RAM 4K"></a>RAM 4K</h2><p>挂载出一块内存盘，用dd命令以4K为块单位测试内存写读速度（由于内存盘不支持direct io，第二次之后的测试结果有较大波动，故只取首次运行结果），数值越大越好：</p>
+<pre><code class="shell">mkdir ~/ram
+sudo mount -t tmpfs -o size=512m ramdisk ~/ram
+sudo chown $USER:$USER ~/ram
+cd ~/ram
+dd if=/dev/zero of=tmpfile bs=4096 count=65536
+dd of=/dev/null if=tmpfile bs=4096 count=65536
+</code></pre>
+<h2 id="MariaDB-ENCODING"><a href="#MariaDB-ENCODING" class="headerlink" title="MariaDB ENCODING"></a>MariaDB ENCODING</h2><p>用Docker运行一个MariaDB实例，运行之后使用ENCODING命令测试MariaDB运行速度（表中括号内为Docker版本），数值越小越好：</p>
+<pre><code class="shell">mkdir ~/mariadb_vol
+docker run -d -v ~/mariadb_vol:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=12345 --name mariadb_test --restart=always mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+docker exec -it mariadb_test mysql -uroot -p12345
+</code></pre>
+<pre><code class="sql">SELECT BENCHMARK(10000000,ENCODE(&#39;hello&#39;,&#39;goodbye&#39;));
+</code></pre>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>便宜自有便宜的道理，NAT VPS有着大带宽（虽然是共享的）、低价格的优势，但换来的是老旧的硬件平台（2012年的Ivy Bridge + DDR3）和接近机械硬盘的4K读写速度。<br>阿里云、谷歌云等大型云平台的VPS虽然带宽或流量贵、价格也贵，但硬件平台往往是较新的（阿里云是2016年的Broadwell + DDR4，谷歌云则更新），硬盘性能也更有保障（不过谷歌云实在是贵啊……）。怎么取舍，还是要看个人需求。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/性能分析/" rel="tag"># 性能分析</a>
+          
+            <a href="/tags/vps/" rel="tag"># vps</a>
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/30/修改Kong官方Docker镜像/" rel="next" title="修改Kong官方Docker镜像">
+                <i class="fa fa-chevron-left"></i> 修改Kong官方Docker镜像
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/16/Docker快速部署ownCloud并配置HTTPS/" rel="prev" title="Docker快速部署ownCloud并配置HTTPS">
+                Docker快速部署ownCloud并配置HTTPS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#测试结果汇总"><span class="nav-number">2.</span> <span class="nav-text">测试结果汇总</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#测试项说明"><span class="nav-number">3.</span> <span class="nav-text">测试项说明</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sysbench-cpu"><span class="nav-number">3.1.</span> <span class="nav-text">sysbench(cpu)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4K-W-R"><span class="nav-number">3.2.</span> <span class="nav-text">4K W/R</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1M-W-R"><span class="nav-number">3.3.</span> <span class="nav-text">1M W/R</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RAM-4K"><span class="nav-number">3.4.</span> <span class="nav-text">RAM 4K</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MariaDB-ENCODING"><span class="nav-number">3.5.</span> <span class="nav-text">MariaDB ENCODING</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2019/11/18/自用linux-server性能测试/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>
