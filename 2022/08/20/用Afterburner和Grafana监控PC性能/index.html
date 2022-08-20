@@ -112,12 +112,12 @@
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/be56457ed0e1952818d51b2009053c09.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/c9934a2d9cba41ce121e27231caa7980.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/b93b658e283490dbfd7b6b26845e07cc.jpg">
-<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/adf8c2840f61c9554cccde6af4f4f51a.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/d3ce4a5f1aeea651a6ab8534e7965d3d.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/0701aeb276daaf249d1ac1ea26062661.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/815351595b418e04648bacc311c011b7.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/4e0513124777c920c5a47b0f70b7a005.jpg">
 <meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/c6d98f87fc49e13258216134d189871a.jpg">
-<meta property="og:updated_time" content="2022-08-20T22:37:14.082Z">
+<meta property="og:updated_time" content="2022-08-20T22:47:10.883Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="用Afterburner和Grafana监控PC性能">
 <meta name="twitter:description" content="背景监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是node_exporter+Prometheus+Grafana的经典三件套，整体效果令人满意：    整体架构 Grafana面板          同时笔者在使用PC时偶尔还会使用MSI Afterburner（以下简称Afterburner）来观察PC性能：  但Afterburner的监控功能并不易用（特别是在高分辨率下），">
@@ -383,7 +383,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2022-08-21 06:37:14" itemprop="dateModified" datetime="2022-08-21T06:37:14+08:00">2022-08-21</time>
+                <time title="修改时间：2022-08-21 06:47:10" itemprop="dateModified" datetime="2022-08-21T06:47:10+08:00">2022-08-21</time>
               
             
           </span>
@@ -439,12 +439,12 @@
 <p><img src="/images/2022/8/20/c9934a2d9cba41ce121e27231caa7980.jpg" alt="image-20220820162024028"></p>
 <p>在浏览器中打开<code>127.0.0.1:82/mahm</code>，输入用户名<code>MSIAfterburner</code>和上面的密码即可看到对应的监控数据：</p>
 <p><img src="/images/2022/8/20/b93b658e283490dbfd7b6b26845e07cc.jpg" alt="image-20220820162505895"></p>
-<h1 id="转换数据格式"><a href="#转换数据格式" class="headerlink" title="转换数据格式"></a>转换数据格式</h1><p><code>MSI Afterburner Remote Server</code>提供的监控数据是xml格式的，要想适配<code>Promethus</code>，得做一层转换才行。笔者选用Golang实现一个HTTP正向代理小工具来完成这层转换，逻辑很简单：接收<code>Promethus</code>发出的数据采集请求、从<code>MSI Afterburner Remote Server</code>处获取监控数据、将监控数据以metrics格式进行返回。</p>
+<h1 id="转换数据格式"><a href="#转换数据格式" class="headerlink" title="转换数据格式"></a>转换数据格式</h1><p><code>MSI Afterburner Remote Server</code>提供的监控数据是xml格式的，要想适配<code>Prometheus</code>，得做一层转换才行。笔者选用Golang实现一个HTTP正向代理小工具来完成这层转换，逻辑很简单：接收<code>Prometheus</code>发出的数据采集请求、从<code>MSI Afterburner Remote Server</code>处获取监控数据、将监控数据以metrics格式进行返回。</p>
 <!---
 @startuml
 participant Afterburner as data
 participant proxy
-participant Promethus as pm
+participant Prometheus as pm
 pm -> proxy: GET /metrics
 proxy -> data: GET /mahm
 data --\> proxy: xml
@@ -452,7 +452,7 @@ proxy -> proxy: convert
 proxy --\> pm
 @enduml
 -->
-<p><img src="/images/2022/8/20/adf8c2840f61c9554cccde6af4f4f51a.jpg" alt="PlantUML diagram"></p>
+<p><img src="/images/2022/8/20/d3ce4a5f1aeea651a6ab8534e7965d3d.jpg" alt="PlantUML diagram"></p>
 <p>该工具已在<a href="https://github.com/wolf-joe/tools/tree/main/cmd/afterburner_exporter" target="_blank" rel="noopener">GitHub</a>上开源，安装运行后可直接通过浏览器看到工具输出的结果：</p>
 <pre><code class="shell">$ go install github.com/wolf-joe/tools/cmd/afterburner_exporter@latest
 $ afterburner_exporter -listen &quot;0.0.0.0:8090&quot; -target &quot;127.0.0.1:82&quot; -password &quot;17cc95b4017d496f82&quot;
@@ -467,7 +467,7 @@ $ afterburner_exporter -listen &quot;0.0.0.0:8090&quot; -target &quot;127.0.0.1:
       - targets: [&quot;localhost:9102&quot;] # 这里将PC上的127.0.0.1:8090转发到了Prometheus服务器的:9102
 </code></pre>
 <p><img src="/images/2022/8/20/815351595b418e04648bacc311c011b7.jpg" alt="image-20220820190351844"></p>
-<h1 id="配置Grafana"><a href="#配置Grafana" class="headerlink" title="配置Grafana"></a>配置Grafana</h1><p>Promethues抓取到数据之后，在Grafana上添加对应面板：</p>
+<h1 id="配置Grafana"><a href="#配置Grafana" class="headerlink" title="配置Grafana"></a>配置Grafana</h1><p>Prometheus抓取到数据之后，在Grafana上添加对应面板：</p>
 <p><img src="/images/2022/8/20/4e0513124777c920c5a47b0f70b7a005.jpg" alt="image-20220821051812112"></p>
 <p>最终效果如下：</p>
 <p><img src="/images/2022/8/20/c6d98f87fc49e13258216134d189871a.jpg" alt="image-20220821051331042"></p>
