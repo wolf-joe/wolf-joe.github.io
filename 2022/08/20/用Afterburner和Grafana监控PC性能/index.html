@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="背景监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是node_exporter+Prometheus+Grafana的经典三件套，整体效果令人满意：    整体架构 Grafana面板          同时笔者在使用PC时偶尔还会使用MSI Afterburner（以下简称Afterburner）来观察PC性能：  但Afterburner的监控功能并不易用（特别是在高分辨率下），">
+<meta name="keywords" content="Golang,监控,生活">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用Afterburner和Grafana监控PC性能">
+<meta property="og:url" content="https://www.yooo.ltd/2022/08/20/用Afterburner和Grafana监控PC性能/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="背景监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是node_exporter+Prometheus+Grafana的经典三件套，整体效果令人满意：    整体架构 Grafana面板          同时笔者在使用PC时偶尔还会使用MSI Afterburner（以下简称Afterburner）来观察PC性能：  但Afterburner的监控功能并不易用（特别是在高分辨率下），">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/43f3ee1d6e7cc42258812b94b31292d3.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/5315d9b41fb01e5f42efbcdb90c33b38.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/be56457ed0e1952818d51b2009053c09.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/c9934a2d9cba41ce121e27231caa7980.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/b93b658e283490dbfd7b6b26845e07cc.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/adf8c2840f61c9554cccde6af4f4f51a.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/0701aeb276daaf249d1ac1ea26062661.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/815351595b418e04648bacc311c011b7.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/4e0513124777c920c5a47b0f70b7a005.jpg">
+<meta property="og:image" content="https://www.yooo.ltd/images/2022/8/20/c6d98f87fc49e13258216134d189871a.jpg">
+<meta property="og:updated_time" content="2022-08-20T22:37:14.082Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="用Afterburner和Grafana监控PC性能">
+<meta name="twitter:description" content="背景监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是node_exporter+Prometheus+Grafana的经典三件套，整体效果令人满意：    整体架构 Grafana面板          同时笔者在使用PC时偶尔还会使用MSI Afterburner（以下简称Afterburner）来观察PC性能：  但Afterburner的监控功能并不易用（特别是在高分辨率下），">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2022/8/20/43f3ee1d6e7cc42258812b94b31292d3.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2022/08/20/用Afterburner和Grafana监控PC性能/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>用Afterburner和Grafana监控PC性能 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2022/08/20/用Afterburner和Grafana监控PC性能/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">用Afterburner和Grafana监控PC性能
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2022-08-20 15:18:01" itemprop="dateCreated datePublished" datetime="2022-08-20T15:18:01+08:00">2022-08-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2022-08-21 06:37:14" itemprop="dateModified" datetime="2022-08-21T06:37:14+08:00">2022-08-21</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是<code>node_exporter</code>+<code>Prometheus</code>+<code>Grafana</code>的经典三件套，整体效果令人满意：</p>
+<table>
+<thead>
+<tr>
+<th>整体架构</th>
+<th>Grafana面板</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="/images/2022/8/20/43f3ee1d6e7cc42258812b94b31292d3.jpg" alt></td>
+<td><img src="/images/2022/8/20/5315d9b41fb01e5f42efbcdb90c33b38.jpg" alt></td>
+</tr>
+</tbody>
+</table>
+<p>同时笔者在使用PC时偶尔还会使用<a href="https://www.msi.com/Landing/afterburner/graphics-cards" target="_blank" rel="noopener">MSI Afterburner</a>（以下简称Afterburner）来观察PC性能：</p>
+<p><img src="/images/2022/8/20/be56457ed0e1952818d51b2009053c09.jpg" alt></p>
+<p>但Afterburner的监控功能并不易用（特别是在高分辨率下），如果能将监控数据在Grafana上呈现那就太棒了。<a href="https://github.com/RafhaanShah/grAfterburner" target="_blank" rel="noopener">RafhaanShah/grAfterburner</a>这个开源项目做到了这点，其使用的是方案是<a href="https://collectd.org/" target="_blank" rel="noopener">collectd</a>+<a href="https://graphiteapp.org/" target="_blank" rel="noopener">Graphite</a>+<a href="https://grafana.com/" target="_blank" rel="noopener">Grafana</a>，整体用<code>docker-compose</code>启动。不过由于笔者已经有了另一套基于<code>Prometheus</code>的监控方案，所以笔者决定新造个轮子来复用现有的监控组件。</p>
+<h1 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h1><p>Afterburner本体在<a href="https://www.msi.com/Landing/afterburner/graphics-cards" target="_blank" rel="noopener">官网</a>下载并安装即可，但Afterburner不直接对外提供监控数据，而是通过一个叫<code>MSI Afterburner Remote Server</code>的小工具来做到。这个工具是为了在手机上监控PC性能而开发的，但因为种种原因官网已经不再提供其下载入口，最新版本也停留在2011年开发的V1.2。万幸的是我们可以从第三方网站下载到这个工具（<a href="https://drive.google.com/file/d/1zRZQ8_aEQcKwld3uavyT0aFi3b4sux-R/view" target="_blank" rel="noopener">google driver</a>、<a href="https://github.com/wolf-joe/data-backup/tree/main/software/msi-afterburner" target="_blank" rel="noopener">github</a>）。</p>
+<p>运行Afterburner后，点击<code>MSI Afterburner Remote Server</code>的主程序，该工具会在后台运行，并在托盘区域内展示密码、端口（默认82）等信息：</p>
+<p><img src="/images/2022/8/20/c9934a2d9cba41ce121e27231caa7980.jpg" alt="image-20220820162024028"></p>
+<p>在浏览器中打开<code>127.0.0.1:82/mahm</code>，输入用户名<code>MSIAfterburner</code>和上面的密码即可看到对应的监控数据：</p>
+<p><img src="/images/2022/8/20/b93b658e283490dbfd7b6b26845e07cc.jpg" alt="image-20220820162505895"></p>
+<h1 id="转换数据格式"><a href="#转换数据格式" class="headerlink" title="转换数据格式"></a>转换数据格式</h1><p><code>MSI Afterburner Remote Server</code>提供的监控数据是xml格式的，要想适配<code>Promethus</code>，得做一层转换才行。笔者选用Golang实现一个HTTP正向代理小工具来完成这层转换，逻辑很简单：接收<code>Promethus</code>发出的数据采集请求、从<code>MSI Afterburner Remote Server</code>处获取监控数据、将监控数据以metrics格式进行返回。</p>
+<!---
+@startuml
+participant Afterburner as data
+participant proxy
+participant Promethus as pm
+pm -> proxy: GET /metrics
+proxy -> data: GET /mahm
+data --\> proxy: xml
+proxy -> proxy: convert
+proxy --\> pm
+@enduml
+-->
+<p><img src="/images/2022/8/20/adf8c2840f61c9554cccde6af4f4f51a.jpg" alt="PlantUML diagram"></p>
+<p>该工具已在<a href="https://github.com/wolf-joe/tools/tree/main/cmd/afterburner_exporter" target="_blank" rel="noopener">GitHub</a>上开源，安装运行后可直接通过浏览器看到工具输出的结果：</p>
+<pre><code class="shell">$ go install github.com/wolf-joe/tools/cmd/afterburner_exporter@latest
+$ afterburner_exporter -listen &quot;0.0.0.0:8090&quot; -target &quot;127.0.0.1:82&quot; -password &quot;17cc95b4017d496f82&quot;
+2022/08/20 18:13:08 listen on :8090
+</code></pre>
+<p><img src="/images/2022/8/20/0701aeb276daaf249d1ac1ea26062661.jpg" alt="image-20220820185928484"></p>
+<h1 id="接入Prometheus"><a href="#接入Prometheus" class="headerlink" title="接入Prometheus"></a>接入Prometheus</h1><p>修改Prometheus的配置文件，让其定时抓取上一章的metrics数据，重启后可看到服务正常接入：</p>
+<pre><code class="yaml">scrape_configs:
+  ...
+  - job_name: &quot;desktop&quot;
+    static_configs:
+      - targets: [&quot;localhost:9102&quot;] # 这里将PC上的127.0.0.1:8090转发到了Prometheus服务器的:9102
+</code></pre>
+<p><img src="/images/2022/8/20/815351595b418e04648bacc311c011b7.jpg" alt="image-20220820190351844"></p>
+<h1 id="配置Grafana"><a href="#配置Grafana" class="headerlink" title="配置Grafana"></a>配置Grafana</h1><p>Promethues抓取到数据之后，在Grafana上添加对应面板：</p>
+<p><img src="/images/2022/8/20/4e0513124777c920c5a47b0f70b7a005.jpg" alt="image-20220821051812112"></p>
+<p>最终效果如下：</p>
+<p><img src="/images/2022/8/20/c6d98f87fc49e13258216134d189871a.jpg" alt="image-20220821051331042"></p>
+<p>大功告成！</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Golang/" rel="tag"># Golang</a>
+          
+            <a href="/tags/监控/" rel="tag"># 监控</a>
+          
+            <a href="/tags/生活/" rel="tag"># 生活</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/17/Go语言error四问/" rel="next" title="Go语言error四问">
+                <i class="fa fa-chevron-left"></i> Go语言error四问
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#获取数据"><span class="nav-number">2.</span> <span class="nav-text">获取数据</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#转换数据格式"><span class="nav-number">3.</span> <span class="nav-text">转换数据格式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#接入Prometheus"><span class="nav-number">4.</span> <span class="nav-text">接入Prometheus</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Grafana"><span class="nav-number">5.</span> <span class="nav-text">配置Grafana</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2022/08/20/用Afterburner和Grafana监控PC性能/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

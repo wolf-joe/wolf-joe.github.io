@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言 嗯，怎么看怎么像标题党写的标题……其实这篇文章只是笔者对Python中引用计数、弱引用的一些记录和思考，不涉及引用循环、分代回收等概念，先打个预防针。  注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。  引用计数引用计数（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python">
+<meta name="keywords" content="Python,GC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何在Python中引起内存泄露">
+<meta property="og:url" content="https://www.yooo.ltd/2020/06/14/如何在Python中引起内存泄露/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言 嗯，怎么看怎么像标题党写的标题……其实这篇文章只是笔者对Python中引用计数、弱引用的一些记录和思考，不涉及引用循环、分代回收等概念，先打个预防针。  注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。  引用计数引用计数（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/06/14/gc.jpg">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.989Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何在Python中引起内存泄露">
+<meta name="twitter:description" content="前言 嗯，怎么看怎么像标题党写的标题……其实这篇文章只是笔者对Python中引用计数、弱引用的一些记录和思考，不涉及引用循环、分代回收等概念，先打个预防针。  注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。  引用计数引用计数（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/06/14/gc.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/06/14/如何在Python中引起内存泄露/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何在Python中引起内存泄露 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/06/14/如何在Python中引起内存泄露/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何在Python中引起内存泄露
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-14 10:08:54" itemprop="dateCreated datePublished" datetime="2020-06-14T10:08:54+08:00">2020-06-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2020/06/14/gc.jpg" alt></p>
+<p>嗯，怎么看怎么像标题党写的标题……其实这篇文章只是笔者对Python中引用计数、弱引用的一些记录和思考，不涉及引用循环、分代回收等概念，先打个预防针。</p>
+<blockquote>
+<p>注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。</p>
+</blockquote>
+<h1 id="引用计数"><a href="#引用计数" class="headerlink" title="引用计数"></a>引用计数</h1><p><strong>引用计数</strong>（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python》里的描述：<em>“每个对象都会统计有多少引用指向自己。当引用计数归零时，对象立即就被销毁”</em>。引用计数在不存在<strong>引用循环</strong>（Reference cycle）时能够及时清理内存，这也是CPython最主要的垃圾回收算法。</p>
+<pre><code class="python">&gt;&gt;&gt; import sys
+&gt;&gt;&gt; import weakref
+&gt;&gt;&gt; s1 = set(range(3))
+&gt;&gt;&gt; sys.getrefcount(s1)
+2
+&gt;&gt;&gt; s2 = s1
+&gt;&gt;&gt; s2 is s1
+True
+&gt;&gt;&gt; sys.getrefcount(s1)
+3
+&gt;&gt;&gt; weakref.finalize(s1, lambda: print(&quot;obj has gone&quot;))
+&lt;finalize object at ...; for &#39;set&#39; at ...&gt;
+&gt;&gt;&gt; del s2
+&gt;&gt;&gt; sys.getrefcount(s1)
+2
+&gt;&gt;&gt; del s1
+obj has gone
+</code></pre>
+<p>从上面的例子可以看出，<code>set(range(3))</code>这个对象总共有两个引用：<code>s1</code>和<code>s2</code>，只有当这两个引用都无效（<code>del s2</code>、<code>del s1</code>）之后，这个对象才会被销毁（或者说占用的内存空间被回收）。</p>
+<p>需要注意的是，<code>sys.getrefcount()</code>返回的值会比真实引用计数值高出1，因为参数传递会（临时）增加一个引用，详见<a href="https://docs.python.org/3.6/library/sys.html#sys.getrefcount" target="_blank" rel="noopener">官方文档</a>。同时，笔者用到了<code>weakref.finalize()</code>方法来确认对象是否被销毁，该方法会在第一个参数指向的对象被销毁时调用第二个参数（一个<code>Callable</code>对象）。</p>
+<h1 id="如何引起内存泄露"><a href="#如何引起内存泄露" class="headerlink" title="如何引起内存泄露"></a>如何引起内存泄露</h1><p>前面提到，引用计数在不存在引用循环时能及时清理内存，但这并不能代表程序员就能高枕无忧了。毕竟，被遗忘的引用也是引用。考虑下面这个可以追踪当前实例的类：</p>
+<pre><code class="python">class MyOBJ(object):
+    __instances = set()
+
+    def __init__(self, name: str):
+        self.name = name
+        self.__instances.add(self)
+
+    def __str__(self) -&gt; str:
+        return f&quot;MyOBJ(&#39;{self.name}&#39;)&quot;
+
+    @classmethod
+    def instances(cls):
+        return cls.__instances
+</code></pre>
+<pre><code class="python">&gt;&gt;&gt; obj1 = MyOBJ(&quot;obj1&quot;)
+&gt;&gt;&gt; weakref.finalize(obj1, lambda: print(&quot;obj1 has gone&quot;))
+&lt;finalize object at ...; for &#39;MyOBJ&#39; at ...&gt;
+&gt;&gt;&gt; del obj1
+&gt;&gt;&gt; len(MyOBJ.instances())
+1
+</code></pre>
+<p>可以看到，即使通过<code>del obj1</code>将对象的引用删除，但由于<code>MyOBJ</code>这个类的<code>__instances</code>属性里始终持有<code>obj1</code>对应对象的另一个引用，所以这个对象始终无法被销毁。如果不能将<code>__instances</code>里的引用也删除，就会引起内存泄露。</p>
+<pre><code class="python">&gt;&gt;&gt; MyOBJ.instances().pop()
+MyOBJ(&#39;obj1&#39;)
+obj1 has gone
+</code></pre>
+<h1 id="弱引用（weakref）"><a href="#弱引用（weakref）" class="headerlink" title="弱引用（weakref）"></a>弱引用（weakref）</h1><p>可能从第一个例子里就有读者奇怪：<code>weakref.finalize()</code>会在对象被销毁时执行动作，按理说也应该持有该对象的一个引用才对，这不就产生矛盾了吗？实际上<code>weakref</code>这个模块名就给出了说明：<strong>弱引用</strong>（weakref）指不增加对象引用计数的引用。于是，<code>weakref.finalize()</code>自然也就不会妨碍对象被销毁了。</p>
+<p>同样的，上一节提到的内存泄露问题也可以通过<code>weakref</code>模块提供的功能解决。只需要将<code>MyOBJ</code>里<code>__instances</code>的类型改为<code>WeakSet</code>即可：</p>
+<pre><code class="python">class MyOBJ(object):
+    __instances = weakref.WeakSet()
+
+    # ... 省略
+</code></pre>
+<pre><code class="python">&gt;&gt;&gt; obj1 = MyOBJ(&quot;obj1&quot;)
+&gt;&gt;&gt; weakref.finalize(obj1, lambda: print(&quot;obj1 has gone&quot;))
+&lt;finalize object at ...; for &#39;MyOBJ&#39; at ...&gt;
+&gt;&gt;&gt; len(MyOBJ.instances())
+1
+&gt;&gt;&gt; del obj1
+obj1 has gone
+&gt;&gt;&gt; len(MyOBJ.instances())
+0
+</code></pre>
+<p>在引入了<code>WeakSet</code>后，<code>__instances</code>属性持有的引用都是弱引用，当实际的对象被垃圾回收机制销毁时，<code>__instances</code>属性里的引用也会跟着被删除。类似的数据结构还有<code>WeakKeyDictionary</code>、<code>WeakValueDictionary</code>，它们会将对象的引用分别当成字典的键和值，更具体的说明可以参考<a href="https://docs.python.org/3.6/library/weakref.html" target="_blank" rel="noopener">官方文档</a>。</p>
+<h1 id="延伸"><a href="#延伸" class="headerlink" title="延伸"></a>延伸</h1><p>实际上本文只涉及Python内存管理中最基本的一些概念。关于引用循环、分代回收等概念，推荐阅读以下内容：</p>
+<ul>
+<li><a href="https://github.com/python/cpython/blob/3.6/Modules/gcmodule.c#L899" target="_blank" rel="noopener">cpython/gcmodule.c at 3.6 · python/cpython</a></li>
+<li><a href="https://pythoninternal.wordpress.com/2014/08/04/the-garbage-collector/" target="_blank" rel="noopener">The Garbage Collector | Yet Another Python Internals Blog</a></li>
+<li><a href="https://www.quora.com/How-does-garbage-collection-in-Python-work-What-are-the-pros-and-cons" target="_blank" rel="noopener">How does garbage collection in Python work? What are the pros and cons? - Quora</a></li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/GC/" rel="tag"># GC</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/06/13/如何高效地对100万个UUID进行前缀匹配查询/" rel="next" title="如何高效地对100万个UUID进行前缀匹配查询">
+                <i class="fa fa-chevron-left"></i> 如何高效地对100万个UUID进行前缀匹配查询
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/06/19/fluent-python-chap-7/" rel="prev" title="读《流畅的Python》：函数装饰器与闭包">
+                读《流畅的Python》：函数装饰器与闭包 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#引用计数"><span class="nav-number">2.</span> <span class="nav-text">引用计数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何引起内存泄露"><span class="nav-number">3.</span> <span class="nav-text">如何引起内存泄露</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#弱引用（weakref）"><span class="nav-number">4.</span> <span class="nav-text">弱引用（weakref）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#延伸"><span class="nav-number">5.</span> <span class="nav-text">延伸</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/06/14/如何在Python中引起内存泄露/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

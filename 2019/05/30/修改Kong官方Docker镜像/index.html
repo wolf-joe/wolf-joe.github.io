@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言开源项目Kong是当下最火的API Gateway项目之一，官方也在Docker Hub上提供了Kong的镜像。但我在使用官方镜像来部署Kong的过程中发现，我需要对官方镜像做一些改动来适应我的需求：  在Docker启动时只需要给定镜像、启动命令即可完成部署（包括初次部署），方便迁移k8s； 方便Kong切换不同的配置文件； 将Kong所有的日志存放在指定目录，方便挂载存储。  这篇文章记录">
+<meta name="keywords" content="Web开发,API GATEWAY,Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="修改Kong官方Docker镜像">
+<meta property="og:url" content="https://www.yooo.ltd/2019/05/30/修改Kong官方Docker镜像/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言开源项目Kong是当下最火的API Gateway项目之一，官方也在Docker Hub上提供了Kong的镜像。但我在使用官方镜像来部署Kong的过程中发现，我需要对官方镜像做一些改动来适应我的需求：  在Docker启动时只需要给定镜像、启动命令即可完成部署（包括初次部署），方便迁移k8s； 方便Kong切换不同的配置文件； 将Kong所有的日志存放在指定目录，方便挂载存储。  这篇文章记录">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-05-30.01.png">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.985Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="修改Kong官方Docker镜像">
+<meta name="twitter:description" content="前言开源项目Kong是当下最火的API Gateway项目之一，官方也在Docker Hub上提供了Kong的镜像。但我在使用官方镜像来部署Kong的过程中发现，我需要对官方镜像做一些改动来适应我的需求：  在Docker启动时只需要给定镜像、启动命令即可完成部署（包括初次部署），方便迁移k8s； 方便Kong切换不同的配置文件； 将Kong所有的日志存放在指定目录，方便挂载存储。  这篇文章记录">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2019-05-30.01.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2019/05/30/修改Kong官方Docker镜像/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>修改Kong官方Docker镜像 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2019/05/30/修改Kong官方Docker镜像/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">修改Kong官方Docker镜像
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-30 19:32:35" itemprop="dateCreated datePublished" datetime="2019-05-30T19:32:35+08:00">2019-05-30</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2019-05-30.01.png" alt><br>开源项目<a href="https://konghq.com/" target="_blank" rel="noopener">Kong</a>是当下最火的API Gateway项目之一，官方也在<a href="https://hub.docker.com/_/kong" target="_blank" rel="noopener">Docker Hub</a>上提供了Kong的镜像。但我在使用官方镜像来部署Kong的过程中发现，我需要对官方镜像做一些改动来适应我的需求：</p>
+<ul>
+<li>在Docker启动时只需要给定镜像、启动命令即可完成部署（包括初次部署），方便迁移k8s；</li>
+<li>方便Kong切换不同的配置文件；</li>
+<li>将Kong所有的日志存放在指定目录，方便挂载存储。</li>
+</ul>
+<p>这篇文章记录的就是我改动的思路和过程。</p>
+<blockquote>
+<p>注：本文所使用的运行环境为<code>Ubuntu 18.04 LTS</code>+<code>Docker 18.09.6</code>，Kong使用的数据库均为<code>PostgreSQL</code>，使用的Kong镜像版本为<code>1.1.2-alpine</code></p>
+</blockquote>
+<h1 id="官方镜像分析"><a href="#官方镜像分析" class="headerlink" title="官方镜像分析"></a>官方镜像分析</h1><p>Kong的官方文档（<a href="https://docs.konghq.com/install/docker/" target="_blank" rel="noopener">Docker Installation</a>）给出了一个简单的Kong部署教程，记录如下：</p>
+<pre><code class="shell"># 创建docker网络
+docker network create kong-net
+# 创建数据库
+docker run -d --name kong-database \
+               --network=kong-net \
+               -p 5432:5432 \
+               -e &quot;POSTGRES_USER=kong&quot; \
+               -e &quot;POSTGRES_DB=kong&quot; \
+               postgres:9.6
+# 初始化数据库
+docker run --rm \
+     --network=kong-net \
+     -e &quot;KONG_DATABASE=postgres&quot; \
+     -e &quot;KONG_PG_HOST=kong-database&quot; \
+     kong:latest kong migrations bootstrap
+# 启动Kong
+docker run -d --name kong \
+     --network=kong-net \
+     -e &quot;KONG_DATABASE=postgres&quot; \
+     -e &quot;KONG_PG_HOST=kong-database&quot; \
+     -e &quot;KONG_PROXY_ACCESS_LOG=/dev/stdout&quot; \
+     -e &quot;KONG_ADMIN_ACCESS_LOG=/dev/stdout&quot; \
+     -e &quot;KONG_PROXY_ERROR_LOG=/dev/stderr&quot; \
+     -e &quot;KONG_ADMIN_ERROR_LOG=/dev/stderr&quot; \
+     -e &quot;KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl&quot; \
+     -p 8000:8000 \
+     -p 8443:8443 \
+     -p 8001:8001 \
+     -p 8444:8444 \
+     kong:latest
+</code></pre>
+<p>从以上教程可以看出，我们可以通过为官方镜像设置环境变量来配置Kong；而且，该镜像还有一个默认的启动命令，可以直接启动Kong主进程。<br>然后，我们再来看看<code>kong:1.1.2-alpine</code>这个官方镜像的<a href="https://github.com/Kong/docker-kong/blob/bb4efafd0e2272be1c27b9aa2de60cd0022a3fad/alpine/Dockerfile" target="_blank" rel="noopener">Dockerfile</a>：</p>
+<pre><code class="Dockerfile">FROM alpine:3.6
+LABEL maintainer=&quot;Kong Core Team &lt;team-core@konghq.com&gt;&quot;
+
+ENV KONG_VERSION 1.1.2
+ENV KONG_SHA256 0d7509fa2ef653b4aba14a1a1fd20339bccb4f8d386429102c42b7af6d8b6bdb
+
+RUN adduser -Su 1337 kong \
+    ... # 省略
+    &amp;&amp; chmod -R g=u /usr/local/kong
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT [&quot;/docker-entrypoint.sh&quot;]
+
+EXPOSE 8000 8443 8001 8444
+
+STOPSIGNAL SIGTERM
+
+CMD [&quot;kong&quot;, &quot;docker-start&quot;]
+</code></pre>
+<p>从Dockerfile可以看出，官方镜像默认的启动命令为<code>ENTRYPOINT</code>+<code>CMD</code>；再结合前文官方教程里初始化数据库的命令，我们可以知道：</p>
+<ul>
+<li>初始化数据库的容器内启动命令为：<code>/docker-entrypoint.sh kong migrations bootstrap</code></li>
+<li>启动Kong主进程的容器内启动命令为：<code>/docker-entrypoint.sh kong docker-start</code></li>
+</ul>
+<p>有了这些信息，我们就可以对官方镜像进行修改了。</p>
+<h1 id="自定义Dockerfile、启动脚本"><a href="#自定义Dockerfile、启动脚本" class="headerlink" title="自定义Dockerfile、启动脚本"></a>自定义Dockerfile、启动脚本</h1><p>考虑到我有多套Kong配置分别用于不同环境（本地调试、测试、实际应用等），而这些配置中有许多重复的内容，所以我选择将这些重复的配置项放入Dockerfile中，不重复的配置项放入自定义启动脚本中。Dockerfile如下：</p>
+<pre><code class="dockerfile">FROM kong:1.1.2-alpine
+LABEL maintainer=&quot;orange_wolf &lt;orange_wolf@163.com&gt;&quot;
+
+COPY . /gateway
+WORKDIR /gateway
+# KONG_PREFIX指定工作目录，Kong的日志默认存储在 KONG_PREFIX/logs/ 目录下
+ENV KONG_PREFIX=/gateway KONG_ADMIN_LISTEN=0.0.0.0:8001 KONG_DATABASE=postgres
+EXPOSE 8000 8001
+# 自定义启动脚本
+ENTRYPOINT [&quot;./run-kong.sh&quot;]
+</code></pre>
+<p>自定义启动脚本：</p>
+<pre><code class="shell">#!/usr/bin/env sh
+case ${1} in
+&quot;local&quot;)
+    export KONG_PG_HOST=192.168.0.100
+    export KONG_PG_USER=xxxxxx
+    export KONG_PG_PASSWORD=xxxxxx
+    ... # 省略
+    ;;
+&quot;pro&quot;)
+    export KONG_PG_HOST=xxx.xxx.xxx.xxx
+    export KONG_PG_USER=xxxxxx
+    export KONG_PG_PASSWORD=xxxxxx
+    ... # 省略
+    ;;
+... # 省略
+esac
+
+/docker-entrypoint.sh kong migrations bootstrap  # 初始化数据库
+/docker-entrypoint.sh kong docker-start  # 启动Kong
+</code></pre>
+<p>于是，我用自定义的启动脚本代替了原有的启动脚本，这样就能让我通过在启动容器时输入不同指令来载入不同Kong配置，也能让Kong在连接到空数据库时自动实现初始化动作（而不是直接退出）。而这种部署方式也更灵活，更容易从Docker迁移到k8s等其它平台。实际部署流程如下：</p>
+<pre><code class="shell">docker build . -t my-kong-image
+docker run -d --name kong -p 8000:8000 -p 8001:8001 my-kong-image local  # 载入本地调试配置
+docker run -d --name kong -p 8000:8000 -p 8001:8001 my-kong-image test  # 载入测试配置
+docker run -d --name kong -p 8000:8000 -p 8001:8001 my-kong-image pro  # 载入实际应用配置
+</code></pre>
+<h1 id="以root命令启动Nginx"><a href="#以root命令启动Nginx" class="headerlink" title="以root命令启动Nginx"></a>以root命令启动Nginx</h1><p>在自定义了Dockerfile和启动脚本后，似乎一切都能满足我的需求了。但不幸的时，以这个镜像启动容器时我遇到了如下错误：</p>
+<pre><code>nginx: [alert] could not open error log file: open() &quot;/gateway/logs/error.log&quot; failed (13: Permission denied)
+</code></pre><p>很明显，nginx没有足够的权限将日志写入我指定的日志文件夹中。由于在不指定<code>KONG_PREFIX</code>环境变量时，nginx和Kong能正常将日志文件写入默认的<code>/usr/local/kong/logs/</code>目录下，所以我尝试在启动脚本<code>run-kong.sh</code>中通过<code>chmod</code>、<code>chown</code>命令，将<code>/gateway/logs/</code>目录的权限与<code>/usr/local/kong/logs/</code>目录的权限同步，但还是出现了一样的错误提示。<br>上文提到，官方镜像的启动脚本为<code>/docker-entrypoint.sh</code>。我找到了这份和官方Dockerfile放在一起的<a href="https://github.com/Kong/docker-kong/blob/bb4efafd0e2272be1c27b9aa2de60cd0022a3fad/alpine/docker-entrypoint.sh" target="_blank" rel="noopener">启动脚本</a>，发现nginx是以<code>kong</code>用户的身份运行的：</p>
+<pre><code class="shell">#!/bin/sh
+      ...  # 省略
+      exec su-exec kong /usr/local/openresty/nginx/sbin/nginx \
+        -p &quot;$PREFIX&quot; \
+        -c nginx.conf
+    fi
+  fi
+fi
+
+exec &quot;$@&quot;
+</code></pre>
+<p>既然是这样，那么我在自己的启动脚本内修改官方的启动脚本，让nginx以root权限运行就可以解决问题了。修改后的自定义启动脚本如下：</p>
+<pre><code class="shell">...  # 省略
+
+sed -i &#39;s/su-exec kong/su-exec root/g&#39; /docker-entrypoint.sh  # 修改启动脚本，以root身份启动nginx
+/docker-entrypoint.sh kong migrations bootstrap  # 初始化数据库
+/docker-entrypoint.sh kong docker-start  # 启动Kong
+</code></pre>
+<p>顺便一提，如果想在容器内让Kong的默认端口由<code>8000</code>变为<code>80</code>（<code>KONG_PROXY_LISTEN=0.0.0.0:80</code>）或其它低于<code>1024</code>的端口，同样需要让nginx以root身份运行。</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>开源项目官方提供的Docker镜像，往往要比自己用<code>Alpine</code>、<code>CentOS</code>、<code>Debian</code>等基础镜像一步步安装项目构成的镜像来得方便、稳定、好用；但后者又往往拥有前者无可比拟的自由度。其实，通过分析并“<code>继承</code>”官方Dockerfile、编写自己的启动脚本，往往能够同时拥有前两种镜像的优点——既方便，又自由。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web开发/" rel="tag"># Web开发</a>
+          
+            <a href="/tags/API-GATEWAY/" rel="tag"># API GATEWAY</a>
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/23/Django视图函数捕捉异常/" rel="next" title="Django视图函数捕捉异常">
+                <i class="fa fa-chevron-left"></i> Django视图函数捕捉异常
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/18/自用linux-server性能测试/" rel="prev" title="自用linux server性能测试">
+                自用linux server性能测试 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#官方镜像分析"><span class="nav-number">2.</span> <span class="nav-text">官方镜像分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义Dockerfile、启动脚本"><span class="nav-number">3.</span> <span class="nav-text">自定义Dockerfile、启动脚本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#以root命令启动Nginx"><span class="nav-number">4.</span> <span class="nav-text">以root命令启动Nginx</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后记"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2019/05/30/修改Kong官方Docker镜像/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

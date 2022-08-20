@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位/关键字">
+<meta name="keywords" content="Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python中的函数参数与参数传递">
+<meta property="og:url" content="https://www.yooo.ltd/2020/07/04/python-parameters-and-arguments/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位/关键字">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/07/04/list.webp">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/07/04/tuple.webp">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.989Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python中的函数参数与参数传递">
+<meta name="twitter:description" content="注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位/关键字">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/07/04/list.webp">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/07/04/python-parameters-and-arguments/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Python中的函数参数与参数传递 | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/07/04/python-parameters-and-arguments/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Python中的函数参数与参数传递
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-07-04 10:42:40" itemprop="dateCreated datePublished" datetime="2020-07-04T10:42:40+08:00">2020-07-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>注：本篇文章使用CPython3.6</p>
+</blockquote>
+<h1 id="定位参数、关键字参数"><a href="#定位参数、关键字参数" class="headerlink" title="定位参数、关键字参数"></a>定位参数、关键字参数</h1><p>在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（<code>parameters</code>），以下简称<strong>形参</strong>；当调用一个函数时，调用者传递给该函数的值叫做实际参数（<code>arguments</code>），以下简称<strong>实参</strong>。</p>
+<p>根据<a href="https://docs.python.org/3/library/inspect.html" target="_blank" rel="noopener">inspect模块</a>的描述，Python的形参可以分成如下五类：</p>
+<ul>
+<li><em>POSITIONAL_OR_KEYWORD</em>，默认类型，可通过定位/关键字实参传递；</li>
+<li><em>VAR_POSITIONAL</em>，定位形参元祖，如<code>*args</code>，捕获剩下的定位实参；</li>
+<li><em>KEYWORD_ONLY</em>，在<code>*</code>或<code>*args</code>之后的形参，只能通过关键字实参传递；</li>
+<li><em>VAR_KEYWORD</em>，关键字形参字典，如<code>**kwargs</code>，捕获剩下的关键字实参；</li>
+<li><em>POSITIONAL_ONLY</em>，只能通过定位实参传递，Python语法暂不支持，只有一些C函数（如<code>divmod</code>）使用。</li>
+</ul>
+<p>比如定义如下函数：</p>
+<pre><code class="python">def foo(a, *args):
+    print(a, args)
+</code></pre>
+<p>其中形参<code>a</code>属于<em>POSITIONAL_OR_KEYWORD</em>，可通过定位/关键字实参传递：</p>
+<pre><code class="python">&gt;&gt;&gt; foo(1)
+1 ()
+&gt;&gt;&gt; foo(a=1)
+1 ()
+</code></pre>
+<p>满足形参<code>a</code>之后，剩余的定位实参将被<code>*args</code>以元组的形式捕获：</p>
+<pre><code class="python">&gt;&gt;&gt; foo(1, 2, 3)
+1 (2, 3)
+</code></pre>
+<p>再比如定义如下函数：</p>
+<pre><code class="python">def foo(a, *args, b, **kwargs):
+    print(a, args, b, kwargs)
+</code></pre>
+<p>形参<code>b</code>属于<em>KEYWORD_ONLY</em>，因为它在<code>*args</code>之后定义：</p>
+<pre><code class="python">&gt;&gt;&gt; foo(1, b=2)
+1 () 2 {}
+</code></pre>
+<p>满足形参<code>b</code>之后，剩余的关键字实参将被<code>**kwargs</code>以字典的形式捕获：</p>
+<pre><code class="python">&gt;&gt;&gt; foo(1, b=2, c=3)
+1 () 2 {&#39;c&#39;: 3}
+</code></pre>
+<p>如果想定义<em>KEYWORD_ONLY</em>形参，但不想使用<em>VAR_POSITIONAL</em>形参（即<code>*args</code>），则可以在定义函数时单独的<code>*</code>号：</p>
+<pre><code class="python">&gt;&gt;&gt; def foo(a, *, b):
+...     print(a, b)
+...
+&gt;&gt;&gt; foo(1, b=2)
+1 2
+&gt;&gt;&gt; foo(1, 2)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+TypeError: foo() takes 1 positional argument but 2 were given
+</code></pre>
+<h1 id="参数默认值"><a href="#参数默认值" class="headerlink" title="参数默认值"></a>参数默认值</h1><p>在定义函数时，我们可以给形参指定默认值，比如：</p>
+<pre><code class="python">&gt;&gt;&gt; def foo(a=1, *args, b=2, **kwargs):
+...     print(a, args, b, kwargs)
+... 
+&gt;&gt;&gt; foo()
+1 () 2 {}
+</code></pre>
+<p>需要注意的是，形参的默认值存储在函数对象的<code>__defaults__</code>和<code>__kwdefaults__</code>属性里，而不是每次调用函数时动态生成，所以最好不要用可变对象充当形参的默认值。下面的例子就是反面教材：</p>
+<pre><code class="python">&gt;&gt;&gt; def foo(param=[]):
+...     param.append(1)
+...     print(id(param), param)
+... 
+&gt;&gt;&gt; 
+&gt;&gt;&gt; print(id(foo.__defaults__[0]), foo.__defaults__[0])
+140009169940232 []
+&gt;&gt;&gt; foo()
+140009169940232 [1]
+&gt;&gt;&gt; foo()
+140009169940232 [1, 1]
+</code></pre>
+<h1 id="获取关于参数的信息"><a href="#获取关于参数的信息" class="headerlink" title="获取关于参数的信息"></a>获取关于参数的信息</h1><p><strong>内省</strong>指程序在运行时检查对象类型的一种能力，本节介绍的内容就属于函数内省的范围。假设有如下函数：</p>
+<pre><code class="python">def foo(a=1, *args, b=2, **kwargs):
+    c = a
+    print(c, args, b, kwargs)
+</code></pre>
+<p>就像上一节中提到的，<code>foo</code>函数有<code>__defaults__</code>、<code>__kwdefaults__</code>属性，用于记录定位参数和关键字参数的默认值；有<code>__code__</code>属性，存储函数编译后的字节码信息，其中就包括参数的名称。通过这些属性，我们可以获取关于函数参数的信息：</p>
+<pre><code class="python">&gt;&gt;&gt; foo.__defaults__
+(1,)
+&gt;&gt;&gt; foo.__kwdefaults__
+{&#39;b&#39;: 2}
+&gt;&gt;&gt; foo.__code__.co_varnames  # 参数&amp;局部变量名称
+(&#39;a&#39;, &#39;b&#39;, &#39;args&#39;, &#39;kwargs&#39;, &#39;c&#39;)
+&gt;&gt;&gt; foo.__code__.co_argcount  # 定位参数数量
+1
+&gt;&gt;&gt; foo.__code__.co_kwonlyargcount  # 仅限关键字参数数量
+1
+</code></pre>
+<p>但这样还是太原始、太不方便了。幸好，我们有更好的选择：Python内置的<code>inspect</code>模块。下面这个例子就提取了<code>foo</code>函数的签名，然后获取函数的参数信息：</p>
+<pre><code class="python">&gt;&gt;&gt; from inspect import signature
+&gt;&gt;&gt; sig = signature(foo)
+&gt;&gt;&gt; sig
+&lt;Signature (a=1, *args, b=2, **kwargs)&gt;
+&gt;&gt;&gt; for name, param in sig.parameters.items():
+...     print(f&#39;{str(param.kind):&lt;21} : {param.name:&lt;6} = {param.default}&#39;)
+... 
+POSITIONAL_OR_KEYWORD : a      = 1
+VAR_POSITIONAL        : args   = &lt;class &#39;inspect._empty&#39;&gt;
+KEYWORD_ONLY          : b      = 2
+VAR_KEYWORD           : kwargs = &lt;class &#39;inspect._empty&#39;&gt;
+</code></pre>
+<p>同时，<code>inspect.Signature</code>对象还有一个<code>bind</code>方法，该方法可以将一些对象绑定到函数的形参上，就像Python解释器在调用函数时做的那样。通过这种方法，框架可以在真正执行函数前验证参数，就像下面这个例子：</p>
+<pre><code class="python">&gt;&gt;&gt; bound = sig.bind(1, 2, 3, c=3)
+&gt;&gt;&gt; for name, value in bound.arguments.items():
+...     print(f&#39;{name:&lt;6} = {value}&#39;)
+... 
+a      = 1
+args   = (2, 3)
+kwargs = {&#39;c&#39;: 3}
+&gt;&gt;&gt; bound = sig.bind(1, 2, 3, a=4)
+Traceback (most recent call last):
+  File ...
+TypeError: multiple values for argument &#39;a&#39;
+</code></pre>
+<h1 id="函数参数传递"><a href="#函数参数传递" class="headerlink" title="函数参数传递"></a>函数参数传递</h1><p>说起函数参数传递，可能就有人想起了<code>引用传递</code>、<code>值传递</code>……忘掉这两个概念，来看看下面两个例子：</p>
+<pre><code class="python">def foo1(param: list):
+    param += [4, 5]
+
+arg1 = [1, 2, 3]
+foo1(arg1)
+print(arg1)  # 输出[1, 2, 3, 4, 5]
+</code></pre>
+<p>内存中有一个<code>list</code>对象（<code>[1, 2, 3]</code>），该对象有两个别名：<code>arg1</code>和<code>param</code>。由于<code>list</code>对象是可变的（<code>mutable</code>），所以可以通过<code>param</code>这个别名修改这个<code>list</code>对象的内容。</p>
+<p><img src="/images/2020/07/04/list.webp" alt="tuple.webp"></p>
+<pre><code class="python">def foo2(param: tuple):
+    param += (4, 5)
+
+arg2 = (1, 2, 3)
+foo2(arg2)
+print(arg2)  # 输出(1, 2, 3)
+</code></pre>
+<p>内存中有一个<code>tuple</code>对象（<code>(1, 2, 3)</code>），该对象也有两个别名：<code>arg2</code>和<code>param</code>。但由于<code>tuple</code>对象是不可变的<code>(immutable)</code>，当执行<code>param += (4, 5)</code>时，解释器创建了一个新的<code>tuple</code>对象（<code>(1, 2, 3, 4, 5)</code>），并让<code>param</code>指向这个新的对象，而原来的对象没有被改变。</p>
+<p><img src="/images/2020/07/04/tuple.webp" alt="tuple.webp"></p>
+<p>在Python中，参数传递本质上是为已有的对象取了一个函数作用域级别的别名。如果该对象是可变的，那么就可以在函数内修改该对象，这种修改也可以被其它的别名所感知。弄清楚对象、别名的关系，就不会对<code>值传递</code>、<code>引用传递</code>这种说法感到困惑了。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/06/20/python-decorators-source-code/" rel="next" title="Python部分内置函数装饰器源码浅析">
+                <i class="fa fa-chevron-left"></i> Python部分内置函数装饰器源码浅析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/07/05/fluent-python-chap-5/" rel="prev" title="读《流畅的Python》：一等函数">
+                读《流畅的Python》：一等函数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#定位参数、关键字参数"><span class="nav-number">1.</span> <span class="nav-text">定位参数、关键字参数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参数默认值"><span class="nav-number">2.</span> <span class="nav-text">参数默认值</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#获取关于参数的信息"><span class="nav-number">3.</span> <span class="nav-text">获取关于参数的信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数参数传递"><span class="nav-number">4.</span> <span class="nav-text">函数参数传递</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/07/04/python-parameters-and-arguments/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。  注：本篇文章使用Python 3.6+Django 2.2  准备出发 创建Django项目multi_db和两个app：app_1和app_2 $ django-admin sta">
+<meta name="keywords" content="Web开发,Python,Django,多数据库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django多数据库历险记（一）">
+<meta property="og:url" content="https://www.yooo.ltd/2020/04/23/Django多数据库历险记（一）/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。  注：本篇文章使用Python 3.6+Django 2.2  准备出发 创建Django项目multi_db和两个app：app_1和app_2 $ django-admin sta">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.985Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django多数据库历险记（一）">
+<meta name="twitter:description" content="前言毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。  注：本篇文章使用Python 3.6+Django 2.2  准备出发 创建Django项目multi_db和两个app：app_1和app_2 $ django-admin sta">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/04/23/Django多数据库历险记（一）/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Django多数据库历险记（一） | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/04/23/Django多数据库历险记（一）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Django多数据库历险记（一）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-23 21:17:34" itemprop="dateCreated datePublished" datetime="2020-04-23T21:17:34+08:00">2020-04-23</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。</p>
+<blockquote>
+<p>注：本篇文章使用<code>Python 3.6</code>+<code>Django 2.2</code></p>
+</blockquote>
+<h1 id="准备出发"><a href="#准备出发" class="headerlink" title="准备出发"></a>准备出发</h1><ol>
+<li><p>创建Django项目<code>multi_db</code>和两个app：<code>app_1</code>和<code>app_2</code></p>
+<pre><code class="shell">$ django-admin startproject multi_db
+$ cd multi_db/
+$ python manage.py startapp app_1
+$ python manage.py startapp app_2
+</code></pre>
+</li>
+<li><p>在<code>app_1</code>和<code>app_2</code>里分别添加各自的<code>Model</code></p>
+<pre><code class="python"># app_1/models.py
+from django.db import models
+
+class Model1(models.Model):
+    name = models.CharField(max_length=255)
+    class Meta:
+        app_label = &quot;app_1&quot;
+</code></pre>
+<pre><code class="python"># app_2/models.py
+from django.db import models
+
+class Model2(models.Model):
+    name = models.CharField(max_length=255)
+    class Meta:
+        app_label = &quot;app_2&quot;
+</code></pre>
+</li>
+<li><p>为两个app指定不同的数据库并为其编写路由文件（省略部分内容）</p>
+<pre><code class="python"># multi_db/settings.py
+# ...
+INSTALLED_APPS = [
+    # ...
+    &#39;app_1&#39;,
+    &#39;app_2&#39;,
+]
+# ...
+DATABASES = {
+    &#39;default&#39;: {
+        &#39;ENGINE&#39;: &#39;django.db.backends.sqlite3&#39;,
+        &#39;NAME&#39;: os.path.join(BASE_DIR, &#39;db.sqlite3&#39;),
+    },
+    &#39;db_1&#39;: {
+        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;, &#39;NAME&#39;: &#39;db_1&#39;,
+        &#39;HOST&#39;: &#39;127.0.0.1&#39;, &#39;PORT&#39;: &#39;6603&#39;, &#39;USER&#39;: &#39;root&#39;,
+        &#39;PASSWORD&#39;: &#39;password&#39;, &#39;CHARSET&#39;: &#39;utf-8&#39;, &#39;TEST&#39;: {&#39;DEPENDENCIES&#39;: []},
+    },
+    &#39;db_2&#39;: {
+        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;, &#39;NAME&#39;: &#39;db_2&#39;,
+        &#39;HOST&#39;: &#39;127.0.0.1&#39;, &#39;PORT&#39;: &#39;6603&#39;, &#39;USER&#39;: &#39;root&#39;,
+        &#39;PASSWORD&#39;: &#39;password&#39;, &#39;CHARSET&#39;: &#39;utf-8&#39;, &#39;TEST&#39;: {&#39;DEPENDENCIES&#39;: []},
+    },
+}
+DB_ROUTING = {&#39;app_1&#39;: &#39;db_1&#39;, &#39;app_2&#39;: &#39;db_2&#39;}
+DATABASE_ROUTERS = [&#39;multi_db.db_routers.DBRouter&#39;]
+# ...
+</code></pre>
+<pre><code class="python"># multi_db/db_routers.py
+from django.conf import settings
+
+class DBRouter:
+    def db_for_read(self, model, **hints):
+        return settings.DB_ROUTING.get(model._meta.app_label)
+
+    def db_for_write(self, model, **hints):
+        return settings.DB_ROUTING.get(model._meta.app_label)
+
+    def allow_relation(self, obj1, obj2, **hints):
+        return True
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return True
+</code></pre>
+</li>
+</ol>
+<h1 id="第一关：数据迁移"><a href="#第一关：数据迁移" class="headerlink" title="第一关：数据迁移"></a>第一关：数据迁移</h1><p>Django里数据库迁移分两部分，<code>makemigrations</code>和<code>migrate</code>。前者负责在Model出现变动时生成迁移方案文件，后者则负责在数据库中应用前者的迁移方案。于是，麻烦来了。</p>
+<h2 id="makemigrations"><a href="#makemigrations" class="headerlink" title="makemigrations"></a>makemigrations</h2><p><code>makemigrations</code>命令不涉及数据库操作，所以用起来比较简单。使用时可以指定app以检测部分Model，也可以不指定app以检测全部Model。</p>
+<pre><code class="shell">$ python manage.py makemigrations
+Migrations for &#39;app_1&#39;:
+  app_1/migrations/0001_initial.py
+    - Create model Model1
+Migrations for &#39;app_2&#39;:
+  app_2/migrations/0001_initial.py
+    - Create model Model2
+</code></pre>
+<p>OK，两个app的迁移方案文件就生成好了。Django内置的一些app（比如<code>django.contrib.auth</code>）已经<a href="https://github.com/django/django/blob/2.2.12/django/contrib/auth/migrations" target="_blank" rel="noopener">自带迁移方案</a>，所以这里没有生成迁移方案文件。</p>
+<h2 id="migrate"><a href="#migrate" class="headerlink" title="migrate"></a>migrate</h2><p><code>migrate</code>命令和<code>makemigrations</code>一样，可以指定app。这里我们不指定app，直接应用所有迁移方案。</p>
+<pre><code class="shell">$ multi_db python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, app_1, app_2, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  # ...
+  Applying app_1.0001_initial... OK
+  Applying app_2.0001_initial... OK
+  # ...
+  Applying sessions.0001_initial... OK
+</code></pre>
+<p>很好，包括内置app、自定义app的所有迁移方案全部完成。按照前面的配置，默认的<code>db.sqlite3</code>里应该出现Django内置app的Model、<code>db_1</code>里应该出现<code>app_1</code>的Model、<code>db2</code>里应该出现<code>app_2</code>的Model，对吧？</p>
+<p>现实是残酷的。从<code>migrate</code>模块的源码（<a href="https://github.com/django/django/blob/2.2.12/django/core/management/commands/migrate.py#L81" target="_blank" rel="noopener">migrate.py#L81</a>）可以看出，<code>migrate</code>在应用迁移方案时根本不会考虑<code>DATABASE_ROUTERS</code>里的<code>db_for_read</code>和<code>db_for_write</code>，只会对参数<code>--database</code>指定的数据库（如不指定则为默认数据库）进行操作——也就是说，这里所有的Model都被一股脑写入到了默认的<code>db.sqlite3</code>中：</p>
+<pre><code class="shell">$ sqlite3 db.sqlite3 .tables
+app_1_model1                auth_user_groups
+app_2_model2                auth_user_user_permissions
+auth_group                  django_admin_log
+auth_group_permissions      django_content_type
+auth_permission             django_migrations
+auth_user                   django_session
+</code></pre>
+<p>很明显，这不是我想要的。如何补救呢？措施有两种。</p>
+<h3 id="补救措施1"><a href="#补救措施1" class="headerlink" title="补救措施1"></a>补救措施1</h3><p>第一种补救措施是在生成自定义app的迁移方案之前抢先完成对内置app的迁移方案，然后再进行自定义app的迁移。这种措施需要删除已经生成好的迁移方案文件。当然，这个补救措施有点耍滑头了。</p>
+<pre><code class="shell">$ rm db.sqlite3
+$ rm app_?/migrations/0001_initial.py
+$ # 迁移内置app
+$ python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  # ...
+$ # 重新生成自定义app的model的迁移方案
+$ python manage.py makemigrations
+Migrations for &#39;app_1&#39;:
+  app_1/migrations/0001_initial.py
+    - Create model Model1
+Migrations for &#39;app_2&#39;:
+  app_2/migrations/0001_initial.py
+    - Create model Model2
+$ # 迁移时指定数据库
+$ python manage.py migrate app_1 --database db_1
+Operations to perform:
+  Apply all migrations: app_1
+Running migrations:
+  Applying app_1.0001_initial... OK
+$ python manage.py migrate app_2 --database db_2
+Operations to perform:
+  Apply all migrations: app_2
+Running migrations:
+  Applying app_2.0001_initial... OK
+</code></pre>
+<h3 id="补救措施2"><a href="#补救措施2" class="headerlink" title="补救措施2"></a>补救措施2</h3><p>第二种补救措施不必删除已经生成好的自定义app的迁移方案文件，而是单独迁移内置app。虽然<code>migrate</code>命令一次只能迁移一个app，但所幸需要用到的内置app一般不会太多。</p>
+<pre><code class="shell">$ rm db.sqlite3
+$ python manage.py migrate admin
+Operations to perform:
+  Apply all migrations: admin
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  # ...
+$ python manage.py migrate auth
+# ...
+$ python manage.py migrate contenttypes
+# ...
+$ python manage.py migrate sessions
+# ...
+$ # 单独迁移完内置app后再迁移自定义app
+$ python manage.py migrate app_1 --database db_1
+# ...
+$ python manage.py migrate app_2 --database db_2
+# ...
+
+</code></pre>
+<h2 id="自定义migrate"><a href="#自定义migrate" class="headerlink" title="自定义migrate"></a>自定义migrate</h2><p>前文提到的两个补救措施终究只是一时的权宜之计，用起来也很麻烦。反正只是多运行几次<code>migrate</code>命令，为什么不交给python来做呢？编辑<code>my_migrate.py</code>如下：</p>
+<pre><code class="python"># my_migrate.py
+#!/usr/bin/env python
+import os
+
+import django
+from django.apps import apps, AppConfig
+from django.conf import settings
+from django.core.management import execute_from_command_line, CommandError
+from django.db import DEFAULT_DB_ALIAS
+
+os.environ.setdefault(&#39;DJANGO_SETTINGS_MODULE&#39;, &#39;multi_db.settings&#39;)
+django.setup()
+
+for app_config in list(apps.get_app_configs()):  # type: AppConfig
+    app_label = app_config.label  # type: str
+    db = settings.DB_ROUTING.get(app_config.label, DEFAULT_DB_ALIAS)
+    argv = [&quot;manage.py&quot;, &quot;migrate&quot;, &quot;--traceback&quot;, &quot;--database&quot;, db, app_label]
+    print(&quot;python &quot; + &quot; &quot;.join(argv))
+    try:
+        execute_from_command_line(argv)
+    except CommandError as e:
+        print(e)
+    finally:
+        print()
+print(&quot;migrate complete&quot;)
+
+</code></pre>
+<p>一股熟悉的味道……没错，看起来就像是<code>manage.py</code>的魔改版本。代码在<code>migrate</code>某app之前会去配置文件里的<code>DB_ROUTING</code>字典查找该app对应的数据库，再用这个数据库来<code>migrate</code>这个app。运行效果如下：</p>
+<pre><code class="shell">$ python my_migrate.py
+python manage.py migrate --traceback --database default admin
+Operations to perform:
+  Apply all migrations: admin
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  # ... 略
+
+python manage.py migrate --traceback --database db_1 app_1
+# ... 略
+</code></pre>
+<h2 id="大功告成"><a href="#大功告成" class="headerlink" title="大功告成"></a>大功告成</h2><p>于是，这个Django项目的数据库迁移工作终于完成了，太不容易了……验证一下：</p>
+<pre><code class="shell">$ sqlite3 db.sqlite3 .tables
+auth_group                  auth_user_user_permissions
+auth_group_permissions      django_admin_log
+auth_permission             django_content_type
+auth_user                   django_migrations
+auth_user_groups            django_session
+</code></pre>
+<pre><code class="sql">mariadb root@127.0.0.1:db_1&gt; show tables
++-------------------+
+| Tables_in_db_1    |
++-------------------+
+| app_1_model1      |
+| django_migrations |
++-------------------+
+</code></pre>
+<pre><code class="sql">mariadb root@127.0.0.1:db_2&gt; show tables
++-------------------+
+| Tables_in_db_2    |
++-------------------+
+| app_2_model2      |
+| django_migrations |
++-------------------+
+</code></pre>
+<h1 id="第二关：运行"><a href="#第二关：运行" class="headerlink" title="第二关：运行"></a>第二关：运行</h1><p>数据库迁移（终于）完成后，该运行这个Django项目了：</p>
+<pre><code class="shell">$ python manage.py runserver
+Watching for file changes with StatReloader
+Performing system checks...
+System check identified no issues (0 silenced).
+You have 2 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): app_1, app_2.
+Run &#39;python manage.py migrate&#39; to apply them.
+April 23, 2020 - xx:xx:xx
+</code></pre>
+<p>等等，为什么我在上一步已经完成了全部迁移工作，Django还会提示<code>app_1</code>和<code>app_2</code>未迁移？虽然这并不影响运行，但鲜红的提示总是令人不爽。</p>
+<p>从<code>apply_migration()</code>的源码（<a href="https://github.com/django/django/blob/2.2.12/django/db/migrations/executor.py#L246" target="_blank" rel="noopener">executor.py#L246</a>）中可以看出，在<code>migrate</code>命令过程中，每执行完一条迁移任务，Django都会在同数据库的<code>django_migrations</code>表中写入一条迁移完成的标记，用于记录迁移进度。实际上，<code>db_1</code>和<code>db_2</code>的<code>django_migrations</code>也是有对应标记的。</p>
+<p>但从模块<code>check_migrations()</code>的源码（<a href="https://github.com/django/django/blob/2.2.12/django/core/management/base.py#L453" target="_blank" rel="noopener">base.py#L453</a>）中可以看出，在运行<code>runserver</code>命令时，Django只会到默认数据库的<code>django_migrations</code>表中查找迁移进度，<code>db_1</code>和<code>db_2</code>的迁移进度就被无视了……那么，怎样才能让在运行<code>runserver</code>时检查非默认数据库的迁移进度呢？</p>
+<h2 id="自定义check-migrations"><a href="#自定义check-migrations" class="headerlink" title="自定义check_migrations"></a>自定义check_migrations</h2><p>简单来说，就是修改<code>runserver</code>里<code>check_migrations()</code>的行为。先来看看原始的<code>check_migrations()</code>代码：</p>
+<pre><code class="python">def check_migrations(self):
+    from django.db.migrations.executor import MigrationExecutor
+    try:
+        executor = MigrationExecutor(connections[DEFAULT_DB_ALIAS])
+    except ImproperlyConfigured:
+        # No databases are configured (or the dummy one)
+        return
+
+    plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+    if plan:
+        # 提示未migrate的app，省略
+        self.stdout.write(self.style.NOTICE(&quot;Run &#39;python manage.py migrate&#39; to apply them.\n&quot;))
+</code></pre>
+<p>总体逻辑并不复杂，关键在于<code>executor</code>对象的<code>migration_plan()</code>方法。我要做的就是引入<code>db_1</code>和<code>db_2</code>的<code>executor</code>，让每个数据库只检查自己的迁移进度。下面是我自己实现的<code>check_migrations()</code>方法：</p>
+<pre><code class="python"># multi_db/my_runserver.py
+from collections import defaultdict
+
+from django.conf import settings
+from django.core.management.commands import runserver
+from django.db import connections, DEFAULT_DB_ALIAS
+from django.db.migrations.executor import MigrationExecutor
+
+class MyCommand(runserver.Command):
+    def check_migrations(self):
+        # 为每个数据库连接创建一个executor并放到字典里
+        executors = {}
+        for alias in connections:
+            executors[alias] = MigrationExecutor(connections[alias])
+        default_executor = executors[DEFAULT_DB_ALIAS]
+        # 获取迁移任务列表（nodes）
+        # nodes是一个tuple的list，每个tuple的第一个元素是app的名称
+        nodes = default_executor.loader.graph.leaf_nodes()
+        # 按app名称将node分类
+        node_map = defaultdict(list)
+        for node in nodes:  # type: tuple
+            alias = settings.DB_ROUTING.get(node[0], DEFAULT_DB_ALIAS)
+            node_map[alias].append(node)
+        # 让每个executor检查各自的迁移任务是否完成
+        plan = []
+        for alias, executor in executors.items():
+            plan.extend(executor.migration_plan(node_map[alias]))
+
+        if plan:
+            # 提示未migrate的app，同原函数，省略
+            self.stdout.write(self.style.NOTICE(&quot;Run &#39;python manage.py migrate&#39; to apply them.\n&quot;))
+</code></pre>
+<p>下一步就是让<code>manager.py</code>使用我这个<code>check_migrations()</code>而不是Django内置的<code>check_migrations()</code>。在<code>manager.py</code>的文件头修改一下：</p>
+<pre><code class="python">#!/usr/bin/env python
+&quot;&quot;&quot;Django&#39;s command-line utility for administrative tasks.&quot;&quot;&quot;
+import os
+import sys
+
+from multi_db.my_runserver import MyCommand
+from django.core.management.commands import runserver
+
+runserver.Command = MyCommand
+# ... 略
+</code></pre>
+<h2 id="大功告成-1"><a href="#大功告成-1" class="headerlink" title="大功告成"></a>大功告成</h2><p>运行看看效果：</p>
+<pre><code class="shell">$ python manage.py runserver
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+April 23, 2020 - xx:xx:xx
+</code></pre>
+<p>终于不提示还有<code>unapplied migration</code>了……我哭了，你呢？</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web开发/" rel="tag"># Web开发</a>
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Django/" rel="tag"># Django</a>
+          
+            <a href="/tags/多数据库/" rel="tag"># 多数据库</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/04/19/Django视图函数性能分析（续）/" rel="next" title="Django视图函数性能分析（续）">
+                <i class="fa fa-chevron-left"></i> Django视图函数性能分析（续）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/04/25/Django多数据库历险记（二）/" rel="prev" title="Django多数据库历险记（二）">
+                Django多数据库历险记（二） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#准备出发"><span class="nav-number">2.</span> <span class="nav-text">准备出发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第一关：数据迁移"><span class="nav-number">3.</span> <span class="nav-text">第一关：数据迁移</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#makemigrations"><span class="nav-number">3.1.</span> <span class="nav-text">makemigrations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#migrate"><span class="nav-number">3.2.</span> <span class="nav-text">migrate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#补救措施1"><span class="nav-number">3.2.1.</span> <span class="nav-text">补救措施1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#补救措施2"><span class="nav-number">3.2.2.</span> <span class="nav-text">补救措施2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义migrate"><span class="nav-number">3.3.</span> <span class="nav-text">自定义migrate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#大功告成"><span class="nav-number">3.4.</span> <span class="nav-text">大功告成</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二关：运行"><span class="nav-number">4.</span> <span class="nav-text">第二关：运行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义check-migrations"><span class="nav-number">4.1.</span> <span class="nav-text">自定义check_migrations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#大功告成-1"><span class="nav-number">4.2.</span> <span class="nav-text">大功告成</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/04/23/Django多数据库历险记（一）/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

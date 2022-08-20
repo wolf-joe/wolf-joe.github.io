@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二">
+<meta name="keywords" content="Golang,map">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何在Golang里实现一个高性能的TTLMap">
+<meta property="og:url" content="https://www.yooo.ltd/2020/05/24/如何在Golang里实现一个高性能的TTLMap/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/05/24/pprof.webp">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.985Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何在Golang里实现一个高性能的TTLMap">
+<meta name="twitter:description" content="前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/05/24/pprof.webp">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/05/24/如何在Golang里实现一个高性能的TTLMap/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何在Golang里实现一个高性能的TTLMap | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/05/24/如何在Golang里实现一个高性能的TTLMap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何在Golang里实现一个高性能的TTLMap
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-05-24 18:17:23" itemprop="dateCreated datePublished" datetime="2020-05-24T18:17:23+08:00">2020-05-24</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><code>TTLMap</code>是一个比较实用的数据结构，特别是在需要缓存数据的场景下。<code>TTLMap</code>的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。</p>
+<p>在<code>TTLMap</code>里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二种策略容易造成内存泄露。<code>Redis</code>对设置了TTL的数据采取的是惰性删除和定期删除策略，而本篇文章会将重点放在性能上，所以只会采取定期删除策略。</p>
+<blockquote>
+<p>注：本篇文章使用<code>go1.13.5 linux/amd64</code></p>
+</blockquote>
+<h1 id="接口定义"><a href="#接口定义" class="headerlink" title="接口定义"></a>接口定义</h1><p>先来看看<code>TTLMap</code>的接口定义：</p>
+<pre><code class="go">type TTLMap interface {
+    Get(key string) (interface{}, bool)
+    Set(key string, val interface{}, ex time.Duration)
+    Len() int
+    clean(tick time.Duration)
+}
+
+type item struct {
+    value  interface{}
+    expire int64
+}
+</code></pre>
+<p><code>Get()</code>函数负责从<code>TTLMap</code>中获取数据，如数据不存在或已失效则第二个返回值为<code>false</code>，行为和内置的<code>map</code>保持一致。<code>Set()</code>函数负责将数据放入<code>TTLMap</code>，并接收一个<code>time.Duration</code>参数用来标示数据的生命周期。<code>Len()</code>函数返回<code>TTLMap</code>中数据的数量，不过为了性能考虑，一般不区分数据是否已经失效。<code>clean()</code>函数则负责实现上文提到的定期删除策略。</p>
+<h1 id="初步实现（V0版本）"><a href="#初步实现（V0版本）" class="headerlink" title="初步实现（V0版本）"></a>初步实现（V0版本）</h1><pre><code class="go">type TTLMapV0 struct {
+    items map[string]item
+    mux   *sync.Mutex
+}
+
+func (tm *TTLMapV0) Get(key string) (interface{}, bool) {
+    tm.mux.Lock()
+    defer tm.mux.Unlock()
+    if item, ok := tm.items[key]; !ok || time.Now().UnixNano() &gt; item.expire {
+        return nil, false
+    } else {
+        return item.value, true
+    }
+}
+
+func (tm *TTLMapV0) Set(key string, val interface{}, ex time.Duration) {
+    tm.mux.Lock()
+    tm.items[key] = item{value: val, expire: time.Now().Add(ex).UnixNano()}
+    tm.mux.Unlock()
+}
+
+func (tm *TTLMapV0) Len() int {
+    tm.mux.Lock()
+    defer tm.mux.Unlock()
+    return len(tm.items)
+}
+
+func (tm *TTLMapV0) clean(tick time.Duration) {
+    for range time.Tick(tick) {
+        tm.mux.Lock()
+        for key, item := range tm.items {
+            if time.Now().UnixNano() &gt;= item.expire {
+                delete(tm.items, key)
+            }
+        }
+        tm.mux.Unlock()
+    }
+}
+
+func NewTTLMapV0(cleanTick time.Duration) *TTLMapV0 {
+    tm := &amp;TTLMapV0{items: map[string]item{}, mux: new(sync.Mutex)}
+    go tm.clean(cleanTick)
+    return tm
+</code></pre>
+<h1 id="防止内存泄露（V1版本）"><a href="#防止内存泄露（V1版本）" class="headerlink" title="防止内存泄露（V1版本）"></a>防止内存泄露（V1版本）</h1><p>上面的V0版本实现在功能上已经基本完整了，但由于<code>clean()</code>函数会一直运行，所以V0版本的<code>TTLMap</code>不会被Golang的垃圾回收机制回收，进而引起内存泄露。所以我们需要对V0版本做出一点改进，并将改进后的<code>TTLMap</code>包裹起来以启动自动回收机制：</p>
+<pre><code class="go">type TTLMapV1 struct {
+    *TTLMapV0
+    stop chan bool
+}
+
+func (tm *TTLMapV1) clean(tick time.Duration) {
+    for range time.Tick(tick) {
+        select {
+        case &lt;-tm.stop:
+            return
+        default:
+            tm.mux.Lock()
+            for key, item := range tm.items {
+                if time.Now().UnixNano() &gt;= item.expire {
+                    delete(tm.items, key)
+                }
+            }
+            tm.mux.Unlock()
+        }
+    }
+}
+
+type TTLMapWrapper struct {
+    TTLMap
+}
+
+func NewTTLMapV1(cleanTick time.Duration) *TTLMapWrapper {
+    tm0 := &amp;TTLMapV0{items: map[string]item{}, mux: new(sync.Mutex)}
+    tm1 := &amp;TTLMapV1{TTLMapV0: tm0, stop: make(chan bool)}
+    go tm1.clean(cleanTick)
+    tmw := &amp;TTLMapWrapper{TTLMap: tm1}
+    runtime.SetFinalizer(tmw, func(_ interface{}) { tm1.stop &lt;- true })
+    return tmw
+}
+</code></pre>
+<h2 id="验证自动回收是否启用"><a href="#验证自动回收是否启用" class="headerlink" title="验证自动回收是否启用"></a>验证自动回收是否启用</h2><p>为了验证上文的改进是否有效，将代码改动如下：</p>
+<pre><code class="go">func (tm *TTLMapV0) clean(tick time.Duration) {
+    defer fmt.Println(&quot;v0.clean() stopped&quot;)
+    // ...
+}
+
+// ...
+func NewTTLMapV0(cleanTick time.Duration) *TTLMapV0 {
+    // ...
+    runtime.SetFinalizer(tm, func(_ interface{}) { fmt.Println(&quot;v0 gone&quot;) })
+    return tm
+}
+
+// ...
+func (tm *TTLMapV1) clean(tick time.Duration) {
+    defer func() { fmt.Println(&quot;v1.clean() stopped&quot;) }()
+    // ...
+}
+
+// ...
+func NewTTLMapV1(cleanTick time.Duration) *TTLMapWrapper {
+    // ...
+    runtime.SetFinalizer(tm1, func(_ interface{}) { fmt.Println(&quot;v1 gone&quot;) })
+    runtime.SetFinalizer(tm0, func(_ interface{}) { fmt.Println(&quot;v1.v0 gone&quot;) })
+    return tmw
+}
+</code></pre>
+<p>然后编写测试代码并运行：</p>
+<pre><code class="go">func TestTTLMap(t *testing.T) {
+    func() {
+        NewTTLMapV0(time.Millisecond * 100)
+        NewTTLMapV1(time.Millisecond * 100)
+    }()
+    fmt.Println(&quot;--&gt; first gc&quot;)
+    runtime.GC()
+    time.Sleep(time.Millisecond * 200)
+    fmt.Println(&quot;--&gt; second gc&quot;)
+    runtime.GC()
+    fmt.Println(&quot;--&gt; third gc&quot;)
+    runtime.GC()
+}
+</code></pre>
+<pre><code class="shell">$ go test .
+=== RUN   TestTTLMap
+--&gt; first gc
+v1.clean() stopped
+--&gt; second gc
+v1 gone
+--&gt; third gc
+v1.v0 gone
+--- PASS: TestTTLMap (0.20s)
+</code></pre>
+<p>可以看到，改进后的代码确实生效了，未被引用的<code>TTLMap</code>（V1版本）会被自动回收，不会出现内存泄露。</p>
+<blockquote>
+<p>PS：在接下来的版本将省略<code>TTLMapWrapper</code>的实现部分</p>
+</blockquote>
+<h1 id="使用读写锁提高性能（V2版本）"><a href="#使用读写锁提高性能（V2版本）" class="headerlink" title="使用读写锁提高性能（V2版本）"></a>使用读写锁提高性能（V2版本）</h1><p>在之前的版本里，<code>TTLMap</code>使用的并发控制锁都是普通的<code>sync.Mutex</code>，也就是说同一时刻只能有一个<code>Goruntime</code>访问该对象。但<code>TTLMap</code>应用的场景大多是读多写少，所以我们可以使用读写锁，即<code>sync.RWMutex</code>来获得更好性能：</p>
+<pre><code class="go">type TTLMapV2 struct {
+    items map[string]item
+    mux   *sync.RWMutex
+}
+
+func (tm *TTLMapV2) Get(key string) (interface{}, bool) {
+    tm.mux.RLock()
+    defer tm.mux.RUnlock()
+    if item, ok := tm.items[key]; !ok || time.Now().UnixNano() &gt; item.expire {
+        return nil, false
+    } else {
+        return item.value, true
+    }
+}
+
+func (tm *TTLMapV2) Set(key string, val interface{}, ex time.Duration) {
+    // ... 同V0版本
+}
+
+func (tm *TTLMapV2) clean(tick time.Duration) {
+    // ... 同V0版本
+}
+
+func (tm *TTLMapV2) Len() int {
+    tm.mux.RLock()
+    defer tm.mux.RUnlock()
+    return len(tm.items)
+}
+
+func NewTTLMapV2(cleanTick time.Duration) *TTLMapV2 {
+    tm := &amp;TTLMapV2{map[string]item{}, new(sync.RWMutex)}
+    go tm.clean(cleanTick)
+    return tm
+}
+</code></pre>
+<h1 id="使用不精确的时间提高性能（V3版本）"><a href="#使用不精确的时间提高性能（V3版本）" class="headerlink" title="使用不精确的时间提高性能（V3版本）"></a>使用不精确的时间提高性能（V3版本）</h1><p>在之前的版本里，每次调用<code>Get()</code>和<code>Set()</code>函数时都会调用<code>time.Now()</code>以获取精确时间。但在对时间的精确度要求不那么高的场合下，可以缓存<code>time.Now()</code>的结果来获得更好的性能：</p>
+<pre><code class="go">type TTLMapV3 struct {
+    items map[string]item
+    mux   *sync.RWMutex
+    now   int64
+}
+
+func (tm *TTLMapV3) Get(key string) (interface{}, bool) {
+    tm.mux.RLock()
+    defer tm.mux.RUnlock()
+    if item, ok := tm.items[key]; !ok || tm.now &gt; item.expire {
+        return nil, false
+    } else {
+        return item.value, true
+    }
+}
+
+func (tm *TTLMapV3) Set(key string, val interface{}, ex time.Duration) {
+    tm.mux.Lock()
+    tm.items[key] = item{value: val, expire: tm.now + ex.Nanoseconds()}
+    tm.mux.Unlock()
+}
+
+func (tm *TTLMapV3) Len() int {
+    // ... 同V2版本
+}
+
+func (tm *TTLMapV3) clean(tick time.Duration) {
+    for range time.Tick(tick) {
+        tm.mux.Lock()
+        for key, item := range tm.items {
+            if tm.now &gt;= item.expire {
+                delete(tm.items, key)
+            }
+        }
+        tm.mux.Unlock()
+    }
+}
+
+func (tm *TTLMapV3) updateNow(tick time.Duration) {
+    for range time.Tick(tick) {
+        tm.mux.Lock()
+        tm.now = time.Now().UnixNano()
+        tm.mux.Unlock()
+    }
+}
+
+
+func NewTTLMapV3(cleanTick time.Duration) *TTLMapV3 {
+    tm := &amp;TTLMapV3{map[string]item{},
+        new(sync.RWMutex), time.Now().UnixNano()}
+    go tm.clean(cleanTick)
+    go tm.updateNow(time.Second)
+    return tm
+}
+</code></pre>
+<h1 id="性能测试-amp-结语"><a href="#性能测试-amp-结语" class="headerlink" title="性能测试&amp;结语"></a>性能测试&amp;结语</h1><p>编写测试代码用于测试以上版本的性能并运行：</p>
+<pre><code class="go">func BenchmarkTTLMap(b *testing.B) {
+    rand.Seed(time.Now().UnixNano())
+    key := RandStringBytesRmndr(20)
+    tasks := []struct {
+        name string
+        ttl  TTLMap
+    }{
+        {&quot;TTLMapV0&quot;, NewTTLMapV0(time.Minute)},
+        {&quot;TTLMapV2&quot;, NewTTLMapV2(time.Minute)},
+        {&quot;TTLMapV3&quot;, NewTTLMapV3(time.Minute)},
+    }
+    for _, task := range tasks {
+        b.Run(task.name, func(sb *testing.B) {
+            sb.RunParallel(func(pb *testing.PB) {
+                for pb.Next() {
+                    task.ttl.Set(key, key, time.Minute)
+                    task.ttl.Get(key)
+                }
+            })
+        })
+    }
+}
+</code></pre>
+<pre><code class="shell">$ go test -bench .  
+goos: linux
+goarch: amd64
+BenchmarkTTLMap/TTLMapV0-8               3972699               301 ns/op
+BenchmarkTTLMap/TTLMapV2-8               4972598               241 ns/op
+BenchmarkTTLMap/TTLMapV3-8               9125235               132 ns/op
+PASS
+</code></pre>
+<p>可以看出，V2相比V0性能提升了20%左右，而V3相比V0的性能提升幅度更是超过了56%。而从PPROF的分析结果来看，剩下的时间主要消耗在互斥锁上，应该很难有进一步优化的空间了。</p>
+<p><img src="/images/2020/05/24/pprof.webp" alt></p>
+<p>虽然理论上来说用<code>int</code>当<code>Map</code>的键而不是<code>string</code>时会有更好的性能表现，但是从实际测试来看，对于长度为20的<code>string</code>，<code>fnv32</code>等哈希算法的开销还是超过了其能带来的收益，更别提还要考虑潜在的哈希冲突。</p>
+<p>最后要重申一点的是，V2和V3版本的实现省略了V1中提到的<code>TTLMapWrapper</code>部分，所以请不要直接使用V2和V3版本的代码😂</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a href="https://github.com/golang/go/issues/19780" target="_blank" rel="noopener">proposal: a faster, better fnv32 implementation #19780</a></li>
+<li><a href="https://my.oschina.net/solate/blog/3034188" target="_blank" rel="noopener">go benchmark 性能测试</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/76504936" target="_blank" rel="noopener">使用runtime.SetFinalizer优雅关闭后台goroutine</a></li>
+<li><a href="http://redisbook.com/preview/database/review.html" target="_blank" rel="noopener">重点回顾-Redis设计与实现</a></li>
+<li><a href="https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go" target="_blank" rel="noopener">How to generate a random string of a fixed length in Go?</a></li>
+<li><a href="https://medium.com/justforfunc/analyzing-the-performance-of-go-functions-with-benchmarks-60b8162e61c6" target="_blank" rel="noopener">Analyzing the performance of Go functions with benchmarks</a></li>
+<li><a href="https://stackimpact.com/blog/practical-golang-benchmarks/#map-access" target="_blank" rel="noopener">Practical Go Benchmarks</a></li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Golang/" rel="tag"># Golang</a>
+          
+            <a href="/tags/map/" rel="tag"># map</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/05/02/Django多数据库历险记（三）/" rel="next" title="Django多数据库历险记（番外）">
+                <i class="fa fa-chevron-left"></i> Django多数据库历险记（番外）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/06/13/如何高效地对100万个UUID进行前缀匹配查询/" rel="prev" title="如何高效地对100万个UUID进行前缀匹配查询">
+                如何高效地对100万个UUID进行前缀匹配查询 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#接口定义"><span class="nav-number">2.</span> <span class="nav-text">接口定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初步实现（V0版本）"><span class="nav-number">3.</span> <span class="nav-text">初步实现（V0版本）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#防止内存泄露（V1版本）"><span class="nav-number">4.</span> <span class="nav-text">防止内存泄露（V1版本）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#验证自动回收是否启用"><span class="nav-number">4.1.</span> <span class="nav-text">验证自动回收是否启用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用读写锁提高性能（V2版本）"><span class="nav-number">5.</span> <span class="nav-text">使用读写锁提高性能（V2版本）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用不精确的时间提高性能（V3版本）"><span class="nav-number">6.</span> <span class="nav-text">使用不精确的时间提高性能（V3版本）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#性能测试-amp-结语"><span class="nav-number">7.</span> <span class="nav-text">性能测试&amp;结语</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">7.1.</span> <span class="nav-text">引用</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/05/24/如何在Golang里实现一个高性能的TTLMap/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>

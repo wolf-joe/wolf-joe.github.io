@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言 在以前的文章中，我介绍了两种分析Django视图函数性能的工具：Django Debug Toolbar和cProfile中间件。在实际开发过程中，前者的SQL执行分析是相当实用的功能。 但美中不足的是，Django Debug Toolbar只能在浏览器里分析响应类型为HTML的视图函数，这就导致响应类型为JSON的视图函数必须要借助Django Rest Framework框架中的HTM">
+<meta name="keywords" content="Web开发,Python,性能分析,Django">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django视图函数性能分析（续）">
+<meta property="og:url" content="https://www.yooo.ltd/2020/04/19/Django视图函数性能分析（续）/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言 在以前的文章中，我介绍了两种分析Django视图函数性能的工具：Django Debug Toolbar和cProfile中间件。在实际开发过程中，前者的SQL执行分析是相当实用的功能。 但美中不足的是，Django Debug Toolbar只能在浏览器里分析响应类型为HTML的视图函数，这就导致响应类型为JSON的视图函数必须要借助Django Rest Framework框架中的HTM">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/04/19/django.png">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/04/19/document.webp">
+<meta property="og:updated_time" content="2021-07-22T10:16:11.985Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django视图函数性能分析（续）">
+<meta name="twitter:description" content="前言 在以前的文章中，我介绍了两种分析Django视图函数性能的工具：Django Debug Toolbar和cProfile中间件。在实际开发过程中，前者的SQL执行分析是相当实用的功能。 但美中不足的是，Django Debug Toolbar只能在浏览器里分析响应类型为HTML的视图函数，这就导致响应类型为JSON的视图函数必须要借助Django Rest Framework框架中的HTM">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/04/19/django.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://www.yooo.ltd/2020/04/19/Django视图函数性能分析（续）/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Django视图函数性能分析（续） | OrangeWolf的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OrangeWolf的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Golang研发工程师</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2020/04/19/Django视图函数性能分析（续）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OrangeWolf">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/favicon.webp">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OrangeWolf的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Django视图函数性能分析（续）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-19 16:30:03" itemprop="dateCreated datePublished" datetime="2020-04-19T16:30:03+08:00">2020-04-19</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2020/04/19/django.png" alt="django.png"></p>
+<p>在<a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">以前的文章</a>中，我介绍了两种分析Django视图函数性能的工具：<code>Django Debug Toolbar</code>和<code>cProfile中间件</code>。在实际开发过程中，前者的SQL执行分析是相当实用的功能。</p>
+<p>但美中不足的是，<code>Django Debug Toolbar</code>只能在浏览器里分析响应类型为HTML的视图函数，这就导致响应类型为JSON的视图函数必须要借助<code>Django Rest Framework</code>框架中的<code>HTMLRenderer</code>等手段修改自身的响应类型，否则无法使用该工具。</p>
+<p>那有没有更直接的手段，来为JSON视图函数分析SQL执行情况呢？这就是文本要探究的问题。</p>
+<blockquote>
+<p>注：本文所使用的运行环境为<code>Python 3.6</code>+<code>Django 2.2</code></p>
+</blockquote>
+<h1 id="Django中的SQL执行"><a href="#Django中的SQL执行" class="headerlink" title="Django中的SQL执行"></a>Django中的SQL执行</h1><p>在查阅了相关文档后，我发现事情比我想象中的简单。在Django官方文档中的<a href="https://docs.djangoproject.com/en/2.2/faq/models/" target="_blank" rel="noopener">FAQ: Databases and models</a>有这样的描述：</p>
+<p><img src="/images/2020/04/19/document.webp" alt="document.webp"></p>
+<p>如此一来方法就很清晰了：写一个中间件，将<code>connection.queries</code>里的内容插入到JSON响应中。中间件代码如下：</p>
+<pre><code class="python"># coding:utf-8
+import json
+
+from django.conf import settings
+from django.core.exceptions import MiddlewareNotUsed
+from django.db import connections
+from django.http.response import HttpResponse
+
+
+class ProfileMiddleware(object):
+    ignore_sql = []
+
+    def __init__(self, get_response):
+        if not settings.DEBUG:
+            raise MiddlewareNotUsed  # 只在DEBUG模式下启用该中间件
+
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)  # type: HttpResponse
+        # 根据url参数和返回类型判断是否应该插入SQL执行信息
+        if request.GET.get(&quot;profile&quot;) == &quot;db&quot; and &quot;application/json&quot; in repr(response):
+            try:
+                data = json.loads(response.content)
+            except (TypeError, ValueError):
+                return response  # 解析json失败
+            # 插入sql执行信息
+            sql_queries = []
+            for alias in connections:
+                for query in connections[alias].queries:
+                    if query[&quot;sql&quot;] not in self.ignore_sql:
+                        query[&quot;using&quot;] = alias
+                        sql_queries.append(query)
+            if isinstance(data, dict):
+                data[&quot;_debug_sql&quot;] = sql_queries
+            elif isinstance(data, list):
+                data.append({&quot;_debug_sql&quot;: sql_queries})
+            response.content = json.dumps(data)
+
+        return response
+</code></pre>
+<p>写个简单视图函数来验证一下：</p>
+<pre><code class="python">#!/usr/bin/env python3
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+
+
+def user_count(request):
+    data = {&quot;count&quot;: User.objects.count()}
+    return JsonResponse(data)
+</code></pre>
+<pre><code class="shell">$ curl -s localhost:8000/user_count/\?profile=db | python3 -m json.tool
+{
+    &quot;count&quot;: 0,
+    &quot;_debug_sql&quot;: [
+        {
+            &quot;sql&quot;: &quot;SELECT COUNT(*) AS \&quot;__count\&quot; FROM \&quot;auth_user\&quot;&quot;,
+            &quot;time&quot;: &quot;0.000&quot;,
+            &quot;using&quot;: &quot;default&quot;
+        }
+    ]
+}
+</code></pre>
+<h1 id="和cProfile中间件组合"><a href="#和cProfile中间件组合" class="headerlink" title="和cProfile中间件组合"></a>和cProfile中间件组合</h1><p>在<a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">以前的文章</a>中我也介绍了使用<code>cProfile中间件</code>来分析Django视图函数的Python代码执行情况，这里就顺便组合起来。</p>
+<pre><code class="python"># coding:utf-8
+import cProfile
+import json
+import pstats
+from io import StringIO
+
+from django.conf import settings
+from django.core.exceptions import MiddlewareNotUsed
+from django.db import connections
+from django.http.response import HttpResponse
+
+
+class ProfileMiddleware(object):
+    ignore_sql = []
+
+    def __init__(self, get_response):
+        if not settings.DEBUG:
+            raise MiddlewareNotUsed  # 只在DEBUG模式下启用该中间件
+
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.GET.get(&quot;profile&quot;) == &quot;cprofile&quot;:
+            # 用cProfile的结果覆盖原始响应
+            profile = cProfile.Profile()
+            profile.enable()
+            self.get_response(request)
+            profile.disable()
+            ram_file = StringIO()
+            sort_by = &#39;tottime&#39;
+            stats = pstats.Stats(profile, stream=ram_file)
+            stats.strip_dirs().sort_stats(sort_by).print_stats()
+            return HttpResponse(ram_file.getvalue().encode(&#39;utf-8&#39;), &#39;text/plain&#39;)
+
+        response = self.get_response(request)  # type: HttpResponse
+        # 根据url参数和返回类型判断是否应该插入SQL执行信息
+        if request.GET.get(&quot;profile&quot;) == &quot;db&quot; and &quot;application/json&quot; in repr(response):
+            try:
+                data = json.loads(response.content)
+            except (TypeError, ValueError):
+                return response  # 解析json失败
+            # 插入sql执行信息
+            sql_queries = []
+            for alias in connections:
+                for query in connections[alias].queries:
+                    if query[&quot;sql&quot;] not in self.ignore_sql:
+                        query[&quot;using&quot;] = alias
+                        sql_queries.append(query)
+            data[&quot;_debug_sql&quot;] = sql_queries
+            response.content = json.dumps(data)
+
+        return response
+</code></pre>
+<p>同样验证一下：</p>
+<pre><code class="shell">$ curl -s localhost:8000/user_count/\?profile=cprofile
+         830 function calls (826 primitive calls) in 0.002 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.000    0.000 base.py:379(execute)
+        1    0.000    0.000    0.000    0.000 {built-in method _sqlite3.connect}
+        4    0.000    0.000    0.000    0.000 base.py:53(list_aggregate)
+       20    0.000    0.000    0.000    0.000 functools.py:44(update_wrapper)
+      158    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+# 省略
+</code></pre>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>不得不感叹Django真是一个功能完善、生态丰富的Web框架，这篇文章只是站在巨人的肩膀上取得了一些微不足道的成就。<code>Django Debug Toolbar</code>虽然也是通过<code>connection.queries</code>的方式获取了SQL执行情况（<a href="https://github.com/jazzband/django-debug-toolbar/blob/2.2/debug_toolbar/panels/sql/panel.py#L58" target="_blank" rel="noopener">panel.py#L58</a>），但其所做的工作远不止如此，值得细看。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web开发/" rel="tag"># Web开发</a>
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/性能分析/" rel="tag"># 性能分析</a>
+          
+            <a href="/tags/Django/" rel="tag"># Django</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/20/Golang极简实现WebSocket承载socks5流量/" rel="next" title="Golang极简实现WebSocket承载socks5流量">
+                <i class="fa fa-chevron-left"></i> Golang极简实现WebSocket承载socks5流量
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/04/23/Django多数据库历险记（一）/" rel="prev" title="Django多数据库历险记（一）">
+                Django多数据库历险记（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
+            
+              <p class="site-author-name" itemprop="name">OrangeWolf</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Django中的SQL执行"><span class="nav-number">2.</span> <span class="nav-text">Django中的SQL执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#和cProfile中间件组合"><span class="nav-number">3.</span> <span class="nav-text">和cProfile中间件组合</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+    <script>
+      window.livereOptions = {
+        refer: '2020/04/19/Django视图函数性能分析（续）/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+          $("pre,code").addClass("prettyprint");
+          prettyPrint();
+      });
+  </script>
+</body>
+</html>
