@@ -1,447 +1,303 @@
+
+
 <!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
-
-
-
-
-
-
-
-
-
-  
-
-
-<html class="theme-next gemini use-motion" lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
-  <link rel="stylesheet" type="text/css" href="/google-code-prettify/prettify.css">
+<head>
   <meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
-<meta name="theme-color" content="#222">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
-
-<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
-
-
-
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.webp?v=6.6.0">
-
-
-
-
-
-
-
-
-
-
-
-<script id="hexo.configurations">
-  var NexT = window.NexT || {};
-  var CONFIG = {
-    root: '/',
-    scheme: 'Gemini',
-    version: '6.6.0',
-    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: false,
-    fastclick: false,
-    lazyload: false,
-    tabs: true,
-    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    algolia: {
-      applicationID: '',
-      apiKey: '',
-      indexName: '',
-      hits: {"per_page":10},
-      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
-    }
-  };
-</script>
-
-
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
-
-
-
-
-  <meta name="description" content="什么是errorGo语言没有像Java/Python一样提供try&amp;amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err = os.Open(&amp;quot;something.txt&amp;quot;) if err != nil {">
-<meta name="keywords" content="Golang">
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err &#x3D; os.Open(&quot;something.txt&quot;) if err !&#x3D; ni">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Go语言error四问">
-<meta property="og:url" content="https://www.yooo.ltd/2021/07/17/Go语言error四问/index.html">
+<meta property="og:url" content="https://www.yooo.ltd/2021/07/17/Go%E8%AF%AD%E8%A8%80error%E5%9B%9B%E9%97%AE/index.html">
 <meta property="og:site_name" content="OrangeWolf的博客">
-<meta property="og:description" content="什么是errorGo语言没有像Java/Python一样提供try&amp;amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err = os.Open(&amp;quot;something.txt&amp;quot;) if err != nil {">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err &#x3D; os.Open(&quot;something.txt&quot;) if err !&#x3D; ni">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://www.yooo.ltd/images/2021/07/17/most_used_words.png">
-<meta property="og:updated_time" content="2021-07-22T10:16:11.989Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Go语言error四问">
-<meta name="twitter:description" content="什么是errorGo语言没有像Java/Python一样提供try&amp;amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err = os.Open(&amp;quot;something.txt&amp;quot;) if err != nil {">
+<meta property="article:published_time" content="2021-07-17T03:33:54.000Z">
+<meta property="article:modified_time" content="2021-07-22T10:16:11.989Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Golang">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://www.yooo.ltd/images/2021/07/17/most_used_words.png">
+  
+  
+  
+  <title>Go语言error四问 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
 
 
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
 
 
 
-  <link rel="canonical" href="https://www.yooo.ltd/2021/07/17/Go语言error四问/">
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
 
 
 
-<script id="page.configurations">
-  CONFIG.page = {
-    sidebar: "",
-  };
-</script>
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
 
-  <title>Go语言error四问 | OrangeWolf的博客</title>
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
   
 
 
 
 
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
 
-
-
-
-
-
-
-
-  <noscript>
-  <style>
-    .use-motion .motion-element,
-    .use-motion .brand,
-    .use-motion .menu-item,
-    .sidebar-inner,
-    .use-motion .post-block,
-    .use-motion .pagination,
-    .use-motion .comments,
-    .use-motion .post-header,
-    .use-motion .post-body,
-    .use-motion .collection-title { opacity: initial; }
-
-    .use-motion .logo,
-    .use-motion .site-title,
-    .use-motion .site-subtitle {
-      opacity: initial;
-      top: initial;
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
     }
-
-    .use-motion .logo-line-before i { left: initial; }
-    .use-motion .logo-line-after i { right: initial; }
-  </style>
-</noscript>
-
-</head>
-
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
-
-  
-  
-    
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
   
 
-  <div class="container sidebar-position-left page-post-detail">
-    <div class="headband"></div>
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><div class="site-brand-wrapper">
-  <div class="site-meta ">
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
     
 
-    <div class="custom-logo-site-title">
-      <a href="/" class="brand" rel="start">
-        <span class="logo-line-before"><i></i></span>
-        <span class="site-title">OrangeWolf的博客</span>
-        <span class="logo-line-after"><i></i></span>
-      </a>
-    </div>
-    
-      
-        <p class="site-subtitle">Golang研发工程师</p>
-      
-    
-  </div>
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
 
-  <div class="site-nav-toggle">
-    <button aria-label="切换导航栏">
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
   </div>
-</div>
-
-
-
-<nav class="site-nav">
-  
-    <ul id="menu" class="menu">
-      
-        
-        
-        
-          
-          <li class="menu-item menu-item-home">
-
-    
-    
-    
-      
-    
-
-    
-
-    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
-
-  </li>
-        
-        
-        
-          
-          <li class="menu-item menu-item-tags">
-
-    
-    
-    
-      
-    
-
-    
-
-    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
-
-  </li>
-        
-        
-        
-          
-          <li class="menu-item menu-item-archives">
-
-    
-    
-    
-      
-    
-
-    
-
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
-
-  </li>
-
-      
-      
-    </ul>
-  
-
-  
-
-  
 </nav>
 
-
-
   
 
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Go语言error四问"></span>
+          
+        </div>
 
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-07-17 11:33" pubdate>
+          2021年7月17日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          43 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
 
 </div>
-    </header>
 
+  </header>
+
+  <main>
     
-
-
-    <main id="main" class="main">
-      <div class="main-inner">
-        <div class="content-wrap">
-          
-            
-
-          
-          <div id="content" class="content">
-            
-
-  <div id="posts" class="posts-expand">
-    
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://www.yooo.ltd/2021/07/17/Go语言error四问/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="OrangeWolf">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/favicon.webp">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="OrangeWolf的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">Go语言error四问
-
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2021-07-17 11:33:54" itemprop="dateCreated datePublished" datetime="2021-07-17T11:33:54+08:00">2021-07-17</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2021-07-22 18:16:11" itemprop="dateModified" datetime="2021-07-22T18:16:11+08:00">2021-07-22</time>
-              
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
       
-        <h1 id="什么是error"><a href="#什么是error" class="headerlink" title="什么是error"></a>什么是error</h1><p>Go语言没有像Java/Python一样提供<code>try</code>&amp;<code>catch</code>这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。</p>
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Go语言error四问</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="什么是error"><a href="#什么是error" class="headerlink" title="什么是error"></a>什么是error</h1><p>Go语言没有像Java&#x2F;Python一样提供<code>try</code>&amp;<code>catch</code>这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。</p>
 <pre><code class="go">var file *os.File
 var err error
 file, err = os.Open(&quot;something.txt&quot;)
-if err != nil {
+if err != nil &#123;
     // 处理打开文件时的错误，比如panic
     panic(file)
-}
+&#125;
 // 处理文件
 fmt.Println(file.Stat())
 // 处理关闭文件时的错误，比如直接忽略
 _ = file.Close()
 </code></pre>
-<p><img src="/images/2021/07/17/most_used_words.png" alt="words.png"></p>
+<p><img src="/images/2021/07/17/most_used_words.png" srcset="/img/loading.gif" lazyload alt="words.png"></p>
 <p>Go在标准库里提供了一种错误表现形式：<code>error</code>接口，定义很简单：</p>
 <pre><code class="go">package builtin
 
 // The error built-in interface type is the conventional interface for
 // representing an error condition, with the nil value representing no error.
-type error interface {
+type error interface &#123;
     Error() string
-}
+&#125;
 </code></pre>
 <p>而Go提倡的组合机制让任何实现了<code>Error() string</code>方法的类型都可以视作<code>error</code>，这就带来了极大的灵活性。</p>
 <pre><code class="go">type Error1 string
 
-func (e Error1) Error() string { return string(e) }
+func (e Error1) Error() string &#123; return string(e) &#125;
 
-type Error2 struct{ msg string }
+type Error2 struct&#123; msg string &#125;
 
-func (e *Error2) SetMsg(msg string) { e.msg = msg }
-func (e *Error2) Error() string     { return e.msg }
+func (e *Error2) SetMsg(msg string) &#123; e.msg = msg &#125;
+func (e *Error2) Error() string     &#123; return e.msg &#125;
 
 var err1 error = Error1(&quot;hello&quot;) // Error1可以被视为Error
-var err2 error = &amp;Error2{msg: &quot;world&quot;} // Error2也可以被视为Error
+var err2 error = &amp;Error2&#123;msg: &quot;world&quot;&#125; // Error2也可以被视为Error
 </code></pre>
 <h1 id="如何创建error"><a href="#如何创建error" class="headerlink" title="如何创建error"></a>如何创建error</h1><p>Go原生提供了两种方式来创建一个<code>error</code></p>
 <pre><code class="go">var err1 error = errors.New(&quot;error msg&quot;)
@@ -452,12 +308,12 @@ var err2 error = fmt.Errorf(&quot;error msg: %s&quot;, &quot;hello&quot;)
 
 // New returns an error that formats as the given text.
 // Each call to New returns a distinct error value even if the text is identical.
-func New(text string) error { return &amp;errorString{text} }
+func New(text string) error &#123; return &amp;errorString&#123;text&#125; &#125;
 
 // errorString is a trivial implementation of error.
-type errorString struct{ s string }
+type errorString struct&#123; s string &#125;
 
-func (e *errorString) Error() string { return e.s }
+func (e *errorString) Error() string &#123; return e.s &#125;
 </code></pre>
 <p>后者在示例代码中也很简单，可以看成<code>fmt.Sprintf</code>+<code>errors.New</code>。当然Go1.13做了点小改进，下文会提到。</p>
 <pre><code class="go">// Go1.12源码
@@ -465,639 +321,519 @@ package fmt
 
 // Errorf formats according to a format specifier and returns the string
 // as a value that satisfies error.
-func Errorf(format string, a ...interface{}) error {
+func Errorf(format string, a ...interface&#123;&#125;) error &#123;
     return errors.New(Sprintf(format, a...))
-}
+&#125;
 </code></pre>
 <p>但这两种方式还是太简陋了，毕竟携带的只是字符串信息。所以在实际应用场景中，更常见的做法是自定义错误类型：</p>
-<pre><code class="go">type BizError struct { // 自定义业务错误
+<pre><code class="go">type BizError struct &#123; // 自定义业务错误
     Code int32 // 错误码
     Msg  string // 错误提示
-}
+&#125;
 
-func (e *BizError) Error() string { return fmt.Sprintf(&quot;BizError&lt;%d&gt;: %s&quot;, e.Code, e.Msg) }
+func (e *BizError) Error() string &#123; return fmt.Sprintf(&quot;BizError&lt;%d&gt;: %s&quot;, e.Code, e.Msg) &#125;
 
-func NewBizErr(code int32, msg string) error { return &amp;BizError{Code: code, Msg: msg} }
+func NewBizErr(code int32, msg string) error &#123; return &amp;BizError&#123;Code: code, Msg: msg&#125; &#125;
 </code></pre>
 <p>当然，为某些特定场景设计的公用错误（如标准库里的<code>io.EOF</code>）也会使用<code>errors.New</code>，这些错误的意思也足以用简短的字符串描述。</p>
 <h1 id="如何向上游传递error"><a href="#如何向上游传递error" class="headerlink" title="如何向上游传递error"></a>如何向上游传递error</h1><p>由于Go中的错误一般是通过<code>error</code>接口以返回值的形式传递给上游的，且一般不会包含函数调用栈信息，所以在给上游传递<code>error</code>时就需要考虑附加上下文信息以便排查问题，特别是将下游的<code>error</code>传递给上游时。</p>
-<pre><code class="go">func dial80() error {
+<pre><code class="go">func dial80() error &#123;
     addr, timeout := &quot;127.0.0.1:80&quot;, time.Second
         // do something
-    if ... {
+    if ... &#123;
         timeout = time.Second * 3
-    }
+    &#125;
     conn, err := net.DialTimeout(&quot;tcp&quot;, addr, timeout)
-    if err != nil {
+    if err != nil &#123;
         return err
-    }
+    &#125;
     _ = conn.Close()
     return nil
-}
+&#125;
 </code></pre>
 <p>比如这个简单的函数，如果上游<strong>有必要</strong>感知出现错误时的上下文信息（比如超时配置），应该怎么处理呢？</p>
 <p>一种简单的方法是将错误信息重新拼装一下，比如：</p>
-<pre><code class="go">func dial80() error {
+<pre><code class="go">func dial80() error &#123;
     ...
-    if err != nil {
+    if err != nil &#123;
         // 对error来说，%s会调用.Error()方法
         return fmt.Errorf(&quot;dial80 timeout %s: %s&quot;, timeout, err)
-    }
+    &#125;
     ...
-}
+&#125;
 </code></pre>
 <p>另一种方法是将<code>error</code>再包装一层：</p>
-<pre><code class="go">type dial80Err struct {
+<pre><code class="go">type dial80Err struct &#123;
     timeout time.Duration
     err     error
-}
+&#125;
 
-func (e *dial80Err) Error() string { return fmt.Sprintf(&quot;dial80 timeout %s: %s&quot;, e.timeout, e.err) }
+func (e *dial80Err) Error() string &#123; return fmt.Sprintf(&quot;dial80 timeout %s: %s&quot;, e.timeout, e.err) &#125;
 
-func dial80() error {
+func dial80() error &#123;
     ...
-    if err != nil {
-        return &amp;dial80Err{timeout: timeout, err: err}
-    }
+    if err != nil &#123;
+        return &amp;dial80Err&#123;timeout: timeout, err: err&#125;
+    &#125;
     ...
-}
+&#125;
 </code></pre>
 <p>但两种方法都并不完美。前者会丢失<code>error</code>中除<code>.Error()</code>返回值外的其它信息，后者用起来很繁琐，有没有更好的方法呢？当然是有的。Go1.13引入了<em>Error wrapping</em>的概念，通过扩展<code>fmt.Errorf</code>来包装<code>error</code>：</p>
-<pre><code class="go">func dial80() error {
+<pre><code class="go">func dial80() error &#123;
     ...
-    if err != nil {
+    if err != nil &#123;
         return fmt.Errorf(&quot;dial80 timeout %s: %w&quot;, timeout, err)
-    }
+    &#125;
     ...
-}
+&#125;
 </code></pre>
 <p>注意其中<code>%w</code>占位符，<code>fmt.Errorf</code>会特殊处理这个占位符，如果存在这个占位符，<code>fmt.Errorf</code>会将其对应的<code>error</code>与错误信息一起放入一个新的结构体里：</p>
 <pre><code class="go">// Go1.13源码
 package fmt
 
-func Errorf(format string, a ...interface{}) error {
+func Errorf(format string, a ...interface&#123;&#125;) error &#123;
     ...
-    if p.wrappedErr == nil {
+    if p.wrappedErr == nil &#123;
         err = errors.New(s)
-    } else {
-        err = &amp;wrapError{s, p.wrappedErr}
-    }
+    &#125; else &#123;
+        err = &amp;wrapError&#123;s, p.wrappedErr&#125;
+    &#125;
     ...
-}
+&#125;
 
-type wrapError struct {
+type wrapError struct &#123;
     msg string
     err error
-}
+&#125;
 
-func (e *wrapError) Error() string { return e.msg }
-func (e *wrapError) Unwrap() error { return e.err }
+func (e *wrapError) Error() string &#123; return e.msg &#125;
+func (e *wrapError) Unwrap() error &#123; return e.err &#125;
 </code></pre>
 <p>这种方法综合了前两种的优点，即使用便捷又不会丢失信息。所以在Go1.13之后，非常推荐使用<code>%w</code>占位符来为错误附加上下文信息并传递给上游。</p>
 <h1 id="如何分析下游传递的error"><a href="#如何分析下游传递的error" class="headerlink" title="如何分析下游传递的error"></a>如何分析下游传递的error</h1><p>当我们得到下游传递的<code>error</code>且需要根据其类型、属性做进一步操作时，该怎么办呢？（当然，前提是下游不能使用<code>errors.New</code>或<code>fmt.Errorf</code>+<code>%s</code>来传递错误，笑）</p>
 <p>由于下游可能传递<code>wrapError</code>给上游，所以上游并不能直接对<code>error</code>进行比较运算（<code>==</code>）、类型断言，而是要用<code>errors</code>包提供的API进行分析。</p>
 <p>比如，用<code>errors.Is</code>替代<code>==</code>运算符来判断两个<code>error</code>是否相等：</p>
-<pre><code class="go">myRead := func() ([]byte, error) {
+<pre><code class="go">myRead := func() ([]byte, error) &#123;
     ...
-    if ... {
+    if ... &#123;
         return nil, fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)
-    }
+    &#125;
     ...
-}
+&#125;
 buf, err := myRead()
-if errors.Is(err, io.EOF) {
+if errors.Is(err, io.EOF) &#123;
     // do something
-}
+&#125;
 </code></pre>
 <p>又比如，用<code>errors.As</code>替代<code>.(type)</code>来做类型断言：</p>
 <pre><code class="go">err := dial80()
-if err != nil {
+if err != nil &#123;
     var opErr *net.OpError
     // 判断err是否为超时错误
-    if ok := errors.As(err, &amp;opErr); ok &amp;&amp; opErr.Timeout() {
+    if ok := errors.As(err, &amp;opErr); ok &amp;&amp; opErr.Timeout() &#123;
         // do something
-    }
+    &#125;
     // do something
-}
+&#125;
 </code></pre>
-<h1 id="github-com-pkg-errors"><a href="#github-com-pkg-errors" class="headerlink" title="github.com/pkg/errors"></a>github.com/pkg/errors</h1><p>标准库中<code>errors.Is</code>和<code>errors.As</code>两个函数需要频繁使用性能较差的反射，<code>errors.As</code>使用起来也很繁琐，所以如果有条件的话可以使用功能更丰富的<a href="https://github.com/pkg/errors/" target="_blank" rel="noopener">github.com/pkg/errors</a>包，例子如下：</p>
+<h1 id="github-com-x2F-pkg-x2F-errors"><a href="#github-com-x2F-pkg-x2F-errors" class="headerlink" title="github.com&#x2F;pkg&#x2F;errors"></a>github.com&#x2F;pkg&#x2F;errors</h1><p>标准库中<code>errors.Is</code>和<code>errors.As</code>两个函数需要频繁使用性能较差的反射，<code>errors.As</code>使用起来也很繁琐，所以如果有条件的话可以使用功能更丰富的<a target="_blank" rel="noopener" href="https://github.com/pkg/errors/">github.com&#x2F;pkg&#x2F;errors</a>包，例子如下：</p>
 <pre><code class="go">// import github.com/pkg/errors
-myRead := func() ([]byte, error) {
+myRead := func() ([]byte, error) &#123;
     ...
-    if ... {
+    if ... &#123;
         // 效果类似 fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)
         return nil, errors.WithMessage(io.EOF, &quot;myRead&quot;)
-    }
+    &#125;
     ...
-}
+&#125;
 buf, err := myRead()
-if errors.Is(err, io.EOF) {
+if errors.Is(err, io.EOF) &#123;
     // do something
-}
+&#125;
 // 谨慎使用
-if errors.Cause(err) == io.EOF {
+if errors.Cause(err) == io.EOF &#123;
     // do something
-}
+&#125;
 </code></pre>
-<p>使用时在下游通过<code>errors.WithMessage</code>/<code>errors.WithMessagef</code>包装错误，在上游通过<code>errors.Cause</code>获取被包装的原始错误。不过<code>errors.Cause</code>不能穿透被<code>fmt.Errorf</code>+<code>%w</code>包装的<code>wrapError</code>，所以使用时一定要谨慎。</p>
+<p>使用时在下游通过<code>errors.WithMessage</code>&#x2F;<code>errors.WithMessagef</code>包装错误，在上游通过<code>errors.Cause</code>获取被包装的原始错误。不过<code>errors.Cause</code>不能穿透被<code>fmt.Errorf</code>+<code>%w</code>包装的<code>wrapError</code>，所以使用时一定要谨慎。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
 <li>Go中的<code>error</code>是一个只需实现<code>Error() string</code>方法的接口。</li>
 <li>除非是公用错误，否则尽量使用自定义错误类型来生成错误，而不是使用<code>errors.New</code>和<code>fmt.Errorf</code>。</li>
 <li>使用<code>fmt.Errorf</code>与<code>%w</code>来为错误附加上下文信息。</li>
 <li>使用<code>errors.Is</code>、<code>errors.As</code>来分析错误。</li>
-<li>如有条件，可使用更优秀的<a href="https://github.com/pkg/errors/" target="_blank" rel="noopener">github.com/pkg/errors</a>包替代标准库的<code>errors</code>包和<code>fmt.Errorf</code>。</li>
+<li>如有条件，可使用更优秀的<a target="_blank" rel="noopener" href="https://github.com/pkg/errors/">github.com&#x2F;pkg&#x2F;errors</a>包替代标准库的<code>errors</code>包和<code>fmt.Errorf</code>。</li>
 </ol>
 
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Golang/">#Golang</a>
       
     </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/Golang/" rel="tag"># Golang</a>
-          
-        </div>
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2020/07/05/fluent-python-chap-5/" rel="next" title="读《流畅的Python》：一等函数">
-                <i class="fa fa-chevron-left"></i> 读《流畅的Python》：一等函数
-              </a>
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2022/08/20/用Afterburner和Grafana监控PC性能/" rel="prev" title="用Afterburner和Grafana监控PC性能">
-                用Afterburner和Grafana监控PC性能 <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-  </div>
-
-
-          </div>
-          
-
-  
-    <div class="comments" id="comments">
-      <div id="lv-container" data-id="city" data-uid="MTAyMC80Nzk1OC8yNDQ1NQ=="></div>
-    </div>
-
-  
-
-
-
-        </div>
-        
-          
-  
-  <div class="sidebar-toggle">
-    <div class="sidebar-toggle-line-wrap">
-      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
-    </div>
-  </div>
-
-  <aside id="sidebar" class="sidebar">
-    
-    <div class="sidebar-inner">
-
-      
-
-      
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            站点概览
-          </li>
-        </ul>
-      
-
-      <div class="site-overview-wrap sidebar-panel">
-        <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-            
-              <img class="site-author-image" itemprop="image" src="/favicon.webp" alt="OrangeWolf">
-            
-              <p class="site-author-name" itemprop="name">OrangeWolf</p>
-              <p class="site-description motion-element" itemprop="description"></p>
-          </div>
-
-          
-            <nav class="site-state motion-element">
-              
-                <div class="site-state-item site-state-posts">
-                
-                  <a href="/archives/">
-                
-                    <span class="site-state-item-count">23</span>
-                    <span class="site-state-item-name">日志</span>
-                  </a>
-                </div>
-              
-
-              
-
-              
-                
-                
-                <div class="site-state-item site-state-tags">
-                  <a href="/tags/index.html">
-                    
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                    <span class="site-state-item-count">29</span>
-                    <span class="site-state-item-name">标签</span>
-                  </a>
-                </div>
-              
-            </nav>
-          
-
-          
-
-          
-            <div class="links-of-author motion-element">
-              
-                <span class="links-of-author-item">
-                  
-                  
-                    
-                  
-                  
-                    
-                  
-                  <a href="https://github.com/wolf-joe" title="GitHub &rarr; https://github.com/wolf-joe" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
-                </span>
-              
-                <span class="links-of-author-item">
-                  
-                  
-                    
-                  
-                  
-                    
-                  
-                  <a href="mailto:orange_wolf@163.com" title="E-Mail &rarr; mailto:orange_wolf@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
-                </span>
-              
-                <span class="links-of-author-item">
-                  
-                  
-                    
-                  
-                  
-                    
-                  
-                  <a href="https://blog.csdn.net/my_precious" title="CSDN博客 &rarr; https://blog.csdn.net/my_precious" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>CSDN博客</a>
-                </span>
-              
-            </div>
-          
-
-          
-
-          
-          
-
-          
-            
-          
-          
-
-        </div>
-      </div>
-
-      
-      <!--noindex-->
-        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是error"><span class="nav-number">1.</span> <span class="nav-text">什么是error</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何创建error"><span class="nav-number">2.</span> <span class="nav-text">如何创建error</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何向上游传递error"><span class="nav-number">3.</span> <span class="nav-text">如何向上游传递error</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何分析下游传递的error"><span class="nav-number">4.</span> <span class="nav-text">如何分析下游传递的error</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#github-com-pkg-errors"><span class="nav-number">5.</span> <span class="nav-text">github.com/pkg/errors</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
-            
-
-          </div>
-        </div>
-      <!--/noindex-->
-      
-
-      
-
-    </div>
-  </aside>
-
-
-        
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
-  <span class="with-love" id="animate">
-    <i class="fa fa-user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">OrangeWolf</span>
-
-  
-
   
 </div>
 
 
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+              
+  
 
-
-
-  <span class="post-meta-divider">|</span>
-
-
-
-  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v6.6.0</div>
-
-
-
-
-        
-
-
-
-
-
-
-
-
-        
-      </div>
-    </footer>
-
-    
-      <div class="back-to-top">
-        <i class="fa fa-arrow-up"></i>
-        
-      </div>
-    
-
-    
-
-    
-
-    
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Go语言error四问</div>
+      <div>https://www.yooo.ltd/2021/07/17/Go语言error四问/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年7月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
   </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/" title="用Afterburner和Grafana监控PC性能">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">用Afterburner和Grafana监控PC性能</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/05/fluent-python-chap-5/" title="读《流畅的Python》：一等函数">
+                        <span class="hidden-mobile">读《流畅的Python》：一等函数</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
 
   
 
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
 <script>
-  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
-    window.Promise = null;
-  }
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
 </script>
 
 
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  <script>Fluid.plugins.codeWidget();</script>
 
 
   
-  
-    <script src="/lib/jquery/index.js?v=2.1.3"></script>
-  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
 
-  
-  
-    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-  
-
-  
-  
-    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-  
-
-
-  
-
-
-  <script src="/js/src/utils.js?v=6.6.0"></script>
-
-  <script src="/js/src/motion.js?v=6.6.0"></script>
-
-
-
-  
-  
-
-
-  <script src="/js/src/affix.js?v=6.6.0"></script>
-
-  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
-
-
-
-  
-  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
-<script src="/js/src/post-details.js?v=6.6.0"></script>
-
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
 
 
   
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
 
 
-  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+  <script>Fluid.plugins.imageCaption();</script>
 
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
 
 
   
 
-
-
-  
-    <script>
-      window.livereOptions = {
-        refer: '2021/07/17/Go语言error四问/'
-      };
-      (function(d, s) {
-        var j, e = d.getElementsByTagName(s)[0];
-        if (typeof LivereTower === 'function') { return; }
-        j = d.createElement(s);
-        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-        j.async = true;
-        e.parentNode.insertBefore(j, e);
-      })(document, 'script');
-    </script>
-  
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  <script type="text/javascript" src="/google-code-prettify/prettify.js"></script>
-  <script type="text/javascript">
-      $(document).ready(function(){
-          $("pre,code").addClass("prettyprint");
-          prettyPrint();
-      });
-  </script>
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>
