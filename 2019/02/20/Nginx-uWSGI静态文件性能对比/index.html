@@ -277,50 +277,18 @@
 <h1 id="性能测试流程"><a href="#性能测试流程" class="headerlink" title="性能测试流程"></a>性能测试流程</h1><ol>
 <li>创建测试文件<br>  生成大小为4k~512k的随机字符串文件作为测试样本</li>
 </ol>
-<pre><code class="shell">openssl rand -hex $(bc &lt;&lt;&lt; 2^11-1) &gt; 4k.hex
-openssl rand -hex $(bc &lt;&lt;&lt; 2^12-1) &gt; 8k.hex
-...
-openssl rand -hex $(bc &lt;&lt;&lt; 2^18-1) &gt; 512k.hex
-</code></pre>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell">openssl rand -hex $(bc &lt;&lt;&lt; 2^11-1) &gt; 4k.hex<br>openssl rand -hex $(bc &lt;&lt;&lt; 2^12-1) &gt; 8k.hex<br>...<br>openssl rand -hex $(bc &lt;&lt;&lt; 2^18-1) &gt; 512k.hex<br></code></pre></td></tr></table></figure>
+
 <ol start="2">
-<li>启动测试容器</li>
+<li><p>启动测试容器</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">docker run -d -v $(pwd):/static --name pytest python:3.6-jessie tail -f /dev/null<br>docker exec -it pytest bash<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>配置并启动Nginx和uWSGI</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs shell">apt update &amp;&amp; apt install -y nginx apache2-utils<br>pip install uwsgi<br><br>cat &gt;/etc/nginx/conf.d/default.conf&lt;&lt;EOF<br>server &#123;<br>    listen 81 default_server;<br><br>    location / &#123;<br>        root /static;<br>    &#125;<br>&#125;<br>EOF<br><span class="hljs-meta prompt_"># </span><span class="language-bash">启动nginx和uWSGI</span><br>service nginx start<br>uwsgi --master --http 0.0.0.0:82 --static-map /=/static<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>开始测试<br>  使用<code>Apache Benchmark</code>对Nginx和uWSGI的静态文件进行测试，并发数为100，共请求20000次。提取测试结果中的关键参数：<code>Requests per second</code>。</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell">cd /static<br>for fn in *.hex; do<br>  echo -e &quot;\n$fn&quot;<br>  echo &quot;nginx (keep alive)&quot;<br>  ab -q -k -c 100 -n 20000 127.0.0.1:81/$fn | grep -Po &#x27;Requests per second:[ \d]+&#x27;<br>  echo &quot;nginx&quot;<br>  ab -q -c 100 -n 20000 127.0.0.1:81/$fn | grep -Po &#x27;Requests per second:[ \d]+&#x27;<br>  echo &quot;uwsgi&quot;<br>  ab -q -c 100 -n 20000 127.0.0.1:82/$fn | grep -Po &#x27;Requests per second:[ \d]+&#x27;<br>done<br></code></pre></td></tr></table></figure></li>
 </ol>
-<pre><code class="shell">docker run -d -v $(pwd):/static --name pytest python:3.6-jessie tail -f /dev/null
-docker exec -it pytest bash
-</code></pre>
-<ol start="3">
-<li>配置并启动Nginx和uWSGI</li>
-</ol>
-<pre><code class="shell">apt update &amp;&amp; apt install -y nginx apache2-utils
-pip install uwsgi
-
-cat &gt;/etc/nginx/conf.d/default.conf&lt;&lt;EOF
-server &#123;
-    listen 81 default_server;
-
-    location / &#123;
-        root /static;
-    &#125;
-&#125;
-EOF
-# 启动nginx和uWSGI
-service nginx start
-uwsgi --master --http 0.0.0.0:82 --static-map /=/static
-</code></pre>
-<ol start="4">
-<li>开始测试<br>  使用<code>Apache Benchmark</code>对Nginx和uWSGI的静态文件进行测试，并发数为100，共请求20000次。提取测试结果中的关键参数：<code>Requests per second</code>。</li>
-</ol>
-<pre><code class="shell">cd /static
-for fn in *.hex; do
-  echo -e &quot;\n$fn&quot;
-  echo &quot;nginx (keep alive)&quot;
-  ab -q -k -c 100 -n 20000 127.0.0.1:81/$fn | grep -Po &#39;Requests per second:[ \d]+&#39;
-  echo &quot;nginx&quot;
-  ab -q -c 100 -n 20000 127.0.0.1:81/$fn | grep -Po &#39;Requests per second:[ \d]+&#39;
-  echo &quot;uwsgi&quot;
-  ab -q -c 100 -n 20000 127.0.0.1:82/$fn | grep -Po &#39;Requests per second:[ \d]+&#39;
-done
-</code></pre>
 <h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><p><img src="/images/2019-02-20.02.png" srcset="/img/loading.gif" lazyload></p>
 <p>其中<code>nginx (keep-alive)</code>项为理论最好情况，实际应用中很难达到。uWSGI在处理静态文件时不支持<code>keep-alive</code>模式。</p>
 <p>假设将未使用<code>keep-alive</code>的Nginx性能作为基准，可得出下表：</p>
@@ -476,20 +444,21 @@ done
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

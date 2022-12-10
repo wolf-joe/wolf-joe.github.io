@@ -212,7 +212,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.1k 字
+          6.3k 字
         
       </span>
     
@@ -223,7 +223,7 @@
         
         
         
-          52 分钟
+          53 分钟
         
       </span>
     
@@ -269,181 +269,46 @@
                 <h1 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h1><p>这篇文章基于上一篇文章<a href="/2020/04/23/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Django多数据库历险记（一）</a>，将继续讲述关于Django多数据库的历险记。</p>
 <p>在上一篇文章中，我创建了一个Django项目：<code>multi_db</code>，在这个项目里指定了两个app：<code>app_1</code>和<code>app_2</code>，每个app下各自创建了一个<code>Model</code>：<code>Model1</code>和<code>Model2</code>，并为这两个app各自分配了独立的数据库<code>db_1</code>和<code>db_2</code>。历险继续～</p>
 <h1 id="第三关：TestCase"><a href="#第三关：TestCase" class="headerlink" title="第三关：TestCase"></a>第三关：TestCase</h1><p>在<code>multi_db</code>这个Django项目能够运行起来之后，下一步让我们来运行一些TestCase（对，即使这个项目里一个视图函数都还没有，<del>毕竟是TDD😂</del>）。编辑TestCase文件并运行：</p>
-<pre><code class="python"># tests/test_multi_db.py
-from django.test import TestCase
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># tests/test_multi_db.py</span><br><span class="hljs-keyword">from</span> django.test <span class="hljs-keyword">import</span> TestCase<br><br><span class="hljs-keyword">from</span> app_1.models <span class="hljs-keyword">import</span> Model1<br><span class="hljs-keyword">from</span> app_2.models <span class="hljs-keyword">import</span> Model2<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">TestDB1</span>(<span class="hljs-title class_ inherited__">TestCase</span>):<br>    databases = [<span class="hljs-string">&quot;db_1&quot;</span>]<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_query</span>(<span class="hljs-params">self</span>):<br>        count = Model1.objects.count()<br>        self.assertEqual(count, <span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">TestDB2</span>(<span class="hljs-title class_ inherited__">TestCase</span>):<br>    databases = [<span class="hljs-string">&quot;db_2&quot;</span>]<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_query</span>(<span class="hljs-params">self</span>):<br>        count = Model2.objects.count()<br>        self.assertEqual(count, <span class="hljs-number">0</span>)<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">time python manage.py <span class="hljs-built_in">test</span> tests/</span><br>Creating test database for alias &#x27;db_1&#x27;...<br>Creating test database for alias &#x27;db_2&#x27;...<br>System check identified no issues (0 silenced).<br>..<br>----------------------------------------------------------------------<br>Ran 2 tests in 0.006s<br><br>OK<br>Destroying test database for alias &#x27;db_1&#x27;...<br>Destroying test database for alias &#x27;db_2&#x27;...<br>python manage.py test tests/  1.02s user 0.04s system 14% cpu 7.288 total<br></code></pre></td></tr></table></figure>
 
-from app_1.models import Model1
-from app_2.models import Model2
-
-class TestDB1(TestCase):
-    databases = [&quot;db_1&quot;]
-
-    def test_query(self):
-        count = Model1.objects.count()
-        self.assertEqual(count, 0)
-
-class TestDB2(TestCase):
-    databases = [&quot;db_2&quot;]
-
-    def test_query(self):
-        count = Model2.objects.count()
-        self.assertEqual(count, 0)
-</code></pre>
-<pre><code class="shell">$ time python manage.py test tests/
-Creating test database for alias &#39;db_1&#39;...
-Creating test database for alias &#39;db_2&#39;...
-System check identified no issues (0 silenced).
-..
-----------------------------------------------------------------------
-Ran 2 tests in 0.006s
-
-OK
-Destroying test database for alias &#39;db_1&#39;...
-Destroying test database for alias &#39;db_2&#39;...
-python manage.py test tests/  1.02s user 0.04s system 14% cpu 7.288 total
-</code></pre>
 <p>很好，两个TestCase都测试通过（毕竟没有比这更简单的TestCase了）。一切都看起来非常美好，除了这惊人的命令耗时：为什么创建&amp;销毁两个测试数据库会消耗7秒以上的时间！如果你看过上一篇文章，那么你可能已经隐约猜到原因了。没错，幕后黑手还是<code>migrate</code>命令。</p>
 <p>从Django测试模块源码（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/test/runner.py#L614">runner.py#L614</a>）中可以看出，对于TestCase里所有的<code>databases</code>（比如上面的<code>db_1</code>、<code>db_2</code>），Django都会创建对应的测试数据库（<code>test_db_1</code>、<code>test_db_2</code>），并为每个测试数据库执行一次<code>migrate</code>命令（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/db/backends/base/creation.py#L67">creation.py#L67</a>）。在上一篇文章中，我们就已经知道<code>migrate</code>命令会一股脑地将所有迁移方案都应用到数据库，这里也不例外。用<code>test</code>命令的<code>--keepdb</code>选项验证一下：</p>
-<pre><code class="shell">$ python manage.py test tests/ --keepdb
-# ... 略
-</code></pre>
-<pre><code class="sql">mariadb root@127.0.0.1:test_db_1&gt; show tables
-+----------------------------+
-| Tables_in_test_db_1        |
-+----------------------------+
-| app_1_model1               |
-| app_2_model2               |
-| auth_group                 |
-# ... 略
-</code></pre>
-<pre><code class="sql">mariadb root@127.0.0.1:test_db_2&gt; show tables
-+----------------------------+
-| Tables_in_test_db_2        |
-+----------------------------+
-| app_1_model1               |
-| app_2_model2               |
-| auth_group                 |
-# ... 略
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py <span class="hljs-built_in">test</span> tests/ --keepdb</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">... 略</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:test_db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables<br><span class="hljs-operator">+</span><span class="hljs-comment">----------------------------+</span><br><span class="hljs-operator">|</span> Tables_in_test_db_1        <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----------------------------+</span><br><span class="hljs-operator">|</span> app_1_model1               <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> app_2_model2               <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> auth_group                 <span class="hljs-operator">|</span><br># ... 略<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:test_db_2<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables<br><span class="hljs-operator">+</span><span class="hljs-comment">----------------------------+</span><br><span class="hljs-operator">|</span> Tables_in_test_db_2        <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----------------------------+</span><br><span class="hljs-operator">|</span> app_1_model1               <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> app_2_model2               <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> auth_group                 <span class="hljs-operator">|</span><br># ... 略<br></code></pre></td></tr></table></figure>
+
 <p>那么，有没有办法在对<code>db_1</code>进行测试时，只在<code>test_db_1</code>这个测试数据库上创建只属于<code>app_1</code>的<code>Model</code>呢？答案是肯定的。</p>
 <h2 id="allow-migrate"><a href="#allow-migrate" class="headerlink" title="allow_migrate"></a>allow_migrate</h2><p>在上一篇文章的<code>DBRouter</code>数据库路由类中，我将<code>allow_migrate()</code>方法的返回值固定为<code>True</code>，意味着Django可以在任何数据库上、对任何app进行数据库迁移。这当然是一种有点不负责任的做法，所以，只要严格限制在<code>db_1</code>上只能进行<code>app_1</code>的迁移、在<code>db_2</code>上只能进行<code>app_2</code>的迁移，就可以达成我上文提到的需求了。</p>
-<pre><code class="python"> # multi_db/db_routers.py
-from django.conf import settings
-from django.db import DEFAULT_DB_ALIAS
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"> <span class="hljs-comment"># multi_db/db_routers.py</span><br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> DEFAULT_DB_ALIAS<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">DBRouter</span>:<br>    <span class="hljs-comment"># ... 略</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">allow_migrate</span>(<span class="hljs-params">self, db, app_label, model_name=<span class="hljs-literal">None</span>, **hints</span>):<br>        <span class="hljs-keyword">return</span> db == settings.DB_ROUTING.get(app_label, DEFAULT_DB_ALIAS)<br></code></pre></td></tr></table></figure>
 
-class DBRouter:
-    # ... 略
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
-        return db == settings.DB_ROUTING.get(app_label, DEFAULT_DB_ALIAS)
-</code></pre>
 <h2 id="大功告成"><a href="#大功告成" class="headerlink" title="大功告成"></a>大功告成</h2><p>再次执行<code>test</code>命令，可以很明显地感受到效果：</p>
-<pre><code class="shell">$ time python manage.py test tests/
-Creating test database for alias &#39;db_1&#39;...
-Creating test database for alias &#39;db_2&#39;...
-# ... 略
-python manage.py test tests/  0.74s user 0.02s system 57% cpu 1.320 total
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">time python manage.py <span class="hljs-built_in">test</span> tests/</span><br>Creating test database for alias &#x27;db_1&#x27;...<br>Creating test database for alias &#x27;db_2&#x27;...<br><span class="hljs-meta prompt_"># </span><span class="language-bash">... 略</span><br>python manage.py test tests/  0.74s user 0.02s system 57% cpu 1.320 total<br></code></pre></td></tr></table></figure>
+
 <p>总耗时由7秒下降至1秒。再用<code>--keepdb</code>选项验证一下：</p>
-<pre><code>mariadb root@127.0.0.1:test_db_1&gt; show tables                                   
-+---------------------+
-| Tables_in_test_db_1 |
-+---------------------+
-| app_1_model1        |
-| django_migrations   |
-+---------------------+
-</code></pre>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc"><span class="hljs-section">mariadb root@127.0.0.1:test_db_1&gt; show tables                                   </span><br><span class="hljs-section">+---------------------+</span><br><span class="hljs-section">| Tables_in_test_db_1 |</span><br><span class="hljs-section">+---------------------+</span><br>| app<span class="hljs-emphasis">_1_model1        |</span><br><span class="hljs-emphasis">| django_</span>migrations   |<br><span class="hljs-code">+---------------------+</span><br></code></pre></td></tr></table></figure>
+
 <p>完美。</p>
 <h1 id="第四关：跨库外键约束"><a href="#第四关：跨库外键约束" class="headerlink" title="第四关：跨库外键约束"></a>第四关：跨库外键约束</h1><p><img src="/images/2020/04/27/document.webp" srcset="/img/loading.gif" lazyload alt="document.webp"></p>
 <p>必须要说的是，Django（至少在文档里）并不支持跨数据库的外键约束。当然，这里指的是物理约束，即数据库层面的<code>CONSTRAINT</code>字段约束。但在实际业务中，由Django管理的、逻辑上的跨库外键约束却并不少见，这给程序员带来了巨大的便利——但代价是什么呢？代价往往是抛弃Django的数据迁移机制。</p>
 <h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>在<code>app_1</code>里创建一个新Model（省略内容见<a href="/2020/04/23/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">上一篇文章</a>），并生成对应迁移方案：</p>
-<pre><code class="python"># app_1/models.py
-# ... 略
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># app_1/models.py</span><br><span class="hljs-comment"># ... 略</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ChildModel1</span>(models.Model):<br>    name = models.CharField(max_length=<span class="hljs-number">255</span>)<br>    parent1 = models.ForeignKey(<span class="hljs-string">&quot;Model1&quot;</span>, on_delete=models.CASCADE)<br>    parent2 = models.ForeignKey(<span class="hljs-string">&quot;app_2.Model2&quot;</span>, on_delete=models.CASCADE)<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py makemigrations</span>               <br>Migrations for &#x27;app_1&#x27;:<br>  app_1/migrations/0002_childmodel1.py<br>    - Create model ChildModel1<br></code></pre></td></tr></table></figure>
 
-class ChildModel1(models.Model):
-    name = models.CharField(max_length=255)
-    parent1 = models.ForeignKey(&quot;Model1&quot;, on_delete=models.CASCADE)
-    parent2 = models.ForeignKey(&quot;app_2.Model2&quot;, on_delete=models.CASCADE)
-</code></pre>
-<pre><code class="shell">$ python manage.py makemigrations               
-Migrations for &#39;app_1&#39;:
-  app_1/migrations/0002_childmodel1.py
-    - Create model ChildModel1
-</code></pre>
-<h2 id="迁移"><a href="#迁移" class="headerlink" title="迁移"></a>迁移</h2><pre><code class="shell">$ python manage.py migrate app_1 --database db_1
-Operations to perform:
-  Apply all migrations: app_1
-Running migrations:
-  Applying app_2.0001_initial... OK
-  Applying app_1.0002_childmodel1...
-# ... 略
-django.db.utils.OperationalError: (1005, &#39;Can\&#39;t create table `db_1`.`app_1_childmodel1` (errno: 150 &quot;Foreign key constraint is incorrectly formed&quot;)&#39;)
-</code></pre>
+<h2 id="迁移"><a href="#迁移" class="headerlink" title="迁移"></a>迁移</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate app_1 --database db_1</span><br>Operations to perform:<br>  Apply all migrations: app_1<br>Running migrations:<br>  Applying app_2.0001_initial... OK<br>  Applying app_1.0002_childmodel1...<br><span class="hljs-meta prompt_"># </span><span class="language-bash">... 略</span><br>django.db.utils.OperationalError: (1005, &#x27;Can\&#x27;t create table `db_1`.`app_1_childmodel1` (errno: 150 &quot;Foreign key constraint is incorrectly formed&quot;)&#x27;)<br></code></pre></td></tr></table></figure>
+
 <p>果不其然，报错了。Django想要在<code>db_1</code>上应用<code>app_2</code>的迁移方案<code>0001_initial</code>来为<code>ChildModel1</code>的迁移铺路，但在上一关的<code>allow_migrate()</code>中我已经严格限制了数据库和app的对应关系，所以实际上<code>app_2.0001_initial</code>被跳过了（虽然还是在迁移进度里留下了成功标记）。</p>
 <p>于是到了物理约束部分，Django想要在<code>db1</code>上创建从<code>ChildModel1</code>到<code>Model2</code>的<code>CONSTRAINT</code>约束就不可能成功：因为<code>app_2.0001_inital</code>这个前提并没有实际应用。打开数据库验证一下：</p>
-<pre><code class="sql">mariadb root@127.0.0.1:db_1&gt; show tables                                        
-+-------------------+
-| Tables_in_db_1    |
-+-------------------+
-| app_1_childmodel1 |
-| app_1_model1      |
-| django_migrations |
-+-------------------+
-mariadb root@127.0.0.1:db_1&gt; select * from django_migrations
-+----+-------+------------------+----------------------------+
-| id | app   | name             | applied                    |
-+----+-------+------------------+----------------------------+
-| 1  | app_1 | 0001_initial     | 2020-04-27 xx:xx:xx.xxxxxx |
-| 2  | app_2 | 0001_initial     | 2020-04-27 xx:xx:xx.xxxxxx |
-| 3  | app_1 | 0002_childmodel1 | 2020-04-27 xx:xx:xx.xxxxxx |
-+----+-------+------------------+----------------------------+
-mariadb root@127.0.0.1:db_1&gt; show create table app_1_childmodel1
-CREATE TABLE `app_1_childmodel1` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `parent1_id` int(11) NOT NULL,
-  `parent2_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `xxx` (`parent1_id`),
-  CONSTRAINT `xxx` FOREIGN KEY (`parent1_id`) REFERENCES `app_1_model1` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-</code></pre>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables                                        <br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> Tables_in_db_1    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> app_1_childmodel1 <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> app_1_model1      <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> django_migrations <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br>mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">select</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">from</span> django_migrations<br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br><span class="hljs-operator">|</span> id <span class="hljs-operator">|</span> app   <span class="hljs-operator">|</span> name             <span class="hljs-operator">|</span> applied                    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br><span class="hljs-operator">|</span> <span class="hljs-number">1</span>  <span class="hljs-operator">|</span> app_1 <span class="hljs-operator">|</span> <span class="hljs-number">0001</span>_initial     <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-number">-04</span><span class="hljs-number">-27</span> xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> <span class="hljs-number">2</span>  <span class="hljs-operator">|</span> app_2 <span class="hljs-operator">|</span> <span class="hljs-number">0001</span>_initial     <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-number">-04</span><span class="hljs-number">-27</span> xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> <span class="hljs-number">3</span>  <span class="hljs-operator">|</span> app_1 <span class="hljs-operator">|</span> <span class="hljs-number">0002</span>_childmodel1 <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-number">-04</span><span class="hljs-number">-27</span> xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br>mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> <span class="hljs-keyword">create</span> <span class="hljs-keyword">table</span> app_1_childmodel1<br><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> `app_1_childmodel1` (<br>  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span> AUTO_INCREMENT,<br>  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">COLLATE</span> utf8mb4_unicode_ci <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  `parent1_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  `parent2_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  <span class="hljs-keyword">PRIMARY</span> KEY (`id`),<br>  KEY `xxx` (`parent1_id`),<br>  <span class="hljs-keyword">CONSTRAINT</span> `xxx` <span class="hljs-keyword">FOREIGN</span> KEY (`parent1_id`) <span class="hljs-keyword">REFERENCES</span> `app_1_model1` (`id`)<br>) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_unicode_ci<br></code></pre></td></tr></table></figure>
+
 <h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>当然，即使Django在应用迁移方案的时候报错了，但缺失的只有一个数据库层面的约束字段，并不影响逻辑层面的外键约束。所以，我们可以直接在Django里使用这个Model了：</p>
-<pre><code class="python"># app_1/views.py
-from django.http import JsonResponse
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># app_1/views.py</span><br><span class="hljs-keyword">from</span> django.http <span class="hljs-keyword">import</span> JsonResponse<br><br><span class="hljs-keyword">from</span> app_1.models <span class="hljs-keyword">import</span> ChildModel1, Model1<br><span class="hljs-keyword">from</span> app_2.models <span class="hljs-keyword">import</span> Model2<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">test</span>(<span class="hljs-params">request</span>):<br>    child = ChildModel1.objects.create(<br>        name=<span class="hljs-string">&quot;carl&quot;</span>, parent1=Model1.objects.create(name=<span class="hljs-string">&quot;alice&quot;</span>),<br>        parent2=Model2.objects.create(name=<span class="hljs-string">&quot;bob&quot;</span>),<br>    )<br>    <span class="hljs-keyword">return</span> JsonResponse(&#123;<br>        <span class="hljs-string">&quot;name&quot;</span>: child.name, <span class="hljs-string">&quot;parent1&quot;</span>: child.parent1.name,<br>        <span class="hljs-string">&quot;parent2&quot;</span>: child.parent2.name<br>    &#125;)<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># multi_db/urls.py</span><br><span class="hljs-comment"># ... 略</span><br><span class="hljs-keyword">from</span> app_1.views <span class="hljs-keyword">import</span> test<br><br>urlpatterns = [<br>    path(<span class="hljs-string">&#x27;admin/&#x27;</span>, admin.site.urls),<br>    path(<span class="hljs-string">&#x27;&#x27;</span>, test)<br>]<br></code></pre></td></tr></table></figure>
 
-from app_1.models import ChildModel1, Model1
-from app_2.models import Model2
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py runserver 8000</span><br>Performing system checks...<br><br>Watching for file changes with StatReloader<br>System check identified no issues (0 silenced).<br>April 27, 2020 - xx:xx:xx<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">新termial</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">curl 127.0.0.1:8000</span><br>&#123;&quot;name&quot;: &quot;carl&quot;, &quot;parent1&quot;: &quot;alice&quot;, &quot;parent2&quot;: &quot;bob&quot;&#125;<br></code></pre></td></tr></table></figure>
 
-def test(request):
-    child = ChildModel1.objects.create(
-        name=&quot;carl&quot;, parent1=Model1.objects.create(name=&quot;alice&quot;),
-        parent2=Model2.objects.create(name=&quot;bob&quot;),
-    )
-    return JsonResponse(&#123;
-        &quot;name&quot;: child.name, &quot;parent1&quot;: child.parent1.name,
-        &quot;parent2&quot;: child.parent2.name
-    &#125;)
-</code></pre>
-<pre><code class="python"># multi_db/urls.py
-# ... 略
-from app_1.views import test
-
-urlpatterns = [
-    path(&#39;admin/&#39;, admin.site.urls),
-    path(&#39;&#39;, test)
-]
-</code></pre>
-<pre><code class="shell">$ python manage.py runserver 8000
-Performing system checks...
-
-Watching for file changes with StatReloader
-System check identified no issues (0 silenced).
-April 27, 2020 - xx:xx:xx
-
-# 新termial
-$ curl 127.0.0.1:8000
-&#123;&quot;name&quot;: &quot;carl&quot;, &quot;parent1&quot;: &quot;alice&quot;, &quot;parent2&quot;: &quot;bob&quot;&#125;
-</code></pre>
 <h2 id="TestCase"><a href="#TestCase" class="headerlink" title="TestCase"></a>TestCase</h2><p>在上一节中可以这样蒙混过关，是因为<code>migrate</code>命令的失败并不会影响<code>runserver</code>命令的执行，但在TestCase里这样就行不通了。在第三关中提到，Django在进行TestCase前会对测试数据库执行<code>migrate</code>命令，而<code>migrate</code>的失败会导致TestCase直接结束。</p>
 <p>解决方案主要有取消<code>allow_migrate()</code>对app&amp;数据库对应关系的限制、在运行TestCase时使用sqlite3（默认禁用外键约束）作为测试数据库。但这些都不能从根本上解决问题，这也就是为什么我在本关开头提到，跨库外键的代价往往是抛弃Django的数据迁移机制。</p>
 <p>要想从根本上解决这个问题，就只有避免出现物理上的外键约束，只由Django进行逻辑上的外键约束管理。这个话题，就留到下篇文章再讲吧。（我怎么感觉我要被打了……）</p>
@@ -546,20 +411,21 @@ $ curl 127.0.0.1:8000
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

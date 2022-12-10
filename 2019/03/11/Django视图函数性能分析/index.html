@@ -214,7 +214,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          3.2k 字
         
       </span>
     
@@ -225,7 +225,7 @@
         
         
         
-          26 分钟
+          28 分钟
         
       </span>
     
@@ -275,104 +275,31 @@
 <h1 id="Django-Debug-Toolbar"><a href="#Django-Debug-Toolbar" class="headerlink" title="Django Debug Toolbar"></a>Django Debug Toolbar</h1><p>Django Debug Toolbar可能是Django生态环境中最知名、最强大的页面调试工具了（<a target="_blank" rel="noopener" href="https://django-debug-toolbar.readthedocs.io/en/latest/">官方文档连接</a>）。这个工具可以很方便地将：页面耗时、设置、请求&#x2F;响应、模板、SQL操作等一系列信息以侧边栏的形式展示在网页右侧，官方宣传图如下。<br><img src="/images/2019-03-11.01.png" srcset="/img/loading.gif" lazyload><br>由于该工具能够展示页面耗时、SQL操作耗时等信息（特别是后者），所以该工具在视图函数性能分析方面也能起到非常关键的作用。<br>其最小化的部署方式如下：</p>
 <ol>
 <li><p>通过<code>pip</code>安装该工具</p>
-<pre><code class="shell">pip install django-debug-toolbar
-# 通过源代码安装开发版
-# pip install -e git+https://github.com/jazzband/django-debug-toolbar.git#egg=django-debug-toolbar
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">pip install django-debug-toolbar<br><span class="hljs-meta prompt_"># </span><span class="language-bash">通过源代码安装开发版</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">pip install -e git+https://github.com/jazzband/django-debug-toolbar.git<span class="hljs-comment">#egg=django-debug-toolbar</span></span><br></code></pre></td></tr></table></figure>
 </li>
 <li><p>修改Django配置文件（默认为<code>settings.py</code>），包括修改<code>INSTALLED_APPS</code>、<code>MIDDLEWARE</code>项，新增<code>INTERNAL_IPS</code>项。</p>
-<pre><code class="python">INSTALLED_APPS = [
-    # ...
-    &#39;django.contrib.staticfiles&#39;,  # 确保已配置静态文件
-    # ...
-    &#39;debug_toolbar&#39;,
-]
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">INSTALLED_APPS = [<br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-string">&#x27;django.contrib.staticfiles&#x27;</span>,  <span class="hljs-comment"># 确保已配置静态文件</span><br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-string">&#x27;debug_toolbar&#x27;</span>,<br>]<br><br>STATIC_URL = <span class="hljs-string">&#x27;/static/&#x27;</span><br></code></pre></td></tr></table></figure>
 
-STATIC_URL = &#39;/static/&#39;
-</code></pre>
-<pre><code class="python">MIDDLEWARE = [
-    # ...
-    &#39;debug_toolbar.middleware.DebugToolbarMiddleware&#39;,
-    # ...
-]
-</code></pre>
-<pre><code class="python">INTERNAL_IPS = [&#39;127.0.0.1&#39;]  # 只对本机访问启用
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">MIDDLEWARE = [<br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-string">&#x27;debug_toolbar.middleware.DebugToolbarMiddleware&#x27;</span>,<br>    <span class="hljs-comment"># ...</span><br>]<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">INTERNAL_IPS = [<span class="hljs-string">&#x27;127.0.0.1&#x27;</span>]  <span class="hljs-comment"># 只对本机访问启用</span><br></code></pre></td></tr></table></figure>
 </li>
 <li><p>配置Django URL规则</p>
-<pre><code class="python">from django.conf import settings
-from django.urls import include, path
-
-urlpatterns = [
-    # ...
-]
-
-if settings.DEBUG:  # 只在DEBUG模式下启用
-    import debug_toolbar
-
-    urlpatterns.append(
-        path(&#39;__debug__/&#39;, include(debug_toolbar.urls))
-    )
-</code></pre>
-</li>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.urls <span class="hljs-keyword">import</span> include, path<br><br>urlpatterns = [<br>    <span class="hljs-comment"># ...</span><br>]<br><br><span class="hljs-keyword">if</span> settings.DEBUG:  <span class="hljs-comment"># 只在DEBUG模式下启用</span><br>    <span class="hljs-keyword">import</span> debug_toolbar<br><br>    urlpatterns.append(<br>        path(<span class="hljs-string">&#x27;__debug__/&#x27;</span>, include(debug_toolbar.urls))<br>    )<br></code></pre></td></tr></table></figure></li>
 </ol>
 <p>此时打开任意一个页面即可看到对应效果，如下图所示：<br><img src="/images/2019-03-11.02.png" srcset="/img/loading.gif" lazyload><br>另外，对于返回JSON、XML等数据的接口型视图函数来说，默认情况下是没办法使用Django Debug Tool的。不过在本地调试时，我们可以通过返回一个空的HTML页面（只需包含一个闭合的<code>body</code>标签）来达到类似的效果，具体操作如下：</p>
-<pre><code class="python">from django.http.response import HttpResponse, JsonResponse
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse, JsonResponse<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">view_func</span>(<span class="hljs-params">request</span>):<br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-comment"># return JsonResponse(&#123;&#x27;data&#x27;: &#x27;...&#x27;&#125;)  # 无法启用Django Debug Tool</span><br><br>    <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-string">&#x27;&lt;body&gt;&lt;/body&gt;&#x27;</span>)  <span class="hljs-comment"># 可以启用Django Debug Tool</span><br></code></pre></td></tr></table></figure>
 
-def view_func(request):
-    # ...
-    # return JsonResponse(&#123;&#39;data&#39;: &#39;...&#39;&#125;)  # 无法启用Django Debug Tool
-
-    return HttpResponse(&#39;&lt;body&gt;&lt;/body&gt;&#39;)  # 可以启用Django Debug Tool
-</code></pre>
 <h1 id="cProfile-Django中间件"><a href="#cProfile-Django中间件" class="headerlink" title="cProfile+Django中间件"></a>cProfile+Django中间件</h1><p>虽然Django Debug Toolbar是一个非常实用的性能分析工具，但它对于视图函数内部的代码具体执行耗时依然无能为力。如果想要进行更深层次的代码性能分析，就要使用我<a href="/2019/03/08/Python%E4%BB%A3%E7%A0%81%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%EF%BC%88%E5%90%8E%E7%AF%87%EF%BC%89/">上一篇文章</a>介绍的<code>cProfile</code>这类工具了。但与那篇文章中提到的使用方法不同，这次我们必须先编写Django中间件才能对Django视图函数进行性能分析。</p>
 <blockquote>
 <p>注：本节内容灵感来自博文：<a target="_blank" rel="noopener" href="https://rock-it.pl/how-to-profile-django-views/">How to profile Django views</a></p>
 </blockquote>
 <ol>
 <li><p>编写中间件代码主体（假设位于<code>django_profile/my_middleware.py</code>）</p>
-<pre><code class="python"># coding:utf-8
-import cProfile
-import pstats
-from io import StringIO
-
-from django.conf import settings
-from django.core.exceptions import MiddlewareNotUsed
-from django.http.response import HttpResponse
-
-class ProfileMiddleware(object):
-
-    def __init__(self, get_response):
-        if not settings.DEBUG:
-            raise MiddlewareNotUsed  # 只在DEBUG模式下启用该中间件
-
-        self.get_response = get_response
-
-    def __call__(self, request):
-        if &#39;profile&#39; in request.GET:  # 当请求URL中存在profile参数时进行性能分析
-            profile = cProfile.Profile()
-            profile.enable()
-            self.get_response(request)
-            profile.disable()
-            ram_file = StringIO()
-            sort_by = &#39;tottime&#39;
-            stats = pstats.Stats(profile, stream=ram_file)
-            stats.strip_dirs().sort_stats(sort_by).print_stats()
-            response = HttpResponse(ram_file.getvalue().encode(&#39;utf-8&#39;), &#39;text/plain&#39;)
-        else:
-            response = self.get_response(request)
-
-        return response
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># coding:utf-8</span><br><span class="hljs-keyword">import</span> cProfile<br><span class="hljs-keyword">import</span> pstats<br><span class="hljs-keyword">from</span> io <span class="hljs-keyword">import</span> StringIO<br><br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.core.exceptions <span class="hljs-keyword">import</span> MiddlewareNotUsed<br><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ProfileMiddleware</span>(<span class="hljs-title class_ inherited__">object</span>):<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, get_response</span>):<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> settings.DEBUG:<br>            <span class="hljs-keyword">raise</span> MiddlewareNotUsed  <span class="hljs-comment"># 只在DEBUG模式下启用该中间件</span><br><br>        self.get_response = get_response<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__call__</span>(<span class="hljs-params">self, request</span>):<br>        <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;profile&#x27;</span> <span class="hljs-keyword">in</span> request.GET:  <span class="hljs-comment"># 当请求URL中存在profile参数时进行性能分析</span><br>            profile = cProfile.Profile()<br>            profile.enable()<br>            self.get_response(request)<br>            profile.disable()<br>            ram_file = StringIO()<br>            sort_by = <span class="hljs-string">&#x27;tottime&#x27;</span><br>            stats = pstats.Stats(profile, stream=ram_file)<br>            stats.strip_dirs().sort_stats(sort_by).print_stats()<br>            response = HttpResponse(ram_file.getvalue().encode(<span class="hljs-string">&#x27;utf-8&#x27;</span>), <span class="hljs-string">&#x27;text/plain&#x27;</span>)<br>        <span class="hljs-keyword">else</span>:<br>            response = self.get_response(request)<br><br>        <span class="hljs-keyword">return</span> response<br></code></pre></td></tr></table></figure>
 </li>
 <li><p>在Django配置文件中启用该中间件</p>
-<pre><code class="python">MIDDLEWARE = [
-    # ...
-    &#39;django_profile.my_middleware.ProfileMiddleware&#39;,
-    # ...
-]
-</code></pre>
-</li>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">MIDDLEWARE = [<br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-string">&#x27;django_profile.my_middleware.ProfileMiddleware&#x27;</span>,<br>    <span class="hljs-comment"># ...</span><br>]<br></code></pre></td></tr></table></figure></li>
 </ol>
 <p>该中间件大概的思路为：在Django真正调用视图函数（23行，<code>self.get_response(request)</code>）时，使用<code>cProfile</code>对该视图函数进行性能分析，并用分析结果打包成的<code>HttpResponse</code>取代视图函数的<code>Response</code>返回给Django（或者说用户）。当然，由于我加了一系列的限制，该流程只会在DEBUG模式下、且URL中包含<code>profile</code>参数时才会启用。<br>此时在任何一个页面URL（<code>HTTP Parameters</code>）中增加<code>profile</code>参数时，即可看到对应效果，如下图所示：<br><img src="/images/2019-03-11.03.png" srcset="/img/loading.gif" lazyload></p>
 <p>这里介绍的只是<code>cPorfile</code>中间件的一个简单用例。实际上<code>cProfile</code>与Django中间件均具有比较强的可定制性，<a target="_blank" rel="noopener" href="https://github.com/safarijv/yet-another-django-profiler">yet-another-django-profiler</a>就是一个思路类似但更加复杂和完善的项目，有兴趣的话可以自行了解。另外，从理论上来说，<code>cProfile</code>可以和任意一个有类似Django中间件模式的Python Web框架搭配来达成类似的效果，这里就不扩展来说了。</p>
@@ -475,20 +402,21 @@ class ProfileMiddleware(object):
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

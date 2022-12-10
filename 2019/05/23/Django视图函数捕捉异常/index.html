@@ -211,7 +211,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.9k 字
+          3k 字
         
       </span>
     
@@ -222,7 +222,7 @@
         
         
         
-          25 分钟
+          26 分钟
         
       </span>
     
@@ -270,56 +270,12 @@
 <p>注：本文所使用的运行环境为<code>uWSGI 2.0.18</code>+<code>Python3.6</code>+<code>Django 2.2</code></p>
 </blockquote>
 <h1 id="在uWSGI的日志中显示Traceback"><a href="#在uWSGI的日志中显示Traceback" class="headerlink" title="在uWSGI的日志中显示Traceback"></a>在uWSGI的日志中显示Traceback</h1><p>这种方法算是一种比较消极的异常捕捉方式——仅将<code>Traceback</code>异常信息记录在uWSGI的日志中，不做进一步处理。日志可以用于日后分析，但用户收到的仍然是<code>500 Internal Server Error</code>响应。而这种捕捉方式也是默认启用的，只要所使用的Django版本高于或等于<code>1.9</code>就行。例子如下：</p>
-<pre><code class="python"># django_test/urls.py
-from django.urls import path
-from .views import index
-
-urlpatterns = [
-    path(&#39;index&#39;, index),
-]
-
-# django_test/views.py
-from django.http.response import HttpResponse
-
-def index(request):
-    1 / 0
-    return HttpResponse(b&#39;hello world&#39;)
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/urls.py</span><br><span class="hljs-keyword">from</span> django.urls <span class="hljs-keyword">import</span> path<br><span class="hljs-keyword">from</span> .views <span class="hljs-keyword">import</span> index<br><br>urlpatterns = [<br>    path(<span class="hljs-string">&#x27;index&#x27;</span>, index),<br>]<br><br><span class="hljs-comment"># django_test/views.py</span><br><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>(<span class="hljs-params">request</span>):<br>    <span class="hljs-number">1</span> / <span class="hljs-number">0</span><br>    <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-string">b&#x27;hello world&#x27;</span>)<br></code></pre></td></tr></table></figure>
 <p>配置好路由和视图函数并用<code>uWSGI</code>启动应用后，访问<code>/index</code>页面就会触发<code>ZeroDivisionError</code>异常，该异常的Traceback信息也会输出至<code>uWSGI</code>的日志中，效果如下：</p>
-<pre><code class="shell">$ uwsgi --module django_test.wsgi --http 0.0.0.0:5000
-*** Starting uWSGI 2.0.18 (64bit) on [Thu May 23 16:27:42 2019] ***
-......
-spawned uWSGI worker 1 (and the only) (pid: 13888, cores: 1)
-Traceback (most recent call last):
-  ......
-  File &quot;./django_test/views.py&quot;, line 3, in index
-    1 / 0
-ZeroDivisionError: division by zero
-[pid: 13888|app: 0|req: 1/1] 127.0.0.1 () &#123;40 vars in 964 bytes&#125; [Thu May 23 08:27:44 2019] GET /index =&gt; generated 55641 bytes in 47 msecs (HTTP/1.1 500) 1 headers in 63 bytes (1 switches on core 0)
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">uwsgi --module django_test.wsgi --http 0.0.0.0:5000</span><br>*** Starting uWSGI 2.0.18 (64bit) on [Thu May 23 16:27:42 2019] ***<br>......<br>spawned uWSGI worker 1 (and the only) (pid: 13888, cores: 1)<br>Traceback (most recent call last):<br>  ......<br>  File &quot;./django_test/views.py&quot;, line 3, in index<br>    1 / 0<br>ZeroDivisionError: division by zero<br>[pid: 13888|app: 0|req: 1/1] 127.0.0.1 () &#123;40 vars in 964 bytes&#125; [Thu May 23 08:27:44 2019] GET /index =&gt; generated 55641 bytes in 47 msecs (HTTP/1.1 500) 1 headers in 63 bytes (1 switches on core 0)<br></code></pre></td></tr></table></figure>
+
 <h1 id="用函数装饰器捕捉异常"><a href="#用函数装饰器捕捉异常" class="headerlink" title="用函数装饰器捕捉异常"></a>用函数装饰器捕捉异常</h1><p>Django中的视图函数只是一个普通的函数（废话），这就意味着我们可以用一个能够捕捉异常的函数装饰器来包裹这个视图函数，例子如下：</p>
-<pre><code class="python"># django_test/views.py
-from django.http.response import HttpResponse
-
-def catch_exc(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as ex:
-            # put your code here
-            # logger.error(traceback.format_exc())
-
-            # return Response or just raise
-            return HttpResponse(str(ex))
-
-    return wrapper
-
-
-@catch_exc
-def index(request):
-    1 / 0
-    return HttpResponse(b&#39;hello world&#39;)
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/views.py</span><br><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">catch_exc</span>(<span class="hljs-params">func</span>):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-keyword">try</span>:<br>            <span class="hljs-keyword">return</span> func(*args, **kwargs)<br>        <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> ex:<br>            <span class="hljs-comment"># put your code here</span><br>            <span class="hljs-comment"># logger.error(traceback.format_exc())</span><br><br>            <span class="hljs-comment"># return Response or just raise</span><br>            <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-built_in">str</span>(ex))<br><br>    <span class="hljs-keyword">return</span> wrapper<br><br><br><span class="hljs-meta">@catch_exc</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>(<span class="hljs-params">request</span>):<br>    <span class="hljs-number">1</span> / <span class="hljs-number">0</span><br>    <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-string">b&#x27;hello world&#x27;</span>)<br></code></pre></td></tr></table></figure>
 <p>在例子第18行～第19行，我用<code>catch_exc</code>这个装饰器包裹了<code>index</code>这个视图函数。而在<code>catch_exc</code>这个装饰器内部，我用<code>except Exception</code>语句捕捉了<code>index</code>函数所有可能出现的异常。然后，我们就可以按照需要来进行各种操作了，比如：</p>
 <ul>
 <li>用<code>traceback.format_exc()</code>获取详细的<code>Traceback</code>信息；</li>
@@ -328,31 +284,7 @@ def index(request):
 </ul>
 <p>等等等等。对异常的处理完成后，我们既可以通过<code>raise</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应，还可以渲染一个提示HTML页面返回给用户。总之，Everything is under control.</p>
 <h1 id="用Django中间件捕捉异常"><a href="#用Django中间件捕捉异常" class="headerlink" title="用Django中间件捕捉异常"></a>用Django中间件捕捉异常</h1><p>函数装饰器很好用，但装饰器只能针对单个视图函数。有没有一种应用于所有视图函数之上的异常捕捉方法？有的，这就是Django的中间件。和我上一篇文章（<a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">使用中间件对视图函数进行性能分析</a>）不同的是，那篇文章里所使用的中间件hook为<code>process_request&amp;process_response</code>，而这里使用中间件hook为<code>process_exception</code>，因为前者无法捕捉异常。</p>
-<pre><code class="python"># django_test/my_middleware.py
-from django.http import HttpResponse
-
-class CatchExcMiddleware(object):
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        return self.get_response(request)
-
-    def process_exception(self, request, exception):
-        # put your code here
-        # logging.error(traceback.format_exc())
-
-        # return Response or None
-        return HttpResponse(str(exception))
-
-# django_test/settings.py
-# ......
-MIDDLEWARE = [
-    # ......
-    &#39;django_test.my_middleware.CatchExcMiddleware&#39;,  # 启用中间件
-]
-# ......
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/my_middleware.py</span><br><span class="hljs-keyword">from</span> django.http <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">CatchExcMiddleware</span>(<span class="hljs-title class_ inherited__">object</span>):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, get_response</span>):<br>        self.get_response = get_response<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__call__</span>(<span class="hljs-params">self, request</span>):<br>        <span class="hljs-keyword">return</span> self.get_response(request)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">process_exception</span>(<span class="hljs-params">self, request, exception</span>):<br>        <span class="hljs-comment"># put your code here</span><br>        <span class="hljs-comment"># logging.error(traceback.format_exc())</span><br><br>        <span class="hljs-comment"># return Response or None</span><br>        <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-built_in">str</span>(exception))<br><br><span class="hljs-comment"># django_test/settings.py</span><br><span class="hljs-comment"># ......</span><br>MIDDLEWARE = [<br>    <span class="hljs-comment"># ......</span><br>    <span class="hljs-string">&#x27;django_test.my_middleware.CatchExcMiddleware&#x27;</span>,  <span class="hljs-comment"># 启用中间件</span><br>]<br><span class="hljs-comment"># ......</span><br></code></pre></td></tr></table></figure>
 <p>和上一节的装饰器类似，当视图函数出现异常时，Django就会遍历所有中间件的<code>process_exception</code>hook，包括例子里的。在这个<code>process_exception</code>方法里，我们同样可以完成上一节提到的各种操作，操作完成后可以通过<code>return None</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应……这里就不再重复了。</p>
 <h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>其实在非DEBUG模式（<code>settings.py</code>里<code>DEBUG = False</code>）下，Django可以将视图函数里出现的异常信息以电子邮件的形式发送给<code>ADMINS</code>里配置的邮箱地址。这个功能需要配置邮箱参数、LOGGING，这里就不详细展开了，有兴趣的话可以查看<a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/2.2/howto/error-reporting/">Django2.2官方文档(Error reporting)</a>或搜索相关教程。</p>
 
@@ -452,20 +384,21 @@ MIDDLEWARE = [
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

@@ -16,12 +16,12 @@
   <meta name="author" content="OrangeWolf">
   <meta name="keywords" content="">
   
-    <meta name="description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err &#x3D; os.Open(&quot;something.txt&quot;) if err !&#x3D; ni">
+    <meta name="description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 1234567891011var file *os.Filevar err errorfile, err &#x3D; os.Open(&quot;something.txt&quot;)if">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Go语言error四问">
 <meta property="og:url" content="https://www.yooo.ltd/2021/07/17/Go%E8%AF%AD%E8%A8%80error%E5%9B%9B%E9%97%AE/index.html">
 <meta property="og:site_name" content="OrangeWolf的博客">
-<meta property="og:description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 var file *os.File var err error file, err &#x3D; os.Open(&quot;something.txt&quot;) if err !&#x3D; ni">
+<meta property="og:description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 1234567891011var file *os.Filevar err errorfile, err &#x3D; os.Open(&quot;something.txt&quot;)if">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://www.yooo.ltd/images/2021/07/17/most_used_words.png">
 <meta property="article:published_time" content="2021-07-17T03:33:54.000Z">
@@ -209,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.1k 字
+          5.3k 字
         
       </span>
     
@@ -220,7 +220,7 @@
         
         
         
-          43 分钟
+          44 分钟
         
       </span>
     
@@ -264,197 +264,56 @@
               <div class="markdown-body">
                 
                 <h1 id="什么是error"><a href="#什么是error" class="headerlink" title="什么是error"></a>什么是error</h1><p>Go语言没有像Java&#x2F;Python一样提供<code>try</code>&amp;<code>catch</code>这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。</p>
-<pre><code class="go">var file *os.File
-var err error
-file, err = os.Open(&quot;something.txt&quot;)
-if err != nil &#123;
-    // 处理打开文件时的错误，比如panic
-    panic(file)
-&#125;
-// 处理文件
-fmt.Println(file.Stat())
-// 处理关闭文件时的错误，比如直接忽略
-_ = file.Close()
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> file *os.File<br><span class="hljs-keyword">var</span> err <span class="hljs-type">error</span><br>file, err = os.Open(<span class="hljs-string">&quot;something.txt&quot;</span>)<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-comment">// 处理打开文件时的错误，比如panic</span><br>    <span class="hljs-built_in">panic</span>(file)<br>&#125;<br><span class="hljs-comment">// 处理文件</span><br>fmt.Println(file.Stat())<br><span class="hljs-comment">// 处理关闭文件时的错误，比如直接忽略</span><br>_ = file.Close()<br></code></pre></td></tr></table></figure>
+
 <p><img src="/images/2021/07/17/most_used_words.png" srcset="/img/loading.gif" lazyload alt="words.png"></p>
 <p>Go在标准库里提供了一种错误表现形式：<code>error</code>接口，定义很简单：</p>
-<pre><code class="go">package builtin
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> builtin<br><br><span class="hljs-comment">// The error built-in interface type is the conventional interface for</span><br><span class="hljs-comment">// representing an error condition, with the nil value representing no error.</span><br><span class="hljs-keyword">type</span> <span class="hljs-type">error</span> <span class="hljs-keyword">interface</span> &#123;<br>    Error() <span class="hljs-type">string</span><br>&#125;<br></code></pre></td></tr></table></figure>
 
-// The error built-in interface type is the conventional interface for
-// representing an error condition, with the nil value representing no error.
-type error interface &#123;
-    Error() string
-&#125;
-</code></pre>
 <p>而Go提倡的组合机制让任何实现了<code>Error() string</code>方法的类型都可以视作<code>error</code>，这就带来了极大的灵活性。</p>
-<pre><code class="go">type Error1 string
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Error1 <span class="hljs-type">string</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e Error1)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> <span class="hljs-type">string</span>(e) &#125;<br><br><span class="hljs-keyword">type</span> Error2 <span class="hljs-keyword">struct</span>&#123; msg <span class="hljs-type">string</span> &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *Error2)</span></span> SetMsg(msg <span class="hljs-type">string</span>) &#123; e.msg = msg &#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *Error2)</span></span> Error() <span class="hljs-type">string</span>     &#123; <span class="hljs-keyword">return</span> e.msg &#125;<br><br><span class="hljs-keyword">var</span> err1 <span class="hljs-type">error</span> = Error1(<span class="hljs-string">&quot;hello&quot;</span>) <span class="hljs-comment">// Error1可以被视为Error</span><br><span class="hljs-keyword">var</span> err2 <span class="hljs-type">error</span> = &amp;Error2&#123;msg: <span class="hljs-string">&quot;world&quot;</span>&#125; <span class="hljs-comment">// Error2也可以被视为Error</span><br></code></pre></td></tr></table></figure>
 
-func (e Error1) Error() string &#123; return string(e) &#125;
-
-type Error2 struct&#123; msg string &#125;
-
-func (e *Error2) SetMsg(msg string) &#123; e.msg = msg &#125;
-func (e *Error2) Error() string     &#123; return e.msg &#125;
-
-var err1 error = Error1(&quot;hello&quot;) // Error1可以被视为Error
-var err2 error = &amp;Error2&#123;msg: &quot;world&quot;&#125; // Error2也可以被视为Error
-</code></pre>
 <h1 id="如何创建error"><a href="#如何创建error" class="headerlink" title="如何创建error"></a>如何创建error</h1><p>Go原生提供了两种方式来创建一个<code>error</code></p>
-<pre><code class="go">var err1 error = errors.New(&quot;error msg&quot;)
-var err2 error = fmt.Errorf(&quot;error msg: %s&quot;, &quot;hello&quot;)
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> err1 <span class="hljs-type">error</span> = errors.New(<span class="hljs-string">&quot;error msg&quot;</span>)<br><span class="hljs-keyword">var</span> err2 <span class="hljs-type">error</span> = fmt.Errorf(<span class="hljs-string">&quot;error msg: %s&quot;</span>, <span class="hljs-string">&quot;hello&quot;</span>)<br></code></pre></td></tr></table></figure>
+
 <p>前者比较简单，单纯地创建了一个<code>string</code>的封装类型：</p>
-<pre><code class="go">package errors
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> errors<br><br><span class="hljs-comment">// New returns an error that formats as the given text.</span><br><span class="hljs-comment">// Each call to New returns a distinct error value even if the text is identical.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New</span><span class="hljs-params">(text <span class="hljs-type">string</span>)</span></span> <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> &amp;errorString&#123;text&#125; &#125;<br><br><span class="hljs-comment">// errorString is a trivial implementation of error.</span><br><span class="hljs-keyword">type</span> errorString <span class="hljs-keyword">struct</span>&#123; s <span class="hljs-type">string</span> &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *errorString)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> e.s &#125;<br></code></pre></td></tr></table></figure>
 
-// New returns an error that formats as the given text.
-// Each call to New returns a distinct error value even if the text is identical.
-func New(text string) error &#123; return &amp;errorString&#123;text&#125; &#125;
-
-// errorString is a trivial implementation of error.
-type errorString struct&#123; s string &#125;
-
-func (e *errorString) Error() string &#123; return e.s &#125;
-</code></pre>
 <p>后者在示例代码中也很简单，可以看成<code>fmt.Sprintf</code>+<code>errors.New</code>。当然Go1.13做了点小改进，下文会提到。</p>
-<pre><code class="go">// Go1.12源码
-package fmt
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Go1.12源码</span><br><span class="hljs-keyword">package</span> fmt<br><br><span class="hljs-comment">// Errorf formats according to a format specifier and returns the string</span><br><span class="hljs-comment">// as a value that satisfies error.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Errorf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> <span class="hljs-type">error</span> &#123;<br>    <span class="hljs-keyword">return</span> errors.New(Sprintf(format, a...))<br>&#125;<br></code></pre></td></tr></table></figure>
 
-// Errorf formats according to a format specifier and returns the string
-// as a value that satisfies error.
-func Errorf(format string, a ...interface&#123;&#125;) error &#123;
-    return errors.New(Sprintf(format, a...))
-&#125;
-</code></pre>
 <p>但这两种方式还是太简陋了，毕竟携带的只是字符串信息。所以在实际应用场景中，更常见的做法是自定义错误类型：</p>
-<pre><code class="go">type BizError struct &#123; // 自定义业务错误
-    Code int32 // 错误码
-    Msg  string // 错误提示
-&#125;
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> BizError <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 自定义业务错误</span><br>    Code <span class="hljs-type">int32</span> <span class="hljs-comment">// 错误码</span><br>    Msg  <span class="hljs-type">string</span> <span class="hljs-comment">// 错误提示</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *BizError)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> fmt.Sprintf(<span class="hljs-string">&quot;BizError&lt;%d&gt;: %s&quot;</span>, e.Code, e.Msg) &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewBizErr</span><span class="hljs-params">(code <span class="hljs-type">int32</span>, msg <span class="hljs-type">string</span>)</span></span> <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> &amp;BizError&#123;Code: code, Msg: msg&#125; &#125;<br></code></pre></td></tr></table></figure>
 
-func (e *BizError) Error() string &#123; return fmt.Sprintf(&quot;BizError&lt;%d&gt;: %s&quot;, e.Code, e.Msg) &#125;
-
-func NewBizErr(code int32, msg string) error &#123; return &amp;BizError&#123;Code: code, Msg: msg&#125; &#125;
-</code></pre>
 <p>当然，为某些特定场景设计的公用错误（如标准库里的<code>io.EOF</code>）也会使用<code>errors.New</code>，这些错误的意思也足以用简短的字符串描述。</p>
 <h1 id="如何向上游传递error"><a href="#如何向上游传递error" class="headerlink" title="如何向上游传递error"></a>如何向上游传递error</h1><p>由于Go中的错误一般是通过<code>error</code>接口以返回值的形式传递给上游的，且一般不会包含函数调用栈信息，所以在给上游传递<code>error</code>时就需要考虑附加上下文信息以便排查问题，特别是将下游的<code>error</code>传递给上游时。</p>
-<pre><code class="go">func dial80() error &#123;
-    addr, timeout := &quot;127.0.0.1:80&quot;, time.Second
-        // do something
-    if ... &#123;
-        timeout = time.Second * 3
-    &#125;
-    conn, err := net.DialTimeout(&quot;tcp&quot;, addr, timeout)
-    if err != nil &#123;
-        return err
-    &#125;
-    _ = conn.Close()
-    return nil
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    addr, timeout := <span class="hljs-string">&quot;127.0.0.1:80&quot;</span>, time.Second<br>        <span class="hljs-comment">// do something</span><br>    <span class="hljs-keyword">if</span> ... &#123;<br>        timeout = time.Second * <span class="hljs-number">3</span><br>    &#125;<br>    conn, err := net.DialTimeout(<span class="hljs-string">&quot;tcp&quot;</span>, addr, timeout)<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> err<br>    &#125;<br>    _ = conn.Close()<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>比如这个简单的函数，如果上游<strong>有必要</strong>感知出现错误时的上下文信息（比如超时配置），应该怎么处理呢？</p>
 <p>一种简单的方法是将错误信息重新拼装一下，比如：</p>
-<pre><code class="go">func dial80() error &#123;
-    ...
-    if err != nil &#123;
-        // 对error来说，%s会调用.Error()方法
-        return fmt.Errorf(&quot;dial80 timeout %s: %s&quot;, timeout, err)
-    &#125;
-    ...
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-comment">// 对error来说，%s会调用.Error()方法</span><br>        <span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dial80 timeout %s: %s&quot;</span>, timeout, err)<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>另一种方法是将<code>error</code>再包装一层：</p>
-<pre><code class="go">type dial80Err struct &#123;
-    timeout time.Duration
-    err     error
-&#125;
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> dial80Err <span class="hljs-keyword">struct</span> &#123;<br>    timeout time.Duration<br>    err     <span class="hljs-type">error</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *dial80Err)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> fmt.Sprintf(<span class="hljs-string">&quot;dial80 timeout %s: %s&quot;</span>, e.timeout, e.err) &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> &amp;dial80Err&#123;timeout: timeout, err: err&#125;<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 
-func (e *dial80Err) Error() string &#123; return fmt.Sprintf(&quot;dial80 timeout %s: %s&quot;, e.timeout, e.err) &#125;
-
-func dial80() error &#123;
-    ...
-    if err != nil &#123;
-        return &amp;dial80Err&#123;timeout: timeout, err: err&#125;
-    &#125;
-    ...
-&#125;
-</code></pre>
 <p>但两种方法都并不完美。前者会丢失<code>error</code>中除<code>.Error()</code>返回值外的其它信息，后者用起来很繁琐，有没有更好的方法呢？当然是有的。Go1.13引入了<em>Error wrapping</em>的概念，通过扩展<code>fmt.Errorf</code>来包装<code>error</code>：</p>
-<pre><code class="go">func dial80() error &#123;
-    ...
-    if err != nil &#123;
-        return fmt.Errorf(&quot;dial80 timeout %s: %w&quot;, timeout, err)
-    &#125;
-    ...
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dial80 timeout %s: %w&quot;</span>, timeout, err)<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>注意其中<code>%w</code>占位符，<code>fmt.Errorf</code>会特殊处理这个占位符，如果存在这个占位符，<code>fmt.Errorf</code>会将其对应的<code>error</code>与错误信息一起放入一个新的结构体里：</p>
-<pre><code class="go">// Go1.13源码
-package fmt
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Go1.13源码</span><br><span class="hljs-keyword">package</span> fmt<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Errorf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> p.wrappedErr == <span class="hljs-literal">nil</span> &#123;<br>        err = errors.New(s)<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        err = &amp;wrapError&#123;s, p.wrappedErr&#125;<br>    &#125;<br>    ...<br>&#125;<br><br><span class="hljs-keyword">type</span> wrapError <span class="hljs-keyword">struct</span> &#123;<br>    msg <span class="hljs-type">string</span><br>    err <span class="hljs-type">error</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *wrapError)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> e.msg &#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *wrapError)</span></span> Unwrap() <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> e.err &#125;<br></code></pre></td></tr></table></figure>
 
-func Errorf(format string, a ...interface&#123;&#125;) error &#123;
-    ...
-    if p.wrappedErr == nil &#123;
-        err = errors.New(s)
-    &#125; else &#123;
-        err = &amp;wrapError&#123;s, p.wrappedErr&#125;
-    &#125;
-    ...
-&#125;
-
-type wrapError struct &#123;
-    msg string
-    err error
-&#125;
-
-func (e *wrapError) Error() string &#123; return e.msg &#125;
-func (e *wrapError) Unwrap() error &#123; return e.err &#125;
-</code></pre>
 <p>这种方法综合了前两种的优点，即使用便捷又不会丢失信息。所以在Go1.13之后，非常推荐使用<code>%w</code>占位符来为错误附加上下文信息并传递给上游。</p>
 <h1 id="如何分析下游传递的error"><a href="#如何分析下游传递的error" class="headerlink" title="如何分析下游传递的error"></a>如何分析下游传递的error</h1><p>当我们得到下游传递的<code>error</code>且需要根据其类型、属性做进一步操作时，该怎么办呢？（当然，前提是下游不能使用<code>errors.New</code>或<code>fmt.Errorf</code>+<code>%s</code>来传递错误，笑）</p>
 <p>由于下游可能传递<code>wrapError</code>给上游，所以上游并不能直接对<code>error</code>进行比较运算（<code>==</code>）、类型断言，而是要用<code>errors</code>包提供的API进行分析。</p>
 <p>比如，用<code>errors.Is</code>替代<code>==</code>运算符来判断两个<code>error</code>是否相等：</p>
-<pre><code class="go">myRead := func() ([]byte, error) &#123;
-    ...
-    if ... &#123;
-        return nil, fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)
-    &#125;
-    ...
-&#125;
-buf, err := myRead()
-if errors.Is(err, io.EOF) &#123;
-    // do something
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go">myRead := <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> ... &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, fmt.Errorf(<span class="hljs-string">&quot;myRead: %w&quot;</span>, io.EOF)<br>    &#125;<br>    ...<br>&#125;<br>buf, err := myRead()<br><span class="hljs-keyword">if</span> errors.Is(err, io.EOF) &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>又比如，用<code>errors.As</code>替代<code>.(type)</code>来做类型断言：</p>
-<pre><code class="go">err := dial80()
-if err != nil &#123;
-    var opErr *net.OpError
-    // 判断err是否为超时错误
-    if ok := errors.As(err, &amp;opErr); ok &amp;&amp; opErr.Timeout() &#123;
-        // do something
-    &#125;
-    // do something
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs go">err := dial80()<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-keyword">var</span> opErr *net.OpError<br>    <span class="hljs-comment">// 判断err是否为超时错误</span><br>    <span class="hljs-keyword">if</span> ok := errors.As(err, &amp;opErr); ok &amp;&amp; opErr.Timeout() &#123;<br>        <span class="hljs-comment">// do something</span><br>    &#125;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <h1 id="github-com-x2F-pkg-x2F-errors"><a href="#github-com-x2F-pkg-x2F-errors" class="headerlink" title="github.com&#x2F;pkg&#x2F;errors"></a>github.com&#x2F;pkg&#x2F;errors</h1><p>标准库中<code>errors.Is</code>和<code>errors.As</code>两个函数需要频繁使用性能较差的反射，<code>errors.As</code>使用起来也很繁琐，所以如果有条件的话可以使用功能更丰富的<a target="_blank" rel="noopener" href="https://github.com/pkg/errors/">github.com&#x2F;pkg&#x2F;errors</a>包，例子如下：</p>
-<pre><code class="go">// import github.com/pkg/errors
-myRead := func() ([]byte, error) &#123;
-    ...
-    if ... &#123;
-        // 效果类似 fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)
-        return nil, errors.WithMessage(io.EOF, &quot;myRead&quot;)
-    &#125;
-    ...
-&#125;
-buf, err := myRead()
-if errors.Is(err, io.EOF) &#123;
-    // do something
-&#125;
-// 谨慎使用
-if errors.Cause(err) == io.EOF &#123;
-    // do something
-&#125;
-</code></pre>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// import github.com/pkg/errors</span><br>myRead := <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> ... &#123;<br>        <span class="hljs-comment">// 效果类似 fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, errors.WithMessage(io.EOF, <span class="hljs-string">&quot;myRead&quot;</span>)<br>    &#125;<br>    ...<br>&#125;<br>buf, err := myRead()<br><span class="hljs-keyword">if</span> errors.Is(err, io.EOF) &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br><span class="hljs-comment">// 谨慎使用</span><br><span class="hljs-keyword">if</span> errors.Cause(err) == io.EOF &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>使用时在下游通过<code>errors.WithMessage</code>&#x2F;<code>errors.WithMessagef</code>包装错误，在上游通过<code>errors.Cause</code>获取被包装的原始错误。不过<code>errors.Cause</code>不能穿透被<code>fmt.Errorf</code>+<code>%w</code>包装的<code>wrapError</code>，所以使用时一定要谨慎。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
 <li>Go中的<code>error</code>是一个只需实现<code>Error() string</code>方法的接口。</li>
@@ -556,20 +415,21 @@ if errors.Cause(err) == io.EOF &#123;
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

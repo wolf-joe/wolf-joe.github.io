@@ -221,7 +221,7 @@
         
         
         
-          22 分钟
+          23 分钟
         
       </span>
     
@@ -270,70 +270,24 @@
 <p>注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。</p>
 </blockquote>
 <h1 id="引用计数"><a href="#引用计数" class="headerlink" title="引用计数"></a>引用计数</h1><p><strong>引用计数</strong>（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python》里的描述：<em>“每个对象都会统计有多少引用指向自己。当引用计数归零时，对象立即就被销毁”</em>。引用计数在不存在<strong>引用循环</strong>（Reference cycle）时能够及时清理内存，这也是CPython最主要的垃圾回收算法。</p>
-<pre><code class="python">&gt;&gt;&gt; import sys
-&gt;&gt;&gt; import weakref
-&gt;&gt;&gt; s1 = set(range(3))
-&gt;&gt;&gt; sys.getrefcount(s1)
-2
-&gt;&gt;&gt; s2 = s1
-&gt;&gt;&gt; s2 is s1
-True
-&gt;&gt;&gt; sys.getrefcount(s1)
-3
-&gt;&gt;&gt; weakref.finalize(s1, lambda: print(&quot;obj has gone&quot;))
-&lt;finalize object at ...; for &#39;set&#39; at ...&gt;
-&gt;&gt;&gt; del s2
-&gt;&gt;&gt; sys.getrefcount(s1)
-2
-&gt;&gt;&gt; del s1
-obj has gone
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> sys<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> weakref<br><span class="hljs-meta">&gt;&gt;&gt; </span>s1 = <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))<br><span class="hljs-meta">&gt;&gt;&gt; </span>sys.getrefcount(s1)<br><span class="hljs-number">2</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>s2 = s1<br><span class="hljs-meta">&gt;&gt;&gt; </span>s2 <span class="hljs-keyword">is</span> s1<br><span class="hljs-literal">True</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>sys.getrefcount(s1)<br><span class="hljs-number">3</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>weakref.finalize(s1, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;obj has gone&quot;</span>))<br>&lt;finalize <span class="hljs-built_in">object</span> at ...; <span class="hljs-keyword">for</span> <span class="hljs-string">&#x27;set&#x27;</span> at ...&gt;<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">del</span> s2<br><span class="hljs-meta">&gt;&gt;&gt; </span>sys.getrefcount(s1)<br><span class="hljs-number">2</span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">del</span> s1<br>obj has gone<br></code></pre></td></tr></table></figure>
+
 <p>从上面的例子可以看出，<code>set(range(3))</code>这个对象总共有两个引用：<code>s1</code>和<code>s2</code>，只有当这两个引用都无效（<code>del s2</code>、<code>del s1</code>）之后，这个对象才会被销毁（或者说占用的内存空间被回收）。</p>
 <p>需要注意的是，<code>sys.getrefcount()</code>返回的值会比真实引用计数值高出1，因为参数传递会（临时）增加一个引用，详见<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/sys.html#sys.getrefcount">官方文档</a>。同时，笔者用到了<code>weakref.finalize()</code>方法来确认对象是否被销毁，该方法会在第一个参数指向的对象被销毁时调用第二个参数（一个<code>Callable</code>对象）。</p>
 <h1 id="如何引起内存泄露"><a href="#如何引起内存泄露" class="headerlink" title="如何引起内存泄露"></a>如何引起内存泄露</h1><p>前面提到，引用计数在不存在引用循环时能及时清理内存，但这并不能代表程序员就能高枕无忧了。毕竟，被遗忘的引用也是引用。考虑下面这个可以追踪当前实例的类：</p>
-<pre><code class="python">class MyOBJ(object):
-    __instances = set()
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyOBJ</span>(<span class="hljs-title class_ inherited__">object</span>):<br>    __instances = <span class="hljs-built_in">set</span>()<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span></span>):<br>        self.name = name<br>        self.__instances.add(self)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__str__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;MyOBJ(&#x27;<span class="hljs-subst">&#123;self.name&#125;</span>&#x27;)&quot;</span><br><br><span class="hljs-meta">    @classmethod</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">instances</span>(<span class="hljs-params">cls</span>):<br>        <span class="hljs-keyword">return</span> cls.__instances<br></code></pre></td></tr></table></figure>
 
-    def __init__(self, name: str):
-        self.name = name
-        self.__instances.add(self)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>obj1 = MyOBJ(<span class="hljs-string">&quot;obj1&quot;</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span>weakref.finalize(obj1, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;obj1 has gone&quot;</span>))<br>&lt;finalize <span class="hljs-built_in">object</span> at ...; <span class="hljs-keyword">for</span> <span class="hljs-string">&#x27;MyOBJ&#x27;</span> at ...&gt;<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">del</span> obj1<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">len</span>(MyOBJ.instances())<br><span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
 
-    def __str__(self) -&gt; str:
-        return f&quot;MyOBJ(&#39;&#123;self.name&#125;&#39;)&quot;
-
-    @classmethod
-    def instances(cls):
-        return cls.__instances
-</code></pre>
-<pre><code class="python">&gt;&gt;&gt; obj1 = MyOBJ(&quot;obj1&quot;)
-&gt;&gt;&gt; weakref.finalize(obj1, lambda: print(&quot;obj1 has gone&quot;))
-&lt;finalize object at ...; for &#39;MyOBJ&#39; at ...&gt;
-&gt;&gt;&gt; del obj1
-&gt;&gt;&gt; len(MyOBJ.instances())
-1
-</code></pre>
 <p>可以看到，即使通过<code>del obj1</code>将对象的引用删除，但由于<code>MyOBJ</code>这个类的<code>__instances</code>属性里始终持有<code>obj1</code>对应对象的另一个引用，所以这个对象始终无法被销毁。如果不能将<code>__instances</code>里的引用也删除，就会引起内存泄露。</p>
-<pre><code class="python">&gt;&gt;&gt; MyOBJ.instances().pop()
-MyOBJ(&#39;obj1&#39;)
-obj1 has gone
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>MyOBJ.instances().pop()<br>MyOBJ(<span class="hljs-string">&#x27;obj1&#x27;</span>)<br>obj1 has gone<br></code></pre></td></tr></table></figure>
+
 <h1 id="弱引用（weakref）"><a href="#弱引用（weakref）" class="headerlink" title="弱引用（weakref）"></a>弱引用（weakref）</h1><p>可能从第一个例子里就有读者奇怪：<code>weakref.finalize()</code>会在对象被销毁时执行动作，按理说也应该持有该对象的一个引用才对，这不就产生矛盾了吗？实际上<code>weakref</code>这个模块名就给出了说明：<strong>弱引用</strong>（weakref）指不增加对象引用计数的引用。于是，<code>weakref.finalize()</code>自然也就不会妨碍对象被销毁了。</p>
 <p>同样的，上一节提到的内存泄露问题也可以通过<code>weakref</code>模块提供的功能解决。只需要将<code>MyOBJ</code>里<code>__instances</code>的类型改为<code>WeakSet</code>即可：</p>
-<pre><code class="python">class MyOBJ(object):
-    __instances = weakref.WeakSet()
-    
-    # ... 省略
-</code></pre>
-<pre><code class="python">&gt;&gt;&gt; obj1 = MyOBJ(&quot;obj1&quot;)
-&gt;&gt;&gt; weakref.finalize(obj1, lambda: print(&quot;obj1 has gone&quot;))
-&lt;finalize object at ...; for &#39;MyOBJ&#39; at ...&gt;
-&gt;&gt;&gt; len(MyOBJ.instances())
-1
-&gt;&gt;&gt; del obj1
-obj1 has gone
-&gt;&gt;&gt; len(MyOBJ.instances())
-0
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyOBJ</span>(<span class="hljs-title class_ inherited__">object</span>):<br>    __instances = weakref.WeakSet()<br>    <br>    <span class="hljs-comment"># ... 省略</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>obj1 = MyOBJ(<span class="hljs-string">&quot;obj1&quot;</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span>weakref.finalize(obj1, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;obj1 has gone&quot;</span>))<br>&lt;finalize <span class="hljs-built_in">object</span> at ...; <span class="hljs-keyword">for</span> <span class="hljs-string">&#x27;MyOBJ&#x27;</span> at ...&gt;<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">len</span>(MyOBJ.instances())<br><span class="hljs-number">1</span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">del</span> obj1<br>obj1 has gone<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">len</span>(MyOBJ.instances())<br><span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+
 <p>在引入了<code>WeakSet</code>后，<code>__instances</code>属性持有的引用都是弱引用，当实际的对象被垃圾回收机制销毁时，<code>__instances</code>属性里的引用也会跟着被删除。类似的数据结构还有<code>WeakKeyDictionary</code>、<code>WeakValueDictionary</code>，它们会将对象的引用分别当成字典的键和值，更具体的说明可以参考<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/weakref.html">官方文档</a>。</p>
 <h1 id="延伸"><a href="#延伸" class="headerlink" title="延伸"></a>延伸</h1><p>实际上本文只涉及Python内存管理中最基本的一些概念。关于引用循环、分代回收等概念，推荐阅读以下内容：</p>
 <ul>
@@ -436,20 +390,21 @@ obj1 has gone
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

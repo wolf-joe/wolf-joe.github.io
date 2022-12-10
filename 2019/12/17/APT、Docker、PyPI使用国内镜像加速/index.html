@@ -212,7 +212,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.7k 字
+          3.8k 字
         
       </span>
     
@@ -269,87 +269,27 @@
                 <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2019-12-17.03.webp" srcset="/img/loading.gif" lazyload></p>
 <p>因为一些不可描述的原因，在中国绝大多数地区进行更新APT软件包列表（<code>apt-get update</code>）&amp;安装APT软件包（<code>apt-get isntall</code>）、拉取Docker镜像（<code>docker pull</code>）、安装PyPI包（<code>pip install</code>）等操作都是一件非常痛苦的事：网络连接速度太慢了。万幸的是我们有许多开源软件镜像站点，合理设置镜像站点能够极大提升工作和学习效率。这篇文章介绍的就是在上述三种场景下如何设置镜像站点。</p>
 <h1 id="APT镜像加速"><a href="#APT镜像加速" class="headerlink" title="APT镜像加速"></a>APT镜像加速</h1><p><a target="_blank" rel="noopener" href="https://mirror.tuna.tsinghua.edu.cn/help">TUNA镜像站（清华大学开源软件镜像站）</a>上介绍了绝大部分Linux发行版的镜像加速设置方法，这里只介绍Debian系发行版的APT镜像加速如何设置。<br>APT更新软件包列表的第一步是从本地源列表（<code>/etc/apt/sources.list</code>和<code>/etc/apt/sources.list.d/*.list</code>）中读取所有软件来源站点，所以我们只要更新本地源列表就可以实现镜像加速了（下面的源列表不包括源代码站点，如需完整站点可自行取消注释对应行）。</p>
-<pre><code class="shell"># 备份已有源列表
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.old
-distrib=$(lsb_release -is | awk &#39;&#123;print tolower($1)&#125;&#39;)
-codename=$(lsb_release -cs)
-apt_src=&quot;https://mirrors.aliyun.com&quot;
-# ↑阿里云源 ↓TUNA源
-# apt_src=&quot;https://mirrors.tuna.tsinghua.edu.cn&quot;
-cat &gt;sources.list&lt;&lt;EOF
-deb $apt_src/$distrib/ $codename main restricted universe multiverse
-deb $apt_src/$distrib/ $codename-security main restricted universe multiverse
-deb $apt_src/$distrib/ $codename-updates main restricted universe multiverse
-deb $apt_src/$distrib/ $codename-backports main restricted universe multiverse
-#deb-src $apt_src/$distrib/ $codename main restricted universe multiverse
-#deb-src $apt_src/$distrib/ $codename-security main restricted universe multiverse
-#deb-src $apt_src/$distrib/ $codename-updates main restricted universe multiverse
-#deb-src $apt_src/$distrib/ $codename-backports main restricted universe multiverse
-EOF
-sudo mv sources.list /etc/apt
-# 更新软件包列表
-sudo apt-get update
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">备份已有源列表</span><br>sudo cp /etc/apt/sources.list /etc/apt/sources.list.old<br>distrib=$(lsb_release -is | awk &#x27;&#123;print tolower($1)&#125;&#x27;)<br>codename=$(lsb_release -cs)<br>apt_src=&quot;https://mirrors.aliyun.com&quot;<br><span class="hljs-meta prompt_"># </span><span class="language-bash">↑阿里云源 ↓TUNA源</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">apt_src=<span class="hljs-string">&quot;https://mirrors.tuna.tsinghua.edu.cn&quot;</span></span><br>cat &gt;sources.list&lt;&lt;EOF<br>deb $apt_src/$distrib/ $codename main restricted universe multiverse<br>deb $apt_src/$distrib/ $codename-security main restricted universe multiverse<br>deb $apt_src/$distrib/ $codename-updates main restricted universe multiverse<br>deb $apt_src/$distrib/ $codename-backports main restricted universe multiverse<br><span class="hljs-meta prompt_">#</span><span class="language-bash">deb-src <span class="hljs-variable">$apt_src</span>/<span class="hljs-variable">$distrib</span>/ <span class="hljs-variable">$codename</span> main restricted universe multiverse</span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">deb-src <span class="hljs-variable">$apt_src</span>/<span class="hljs-variable">$distrib</span>/ <span class="hljs-variable">$codename</span>-security main restricted universe multiverse</span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">deb-src <span class="hljs-variable">$apt_src</span>/<span class="hljs-variable">$distrib</span>/ <span class="hljs-variable">$codename</span>-updates main restricted universe multiverse</span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">deb-src <span class="hljs-variable">$apt_src</span>/<span class="hljs-variable">$distrib</span>/ <span class="hljs-variable">$codename</span>-backports main restricted universe multiverse</span><br>EOF<br>sudo mv sources.list /etc/apt<br><span class="hljs-meta prompt_"># </span><span class="language-bash">更新软件包列表</span><br>sudo apt-get update<br></code></pre></td></tr></table></figure>
+
 <h2 id="手动添加Ubuntu-PPA源"><a href="#手动添加Ubuntu-PPA源" class="headerlink" title="手动添加Ubuntu PPA源"></a>手动添加Ubuntu PPA源</h2><p>PPA（Personal Package Archives）作为APT源的补充能让Ubuntu用户在第一时间体验到最新发布的软件。但在笔者的实际体验中，默认的PPA源添加命令（<code>add-apt-repository</code>）往往需要极长的时间才能添加完成。经过一段时间摸索，笔者发现可以通过简单的方式手动添加Ubuntu PPA源，在此分享给读者。<br><img src="/images/2019-12-17.01.webp" srcset="/img/loading.gif" lazyload></p>
 <p>以上图（<a target="_blank" rel="noopener" href="https://launchpad.net/~starws-box/+archive/ubuntu/deadbeef-player">deadbeef-player : starws</a>）为例，点开图中的”Technical details about this PPA”，在下拉列表中选择系统版本后，将下方的PPA源链接保存至本地源列表。</p>
-<pre><code class="shell">echo &quot;deb http://ppa.launchpad.net/starws-box/deadbeef-player/ubuntu bionic main&quot; &gt; ppa-deadbeef.list
-sudo mv ppa-deadbeef.list /etc/apt/sources.list.d/
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">echo &quot;deb http://ppa.launchpad.net/starws-box/deadbeef-player/ubuntu bionic main&quot; &gt; ppa-deadbeef.list<br>sudo mv ppa-deadbeef.list /etc/apt/sources.list.d/<br></code></pre></td></tr></table></figure>
+
 <p>然后再点击上图中<code>Signing key</code>下方的链接，在出现的新页面（如下图所示）中复制<code>sig</code>公钥文件的地址。最后用<code>apt-key</code>添加这个公钥，这个PPA源就添加完成了。</p>
 <p><img src="/images/2019-12-17.02.webp" srcset="/img/loading.gif" lazyload></p>
-<pre><code class="shell">$ wget -qO - https://keyserver.ubuntu.com/pks/lookup?op=get&amp;search=0x446c82dc2dd154a1 | sudo apt-key add -
-OK
-$ sudo apt-get update &amp;&amp; sudo apt-get install deadbeef
-</code></pre>
-<h1 id="安装Docker（Ubuntu-16-04-）"><a href="#安装Docker（Ubuntu-16-04-）" class="headerlink" title="安装Docker（Ubuntu 16.04+）"></a>安装Docker（Ubuntu 16.04+）</h1><p>Debian系统理论上可以兼容这些命令，不过笔者没有进行过测试。其它系统参见<a target="_blank" rel="noopener" href="https://yeasy.gitbooks.io/docker_practice/install/">《Docker——从入门到实践》 安装Docker</a>。</p>
-<pre><code class="shell"># Ubuntu 16.04需要先安装这个依赖包，Ubuntu 18.04不用
-# wget http://launchpadlibrarian.net/344879847/libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb
-# sudo dpkg -i libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb
-# rm libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">wget -qO - https://keyserver.ubuntu.com/pks/lookup?op=get&amp;search=0x446c82dc2dd154a1 | sudo apt-key add -</span><br>OK<br><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo apt-get update &amp;&amp; sudo apt-get install deadbeef</span><br></code></pre></td></tr></table></figure>
 
-# 卸载旧版本Docker
-sudo apt-get remove docker docker-engine docker.io
-# 添加Docker-ce源并安装Docker-ce
-echo &quot;deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/$(lsb_release -is | awk &#39;&#123;print tolower($1)&#125;&#39;) $(lsb_release -cs) stable&quot; &gt; docker-ce.list
-sudo mv docker-ce.list /etc/apt/sources.list.d/
-curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-get update &amp;&amp; sudo apt-get install docker-ce
-# 启动Docker服务并配置用户组
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo groupadd docker
-sudo usermod -aG docker $USER
-# 退出当前终端并重新登录，测试Docker是否正常运行
-docker version
-</code></pre>
+<h1 id="安装Docker（Ubuntu-16-04-）"><a href="#安装Docker（Ubuntu-16-04-）" class="headerlink" title="安装Docker（Ubuntu 16.04+）"></a>安装Docker（Ubuntu 16.04+）</h1><p>Debian系统理论上可以兼容这些命令，不过笔者没有进行过测试。其它系统参见<a target="_blank" rel="noopener" href="https://yeasy.gitbooks.io/docker_practice/install/">《Docker——从入门到实践》 安装Docker</a>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">Ubuntu 16.04需要先安装这个依赖包，Ubuntu 18.04不用</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">wget http://launchpadlibrarian.net/344879847/libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">sudo dpkg -i libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash"><span class="hljs-built_in">rm</span> libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb</span><br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">卸载旧版本Docker</span><br>sudo apt-get remove docker docker-engine docker.io<br><span class="hljs-meta prompt_"># </span><span class="language-bash">添加Docker-ce源并安装Docker-ce</span><br>echo &quot;deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/$(lsb_release -is | awk &#x27;&#123;print tolower($1)&#125;&#x27;) $(lsb_release -cs) stable&quot; &gt; docker-ce.list<br>sudo mv docker-ce.list /etc/apt/sources.list.d/<br>curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -<br>sudo apt-get update &amp;&amp; sudo apt-get install docker-ce<br><span class="hljs-meta prompt_"># </span><span class="language-bash">启动Docker服务并配置用户组</span><br>sudo systemctl enable docker<br>sudo systemctl start docker<br>sudo groupadd docker<br>sudo usermod -aG docker $USER<br><span class="hljs-meta prompt_"># </span><span class="language-bash">退出当前终端并重新登录，测试Docker是否正常运行</span><br>docker version<br></code></pre></td></tr></table></figure>
+
+
 <h1 id="Docker镜像加速"><a href="#Docker镜像加速" class="headerlink" title="Docker镜像加速"></a>Docker镜像加速</h1><p>Docker在安装完成后默认从DockerHub源站拉取镜像，而将拉取目标站点从源站改为镜像站往往能获得更快的镜像拉取速度。详细流程参见<a target="_blank" rel="noopener" href="https://yeasy.gitbooks.io/docker_practice/install/mirror.html">《Docker——从入门到实践》 镜像加速器</a>。</p>
-<pre><code class="shell">cat &gt;daemon.json&lt;&lt;EOF
-&#123;
-  &quot;registry-mirrors&quot;: [
-    &quot;https://dockerhub.azk8s.cn&quot;,
-    &quot;https://hub-mirror.c.163.com&quot;
-  ]
-&#125;
-EOF
-sudo mv daemon.json /etc/docker/
-# 重启服务
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs shell">cat &gt;daemon.json&lt;&lt;EOF<br>&#123;<br>  &quot;registry-mirrors&quot;: [<br>    &quot;https://dockerhub.azk8s.cn&quot;,<br>    &quot;https://hub-mirror.c.163.com&quot;<br>  ]<br>&#125;<br>EOF<br>sudo mv daemon.json /etc/docker/<br><span class="hljs-meta prompt_"># </span><span class="language-bash">重启服务</span><br>sudo systemctl daemon-reload<br>sudo systemctl restart docker<br></code></pre></td></tr></table></figure>
 <p>此时可以通过<code>docker info</code>命令查看镜像加速设置是否生效。</p>
-<pre><code class="shell">$ docker info -f &#39;&#123;&#123;json .RegistryConfig.Mirrors&#125;&#125;&#39;
-[&quot;https://dockerhub.azk8s.cn/&quot;,&quot;https://hub-mirror.c.163.com/&quot;]
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">docker info -f <span class="hljs-string">&#x27;&#123;&#123;json .RegistryConfig.Mirrors&#125;&#125;&#x27;</span></span><br>[&quot;https://dockerhub.azk8s.cn/&quot;,&quot;https://hub-mirror.c.163.com/&quot;]<br></code></pre></td></tr></table></figure>
+
 <h1 id="PyPI镜像加速"><a href="#PyPI镜像加速" class="headerlink" title="PyPI镜像加速"></a>PyPI镜像加速</h1><p>详细说明参见<a target="_blank" rel="noopener" href="https://mirror.tuna.tsinghua.edu.cn/help/pypi/">TUNA pypi 镜像使用帮助</a>。</p>
-<pre><code class="shell">mirror=&quot;https://mirrors.aliyun.com/pypi/simple/&quot;
-# ↑阿里云源 ↓TUNA源
-# mirror=&quot;https://pypi.tuna.tsinghua.edu.cn/simple&quot;
-# 临时安装
-pip install -i $mirror requests
-# 设为默认，需要升级pip到最新版本（&gt;=10.0.0）
-pip install -i $mirror pip -U
-pip config set global.index-url $mirror
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell">mirror=&quot;https://mirrors.aliyun.com/pypi/simple/&quot;<br><span class="hljs-meta prompt_"># </span><span class="language-bash">↑阿里云源 ↓TUNA源</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">mirror=<span class="hljs-string">&quot;https://pypi.tuna.tsinghua.edu.cn/simple&quot;</span></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">临时安装</span><br>pip install -i $mirror requests<br><span class="hljs-meta prompt_"># </span><span class="language-bash">设为默认，需要升级pip到最新版本（&gt;=10.0.0）</span><br>pip install -i $mirror pip -U<br>pip config set global.index-url $mirror<br></code></pre></td></tr></table></figure>
 
                 
               </div>
@@ -445,20 +385,21 @@ pip config set global.index-url $mirror
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

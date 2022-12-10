@@ -211,7 +211,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3k 字
+          3.1k 字
         
       </span>
     
@@ -222,7 +222,7 @@
         
         
         
-          25 分钟
+          26 分钟
         
       </span>
     
@@ -270,90 +270,26 @@
 <p>以下部分内容来自<a target="_blank" rel="noopener" href="https://doc.owncloud.com/server/latest/admin_manual/installation/docker/">ownCloud官方安装文档</a></p>
 </blockquote>
 <p>首先，下载官方docker-compose文件，并创环境变量文件用以指定ownCloud版本、账户密码和HTTP端口。</p>
-<pre><code class="shell">$ mkdir owncloud-docker-server
-$ cd owncloud-docker-server
-$ wget https://raw.githubusercontent.com/owncloud/docs/master/modules/admin_manual/examples/installation/docker/docker-compose.yml
-$ cat &lt;&lt; EOF &gt; .env
-OWNCLOUD_VERSION=10.3
-OWNCLOUD_DOMAIN=localhost
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin
-HTTP_PORT=8080
-EOF
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">mkdir</span> owncloud-docker-server</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cd</span> owncloud-docker-server</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">wget https://raw.githubusercontent.com/owncloud/docs/master/modules/admin_manual/examples/installation/docker/docker-compose.yml</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cat</span> &lt;&lt; <span class="hljs-string">EOF &gt; .env</span></span><br>OWNCLOUD_VERSION=10.3<br>OWNCLOUD_DOMAIN=localhost<br>ADMIN_USERNAME=admin<br>ADMIN_PASSWORD=admin<br>HTTP_PORT=8080<br>EOF<br></code></pre></td></tr></table></figure>
+
 <p>从下载下来的<code>docker-compose.yml</code>文件里可以看出，ownCloud共有三个docker服务：<code>owncloud</code>、<code>db</code>、<code>redis</code>，这三个docker服务都将创建独立的docker数据卷，将各自的数据文件持久化到数据卷里。</p>
-<pre><code class="yaml">version: &#39;2.1&#39;
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;2.1&#x27;</span><br><br><span class="hljs-attr">volumes:</span><br>  <span class="hljs-attr">files:</span><br>    <span class="hljs-attr">driver:</span> <span class="hljs-string">local</span><br><span class="hljs-string">...</span><br><span class="hljs-attr">services:</span><br>  <span class="hljs-attr">owncloud:</span><br><span class="hljs-string">...</span><br>    <span class="hljs-attr">volumes:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">files:/mnt/data</span><br><span class="hljs-string">...</span><br></code></pre></td></tr></table></figure>
 
-volumes:
-  files:
-    driver: local
-...
-services:
-  owncloud:
-...
-    volumes:
-      - files:/mnt/data
-...
-</code></pre>
 <p>我个人更习惯将ownCloud的数据保存目录指定为某个具体文件夹，方便我进行管理。所以我对<code>docker-compose.yml</code>做如下改动：</p>
-<pre><code class="yaml">version: &#39;2.1&#39;
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;2.1&#x27;</span><br><br><span class="hljs-attr">volumes:</span><br><span class="hljs-comment">#  files:</span><br><span class="hljs-comment">#    driver: local</span><br><span class="hljs-string">...</span><br><span class="hljs-attr">services:</span><br>  <span class="hljs-attr">owncloud:</span><br><span class="hljs-string">...</span><br>    <span class="hljs-attr">volumes:</span><br><span class="hljs-comment">#      - files:/mnt/data</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">/path/to/my/data/owncloud:/mnt/data</span><br><span class="hljs-string">...</span><br></code></pre></td></tr></table></figure>
 
-volumes:
-#  files:
-#    driver: local
-...
-services:
-  owncloud:
-...
-    volumes:
-#      - files:/mnt/data
-      - /path/to/my/data/owncloud:/mnt/data
-...
-</code></pre>
 <h1 id="用docker-compose启动ownCloud"><a href="#用docker-compose启动ownCloud" class="headerlink" title="用docker-compose启动ownCloud"></a>用docker-compose启动ownCloud</h1><p>启动ownCloud的命令很简单，只需让docker-compose按照配置好的<code>docker-compose.yml</code>启动容器。第一次运行需要拉取镜像，只需耐心等待即可。</p>
-<pre><code class="shell">$ docker-compose up -d
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">docker-compose up -d</span><br></code></pre></td></tr></table></figure>
+
 <p>命令执行完成后可以通过docker-compose命令查看拉取的镜像和服务运行状态：</p>
-<pre><code class="shell">$ docker-compose images
-     Container           Repository        Tag       Image Id      Size
--------------------------------------------------------------------------
-owncloud_db_1         webhippie/mariadb   latest   3f6237885724   626 MB
-owncloud_owncloud_1   owncloud/server     10.3     b7c82576c651   785 MB
-owncloud_redis_1      webhippie/redis     latest   42ab00c664c2   56.4 MB
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">docker-compose images</span><br>     Container           Repository        Tag       Image Id      Size<br>-------------------------------------------------------------------------<br>owncloud_db_1         webhippie/mariadb   latest   3f6237885724   626 MB<br>owncloud_owncloud_1   owncloud/server     10.3     b7c82576c651   785 MB<br>owncloud_redis_1      webhippie/redis     latest   42ab00c664c2   56.4 MB<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">docker-compose ps</span><br>       Name                      Command                  State               Ports<br>--------------------------------------------------------------------------------------------<br>owncloud_db_1         /usr/bin/entrypoint /bin/s ...   Up (healthy)   3306/tcp<br>owncloud_owncloud_1   /usr/bin/entrypoint /usr/b ...   Up (healthy)   0.0.0.0:8080-&gt;8080/tcp<br>owncloud_redis_1      /usr/bin/entrypoint /bin/s ...   Up (healthy)   6379/tcp<br></code></pre></td></tr></table></figure>
 
-$ docker-compose ps
-       Name                      Command                  State               Ports
---------------------------------------------------------------------------------------------
-owncloud_db_1         /usr/bin/entrypoint /bin/s ...   Up (healthy)   3306/tcp
-owncloud_owncloud_1   /usr/bin/entrypoint /usr/b ...   Up (healthy)   0.0.0.0:8080-&gt;8080/tcp
-owncloud_redis_1      /usr/bin/entrypoint /bin/s ...   Up (healthy)   6379/tcp
-</code></pre>
 <p>此时也可以用curl来验证服务是否启动：</p>
-<pre><code class="shell">$ curl 127.0.0.1:8080 -I
-HTTP/1.1 302 Found
-Date: Mon, 16 Dec 2019 03:14:55 GMT
-Server: Apache
-...
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">curl 127.0.0.1:8080 -I</span><br>HTTP/1.1 302 Found<br>Date: Mon, 16 Dec 2019 03:14:55 GMT<br>Server: Apache<br>...<br></code></pre></td></tr></table></figure>
+
 <h1 id="配置Nginx转发-HTTPS"><a href="#配置Nginx转发-HTTPS" class="headerlink" title="配置Nginx转发+HTTPS"></a>配置Nginx转发+HTTPS</h1><p>Nginx+HTTPS的配置不算麻烦，只要在Nginx的配置文件（比如<code>/etc/nginx/sites-available/default</code>）中添加一个server项即可。在这里的配置中，我让Nginx在8000端口上启动HTTPS服务，并将所有请求以HTTP方式转发至8080端口上的ownCloud。</p>
-<pre><code class="nginx">server &#123;
-    listen 8000 ssl;
-    server_name owncloud;
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-section">server</span> &#123;<br>    <span class="hljs-attribute">listen</span> <span class="hljs-number">8000</span> ssl;<br>    <span class="hljs-attribute">server_name</span> owncloud;<br><br>    <span class="hljs-attribute">ssl_certificate</span>     /etc/nginx/ssl/owncloud.crt;<br>    <span class="hljs-attribute">ssl_certificate_key</span> /etc/nginx/ssl/owncloud.key;<br>    <span class="hljs-attribute">ssl_protocols</span>       TLSv1 TLSv1.<span class="hljs-number">1</span> TLSv1.<span class="hljs-number">2</span>;<br>    <span class="hljs-attribute">ssl_ciphers</span>         HIGH:!aNULL:!MD5;<br><br>    <span class="hljs-attribute">client_max_body_size</span> <span class="hljs-number">0</span>;<br><br>    <span class="hljs-section">location</span> / &#123;<br>        <span class="hljs-attribute">proxy_set_header</span>   Host             <span class="hljs-variable">$host</span>:<span class="hljs-number">8000</span>;<br>        <span class="hljs-attribute">proxy_redirect</span>     http://          https://;<br>        <span class="hljs-attribute">proxy_pass</span>         http://127.0.0.1:8080/;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
-    ssl_certificate     /etc/nginx/ssl/owncloud.crt;
-    ssl_certificate_key /etc/nginx/ssl/owncloud.key;
-    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
-
-    client_max_body_size 0;
-
-    location / &#123;
-        proxy_set_header   Host             $host:8000;
-        proxy_redirect     http://          https://;
-        proxy_pass         http://127.0.0.1:8080/;
-    &#125;
-&#125;
-</code></pre>
 <p>配置时有一些需要注意的地方。</p>
 <ul>
 <li><code>client_max_body_size</code>项，其默认的值为<code>1m</code>，也就是说Nginx最大只能接受1M大小的HTTP请求，这对于ownCloud的文件上传功能来说是不可接受的。在这里我将其设为<code>0</code>，让Nginx不限制HTTP请求的大小。理论上来说这个参数应该限定在文件上传的<code>url</code>以提高安全性，但这里就图个方便。</li>
@@ -459,20 +395,21 @@ Server: Apache
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

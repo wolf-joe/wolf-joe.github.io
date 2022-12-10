@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205604949.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205820116.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209210021944.webp">
-<meta property="og:image" content="https://tion-china.cn/wp-content/uploads/2016/11/biguashi-xinfengqi.jpg">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/biguashi-xinfengqi.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209211336151.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212241148.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212709055.webp">
@@ -41,7 +41,7 @@
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221543799.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221252008.webp">
 <meta property="article:published_time" content="2022-12-09T05:04:56.000Z">
-<meta property="article:modified_time" content="2022-12-09T14:27:30.489Z">
+<meta property="article:modified_time" content="2022-12-10T01:19:38.195Z">
 <meta property="article:author" content="OrangeWolf">
 <meta property="article:tag" content="监控">
 <meta property="article:tag" content="生活">
@@ -306,7 +306,7 @@
 <h2 id="2-2-壁挂新风机"><a href="#2-2-壁挂新风机" class="headerlink" title="2.2  壁挂新风机"></a>2.2  壁挂新风机</h2><table>
 <thead>
 <tr>
-<th><img src="https://tion-china.cn/wp-content/uploads/2016/11/biguashi-xinfengqi.jpg" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/biguashi-xinfengqi.webp" srcset="/img/loading.gif" lazyload></th>
 <th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209211336151.webp" srcset="/img/loading.gif" lazyload></th>
 </tr>
 </thead>
@@ -440,20 +440,21 @@
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

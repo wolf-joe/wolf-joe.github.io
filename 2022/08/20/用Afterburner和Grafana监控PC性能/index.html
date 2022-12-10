@@ -311,18 +311,12 @@ proxy --\> pm
 
 <p><img src="/images/2022/8/20/d3ce4a5f1aeea651a6ab8534e7965d3d.jpg" srcset="/img/loading.gif" lazyload alt="PlantUML diagram"></p>
 <p>该工具已在<a target="_blank" rel="noopener" href="https://github.com/wolf-joe/tools/tree/main/cmd/afterburner_exporter">GitHub</a>上开源，安装运行后可直接通过浏览器看到工具输出的结果：</p>
-<pre><code class="shell">$ go install github.com/wolf-joe/tools/cmd/afterburner_exporter@latest
-$ afterburner_exporter -listen &quot;0.0.0.0:8090&quot; -target &quot;127.0.0.1:82&quot; -password &quot;17cc95b4017d496f82&quot;
-2022/08/20 18:13:08 listen on :8090
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">go install github.com/wolf-joe/tools/cmd/afterburner_exporter@latest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">afterburner_exporter -listen <span class="hljs-string">&quot;0.0.0.0:8090&quot;</span> -target <span class="hljs-string">&quot;127.0.0.1:82&quot;</span> -password <span class="hljs-string">&quot;17cc95b4017d496f82&quot;</span></span><br>2022/08/20 18:13:08 listen on :8090<br></code></pre></td></tr></table></figure>
+
 <p><img src="/images/2022/8/20/0701aeb276daaf249d1ac1ea26062661.jpg" srcset="/img/loading.gif" lazyload alt="image-20220820185928484"></p>
 <h1 id="接入Prometheus"><a href="#接入Prometheus" class="headerlink" title="接入Prometheus"></a>接入Prometheus</h1><p>修改Prometheus的配置文件，让其定时抓取上一章的metrics数据，重启后可看到服务正常接入：</p>
-<pre><code class="yaml">scrape_configs:
-  ...
-  - job_name: &quot;desktop&quot;
-    static_configs:
-      - targets: [&quot;localhost:9102&quot;] # 这里将PC上的127.0.0.1:8090转发到了Prometheus服务器的:9102
-</code></pre>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">scrape_configs:</span><br>  <span class="hljs-string">...</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">job_name:</span> <span class="hljs-string">&quot;desktop&quot;</span><br>    <span class="hljs-attr">static_configs:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">targets:</span> [<span class="hljs-string">&quot;localhost:9102&quot;</span>] <span class="hljs-comment"># 这里将PC上的127.0.0.1:8090转发到了Prometheus服务器的:9102</span><br></code></pre></td></tr></table></figure>
+
 <p><img src="/images/2022/8/20/815351595b418e04648bacc311c011b7.jpg" srcset="/img/loading.gif" lazyload alt="image-20220820190351844"></p>
 <h1 id="配置Grafana"><a href="#配置Grafana" class="headerlink" title="配置Grafana"></a>配置Grafana</h1><p>Prometheus抓取到数据之后，在Grafana上添加对应面板：</p>
 <p><img src="/images/2022/8/20/4e0513124777c920c5a47b0f70b7a005.jpg" srcset="/img/loading.gif" lazyload alt="image-20220821051812112"></p>
@@ -426,20 +420,21 @@ $ afterburner_exporter -listen &quot;0.0.0.0:8090&quot; -target &quot;127.0.0.1:
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

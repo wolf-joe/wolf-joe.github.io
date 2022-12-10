@@ -210,7 +210,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.8k 字
+          6.1k 字
         
       </span>
     
@@ -221,7 +221,7 @@
         
         
         
-          49 分钟
+          51 分钟
         
       </span>
     
@@ -271,243 +271,78 @@
 <p>注：本篇文章使用CPython3.6</p>
 </blockquote>
 <h1 id="函数装饰器"><a href="#函数装饰器" class="headerlink" title="函数装饰器"></a>函数装饰器</h1><p>函数装饰器是可调用的对象，其参数是另一个函数（被装饰的函数）。下面是一个简单的装饰器：</p>
-<pre><code class="python">def deco(func: Callable) -&gt; Callable:
-    def inner():
-        print(&#39;running inner()&#39;)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">deco</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>():<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running inner()&#x27;</span>)<br><br>    <span class="hljs-keyword">return</span> inner<br></code></pre></td></tr></table></figure>
 
-    return inner
-</code></pre>
 <p>用法也很容易理解，下面两段代码效果一样：</p>
-<pre><code class="python">@deco
-def target():
-    print(&#39;running target()&#39;)
-</code></pre>
-<pre><code class="python">def target():
-    print(&#39;running target()&#39;)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@deco</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br><br>target = deco(target)<br></code></pre></td></tr></table></figure>
 
-target = deco(target)
-</code></pre>
 <p>从上面的例子就可以看出，装饰器只是一个语法糖。即使没有这个语法糖，也只是在进行类似的操作时需要更繁琐的代码，但不会造成功能上的缺失。</p>
 <p>既然上面两段代码效果一样，那装饰器何时运行就很明显了：<strong>在被装饰的函数定义之后（通常是函数被导入时）立即运行</strong>。毕竟，真正被导入的不是<code>target()</code>，而是<code>deco()</code>的返回值。而要获得<code>deco()</code>的返回值，就必须让<code>deco()</code>先运行。</p>
 <h1 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h1><p>下面两段代码有什么区别？</p>
-<pre><code class="python">b = 9
-def f1():
-    print(b)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">b = <span class="hljs-number">9</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">f1</span>():<br>    <span class="hljs-built_in">print</span>(b)<br><br>f1()<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python">b = <span class="hljs-number">9</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">f2</span>():<br>    <span class="hljs-built_in">print</span>(b)  <span class="hljs-comment"># UnboundLocalError: local variable &#x27;b&#x27; referenced before assignment</span><br>    b = <span class="hljs-number">3</span><br><br>f2()<br></code></pre></td></tr></table></figure>
 
-f1()
-</code></pre>
-<pre><code class="python">b = 9
-def f2():
-    print(b)  # UnboundLocalError: local variable &#39;b&#39; referenced before assignment
-    b = 3
-
-f2()
-</code></pre>
 <p>答案是后一段代码在执行<code>print(b)</code>时会抛出<code>UnboundLocalError</code>。因为在<code>f2()</code>中变量<code>b</code>被赋值了（<code>b = 3</code>），于是Python在编译<code>f2()</code>的定义体时将<code>b</code>视为局部变量，而不是像<code>f1()</code>那样在全局变量里查找<code>b</code>。如果想让<code>f2()</code>也将<code>b</code>视为全局变量，就需要使用<code>global</code>关键字：</p>
-<pre><code class="python">b = 9
-def f1():
-    global b
-    print(b)
-    b = 3
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">b = <span class="hljs-number">9</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">f1</span>():<br>    <span class="hljs-keyword">global</span> b<br>    <span class="hljs-built_in">print</span>(b)<br>    b = <span class="hljs-number">3</span><br><br>f1()  <span class="hljs-comment"># 正常运行</span><br></code></pre></td></tr></table></figure>
 
-f1()  # 正常运行
-</code></pre>
 <h1 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h1><p>为什么会突然提到变量作用域这个概念呢？我们知道，Python中的局部变量在离开作用域会后被GC（垃圾回收）机制销毁，比如：</p>
-<pre><code class="python">&gt;&gt;&gt; import weakref
-&gt;&gt;&gt; def foo():
-...     s = set(range(3))
-...     weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
-... 
-&gt;&gt;&gt; foo()
-s has gone
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> weakref<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>():<br><span class="hljs-meta">... </span>    s = <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))<br><span class="hljs-meta">... </span>    weakref.finalize(s, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;s has gone&#x27;</span>))<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br>s has gone<br></code></pre></td></tr></table></figure>
+
 <p>很明显，<code>foo()</code>运行完成后，运行期间创建的变量<code>s</code>被销毁了。但如果我们想在<code>foo()</code>内部再定义一个函数，并让这个函数能访问变量<code>s</code>，那<code>s</code>就不会被销毁：</p>
-<pre><code class="python">&gt;&gt;&gt; import weakref
-&gt;&gt;&gt; def foo():
-...     s = set(range(3))
-...     weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
-...
-...     def bar():
-...         print(s)
-...     return bar
-... 
-&gt;&gt;&gt; bar = foo()
-&gt;&gt;&gt; bar()
-&#123;0, 1, 2&#125;
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> weakref<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>():<br><span class="hljs-meta">... </span>    s = <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))<br><span class="hljs-meta">... </span>    weakref.finalize(s, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;s has gone&#x27;</span>))<br>...<br><span class="hljs-meta">... </span>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">bar</span>():<br><span class="hljs-meta">... </span>        <span class="hljs-built_in">print</span>(s)<br><span class="hljs-meta">... </span>    <span class="hljs-keyword">return</span> bar<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span>bar = foo()<br><span class="hljs-meta">&gt;&gt;&gt; </span>bar()<br>&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>像<code>bar()</code>这种<strong>延伸了作用域的函数</strong>叫做<strong>闭包</strong>，它能访问不在定义体内定义的非全局变量。从这点可以看出，只有嵌套函数才有闭包这个概念。</p>
 <p>变量<code>s</code>在<code>foo()</code>运行函数后已经是孤魂野鬼，被称作自由变量（<code>free variable</code>）。但<code>bar()</code>要能够访问变量<code>s</code>，就需要持有变量<code>s</code>的引用，这点可以从<code>__code__</code>属性（编译后的函数定义体）和<code>__closure__</code>属性中可以看出：</p>
-<pre><code class="python">&gt;&gt;&gt; bar.__code__.co_varnames  # 局部变量
-()
-&gt;&gt;&gt; bar.__code__.co_freevars  # 自由变量
-(&#39;s&#39;,)
-&gt;&gt;&gt; bar.__closure__
-(&lt;cell at ...: set object at ...&gt;,)
-&gt;&gt;&gt; bar.__closure__[0].cell_contents
-&#123;0, 1, 2&#125;
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>bar.__code__.co_varnames  <span class="hljs-comment"># 局部变量</span><br>()<br><span class="hljs-meta">&gt;&gt;&gt; </span>bar.__code__.co_freevars  <span class="hljs-comment"># 自由变量</span><br>(<span class="hljs-string">&#x27;s&#x27;</span>,)<br><span class="hljs-meta">&gt;&gt;&gt; </span>bar.__closure__<br>(&lt;cell at ...: <span class="hljs-built_in">set</span> <span class="hljs-built_in">object</span> at ...&gt;,)<br><span class="hljs-meta">&gt;&gt;&gt; </span>bar.__closure__[<span class="hljs-number">0</span>].cell_contents<br>&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>&#125;<br></code></pre></td></tr></table></figure>
+
 <h2 id="危险地带：被删除的自由变量"><a href="#危险地带：被删除的自由变量" class="headerlink" title="危险地带：被删除的自由变量"></a>危险地带：被删除的自由变量</h2><p>Python在编译<code>foo()</code>时发现<code>bar()</code>需要访问变量<code>s</code>，于是将<code>s</code>视为自由变量，即使离开作用域也不会销毁。但Python不是静态语言，对象的实际状态需要等到运行时才能确定。看下面这个例子：</p>
-<pre><code class="python">def foo():
-    s = set(range(3))
-    weakref.finalize(s, lambda: print(&#39;s has gone&#39;))
-    del s         # 1. 输出s has gone
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>():<br>    s = <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))<br>    weakref.finalize(s, <span class="hljs-keyword">lambda</span>: <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;s has gone&#x27;</span>))<br>    <span class="hljs-keyword">del</span> s         <span class="hljs-comment"># 1. 输出s has gone</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">bar</span>():<br>        <span class="hljs-built_in">print</span>(s)  <span class="hljs-comment"># 4. NameError: free variable &#x27;s&#x27; referenced before assignment in enclosing scope</span><br><br>    <span class="hljs-keyword">return</span> bar<br><br><br>bar = foo()<br><span class="hljs-built_in">print</span>(bar.__code__.co_freevars)  <span class="hljs-comment"># 2. 输出(&#x27;s&#x27;,)</span><br><span class="hljs-built_in">print</span>(bar.__closure__[<span class="hljs-number">0</span>])        <span class="hljs-comment"># 3. 输出&lt;cell at ...: empty&gt;</span><br>bar()<br></code></pre></td></tr></table></figure>
 
-    def bar():
-        print(s)  # 4. NameError: free variable &#39;s&#39; referenced before assignment in enclosing scope
-
-    return bar
-
-
-bar = foo()
-print(bar.__code__.co_freevars)  # 2. 输出(&#39;s&#39;,)
-print(bar.__closure__[0])        # 3. 输出&lt;cell at ...: empty&gt;
-bar()
-</code></pre>
 <p>这段代码的执行顺序和输出结果已经以注释的形式附加。Python在编译完<code>bar()</code>之后知道应该将<code>s</code>视为自由变量，但实际上<code>bar()</code>在运行时变量<code>s</code>已经被删除了……这个例子告诉我们，Python的动态特性是把双刃剑，更直白点就是：不要作死.</p>
 <h2 id="nonlocal关键字"><a href="#nonlocal关键字" class="headerlink" title="nonlocal关键字"></a>nonlocal关键字</h2><p>再来看看这样一个返回值为<code>统计平均值的函数</code>的函数：</p>
-<pre><code class="python">def make_averager():
-    nums = []
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">make_averager</span>():<br>    nums = []<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">averager</span>(<span class="hljs-params">num: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">float</span>:<br>        nums.append(num)<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(nums) / <span class="hljs-built_in">len</span>(nums)<br><br>    <span class="hljs-keyword">return</span> averager<br><br>averager = make_averager()<br><span class="hljs-built_in">print</span>(averager(<span class="hljs-number">10</span>))  <span class="hljs-comment"># 10.0</span><br><span class="hljs-built_in">print</span>(averager(<span class="hljs-number">5</span>))  <span class="hljs-comment"># 7.5</span><br></code></pre></td></tr></table></figure>
 
-    def averager(num: int) -&gt; float:
-        nums.append(num)
-        return sum(nums) / len(nums)
-
-    return averager
-
-averager = make_averager()
-print(averager(10))  # 10.0
-print(averager(5))  # 7.5
-</code></pre>
 <p>嗯，运行很完美。优化一下这个函数，让它不需要将所有的数字都保存起来：</p>
-<pre><code class="python">def make_averager():
-    total, count = 0, 0
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">make_averager</span>():<br>    total, count = <span class="hljs-number">0</span>, <span class="hljs-number">0</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">averager</span>(<span class="hljs-params">num: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">float</span>:<br>        total += num  <span class="hljs-comment"># UnboundLocalError</span><br>        count += <span class="hljs-number">1</span><br>        <span class="hljs-keyword">return</span> total / count<br><br>    <span class="hljs-keyword">return</span> averager<br></code></pre></td></tr></table></figure>
 
-    def averager(num: int) -&gt; float:
-        total += num  # UnboundLocalError
-        count += 1
-        return total / count
-
-    return averager
-</code></pre>
 <p>和上一节的第二个例子类似，<code>averager()</code>在运行时会抛出<code>UnboundLocalError</code>异常。但这次不能用<code>global</code>关键字来解决这个异常了：因为<code>total</code>和<code>num</code>压根就不是全局变量，而是作用域仅限<code>make_averager()</code>的局部变量。那怎样让<code>averager()</code>能修改<code>total</code>和<code>num</code>呢？答案是<code>nonlocal</code>关键字。和<code>global</code>关键字类似，<code>nonlocal</code>会告知Python：<strong>这个变量在更外层的作用域</strong>。如代码所示：</p>
-<pre><code class="python">def make_averager():
-    total, count = 0, 0
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">make_averager</span>():<br>    total, count = <span class="hljs-number">0</span>, <span class="hljs-number">0</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">averager</span>(<span class="hljs-params">num: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">float</span>:<br>        <span class="hljs-keyword">nonlocal</span> total, count<br>        total += num<br>        count += <span class="hljs-number">1</span><br>        <span class="hljs-keyword">return</span> total / count  <span class="hljs-comment"># 正常运行</span><br><br>    <span class="hljs-keyword">return</span> averager<br></code></pre></td></tr></table></figure>
 
-    def averager(num: int) -&gt; float:
-        nonlocal total, count
-        total += num
-        count += 1
-        return total / count  # 正常运行
-
-    return averager
-</code></pre>
 <p>但<code>nonlocal</code>关键字并不能取代<code>global</code>关键字，因为局部变量（<code>locals()</code>）和全局变量（<code>globals()</code>）是互相独立的，比如如下的代码会抛出<code>SyntaxError</code>，即使<code>f2()</code>并没有被实际执行：</p>
-<pre><code class="python">b = 9
-def f2():
-    nonlocal b
-    print(b)
-    b = 3
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">b = <span class="hljs-number">9</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">f2</span>():<br>    <span class="hljs-keyword">nonlocal</span> b<br>    <span class="hljs-built_in">print</span>(b)<br>    b = <span class="hljs-number">3</span><br></code></pre></td></tr></table></figure>
+
 <p>同时<code>nonlocal</code>关键字的声明是不限深度的，也就是说Python会一直向更外层的作用域寻找这个变量，直到找到为止。如代码所示：</p>
-<pre><code class="python">def make_averager():
-    total, count = 0, 0
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">make_averager</span>():<br>    total, count = <span class="hljs-number">0</span>, <span class="hljs-number">0</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">averager</span>(<span class="hljs-params">num: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">float</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">deeper</span>():<br>            <span class="hljs-keyword">nonlocal</span> total, count<br>            total += num<br>            count += <span class="hljs-number">1</span><br>            <span class="hljs-keyword">return</span> total / count  <span class="hljs-comment"># 正常运行</span><br><br>        <span class="hljs-keyword">return</span> deeper()<br><br>    <span class="hljs-keyword">return</span> averager<br></code></pre></td></tr></table></figure>
 
-    def averager(num: int) -&gt; float:
-        def deeper():
-            nonlocal total, count
-            total += num
-            count += 1
-            return total / count  # 正常运行
-
-        return deeper()
-
-    return averager
-</code></pre>
 <h1 id="计时函数装饰器"><a href="#计时函数装饰器" class="headerlink" title="计时函数装饰器"></a>计时函数装饰器</h1><p>了解了函数装饰器、闭包等概念后，就可以编写一个稍微具有一点实用性的函数装饰器了：</p>
-<pre><code class="python">def clock(func: Callable) -&gt; Callable:
-    def inner(*args, **kwargs):
-        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
-        t0 = time.perf_counter()
-        result = func(*args, **kwargs)
-        elapsed = time.perf_counter() - t0
-        fmt = &#39;[&#123;elapsed:.4f&#125;s] &#123;func.__name__&#125;(&#123;args&#125;, &#123;kwargs&#125;): &#123;result&#125;&#39;
-        print(fmt.format(**locals()))
-        return result
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">clock</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        t0 = time.perf_counter()<br>        result = func(*args, **kwargs)<br>        elapsed = time.perf_counter() - t0<br>        fmt = <span class="hljs-string">&#x27;[&#123;elapsed:.4f&#125;s] &#123;func.__name__&#125;(&#123;args&#125;, &#123;kwargs&#125;): &#123;result&#125;&#x27;</span><br>        <span class="hljs-built_in">print</span>(fmt.<span class="hljs-built_in">format</span>(**<span class="hljs-built_in">locals</span>()))<br>        <span class="hljs-keyword">return</span> result<br><br>    <span class="hljs-keyword">return</span> inner<br></code></pre></td></tr></table></figure>
 
-    return inner
-</code></pre>
 <p>同样的，<code>inner</code>函数属于闭包函数，<code>func</code>属于自由变量。使用方法和效果如下：</p>
-<pre><code class="python">@clock
-def snooze(second: float):
-    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
-    time.sleep(second)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@clock</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">snooze</span>(<span class="hljs-params">second: <span class="hljs-built_in">float</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;snooze doc&quot;&quot;&quot;</span><br>    time.sleep(second)<br><br>snooze(<span class="hljs-number">0.1</span>)  <span class="hljs-comment"># 输出：[0.1001s] snooze((0.1,), &#123;&#125;): None</span><br></code></pre></td></tr></table></figure>
 
-snooze(0.1)  # 输出：[0.1001s] snooze((0.1,), &#123;&#125;): None
-</code></pre>
 <h2 id="functool-wraps"><a href="#functool-wraps" class="headerlink" title="functool.wraps"></a>functool.wraps</h2><p>上面这个装饰器的缺点是无法继承被装饰函数的属性（如<code>__name__</code>、<code>__doc__</code>）：</p>
-<pre><code class="python">print(snooze.__name__)  # inner
-print(snooze.__doc__)  # inner doc
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-built_in">print</span>(snooze.__name__)  <span class="hljs-comment"># inner</span><br><span class="hljs-built_in">print</span>(snooze.__doc__)  <span class="hljs-comment"># inner doc</span><br></code></pre></td></tr></table></figure>
+
 <p>这个时候就需要请出Python内置的装饰器<code>functool.wraps</code>了，这个装饰器会自动复制被装饰函数的属性到返回值函数里（换句话说就是让<code>inner()</code>按目标函数<code>snnoze()</code>的样子整个容）：</p>
-<pre><code class="python">def clock(func: Callable) -&gt; Callable:
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        &quot;&quot;&quot;inner doc&quot;&quot;&quot;
-        # ... 略
-    return inner
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">clock</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br><span class="hljs-meta">    @functools.wraps(<span class="hljs-params">func</span>)</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        <span class="hljs-comment"># ... 略</span><br>    <span class="hljs-keyword">return</span> inner<br><br><span class="hljs-meta">@clock</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">snooze</span>(<span class="hljs-params">second: <span class="hljs-built_in">float</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;snooze doc&quot;&quot;&quot;</span><br>    time.sleep(second<br><br><span class="hljs-built_in">print</span>(snooze.__name__)  <span class="hljs-comment"># snooze</span><br><span class="hljs-built_in">print</span>(snooze.__doc__)  <span class="hljs-comment"># snooze doc</span><br></code></pre></td></tr></table></figure>
 
-@clock
-def snooze(second: float):
-    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
-    time.sleep(second
-
-print(snooze.__name__)  # snooze
-print(snooze.__doc__)  # snooze doc
-</code></pre>
 <h1 id="带参数的函数装饰器"><a href="#带参数的函数装饰器" class="headerlink" title="带参数的函数装饰器"></a>带参数的函数装饰器</h1><p>上节提到的<code>functool.wraps</code>装饰器比较特别，这个装饰器可以传入参数。我们知道，对于不带参数的装饰器，下面两段代码是相等的：</p>
-<pre><code class="python">@deco
-def target():
-    print(&#39;running target()&#39;)
-</code></pre>
-<pre><code class="python">def target():
-    print(&#39;running target()&#39;)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@deco</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br></code></pre></td></tr></table></figure>
 
-target = deco(target)
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br><br>target = deco(target)<br></code></pre></td></tr></table></figure>
+
 <p>而对于带参数的装饰器，下面两段代码也是相等的：</p>
-<pre><code class="python">@deco(123)
-def target():
-    print(&#39;running target()&#39;)
-</code></pre>
-<pre><code class="python">def target():
-    print(&#39;running target()&#39;)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@deco(<span class="hljs-params"><span class="hljs-number">123</span></span>)</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br></code></pre></td></tr></table></figure>
 
-target = deco(123)(target)
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>():<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;running target()&#x27;</span>)<br><br>target = deco(<span class="hljs-number">123</span>)(target)<br></code></pre></td></tr></table></figure>
+
 <p>从上面的例子可以看出，装饰器带不带参数，决定了是用这个函数本身来当装饰器，还是用函数的返回值来当装饰器（可能有点绕）。用这个思路改进一下前面提到的函数计时装饰器：</p>
-<pre><code class="python">DEFAULT_FMT = &#39;[&#123;elapsed:.4f&#125;s] &#123;func.__name__&#125;(&#123;args&#125;, &#123;kwargs&#125;): &#123;result&#125;&#39;
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">DEFAULT_FMT = <span class="hljs-string">&#x27;[&#123;elapsed:.4f&#125;s] &#123;func.__name__&#125;(&#123;args&#125;, &#123;kwargs&#125;): &#123;result&#125;&#x27;</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">clock_plus</span>(<span class="hljs-params">fmt=DEFAULT_FMT</span>):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">clock</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>            <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>            t0 = time.perf_counter()<br>            result = func(*args, **kwargs)<br>            elapsed = time.perf_counter() - t0<br>            <span class="hljs-built_in">print</span>(fmt.<span class="hljs-built_in">format</span>(**<span class="hljs-built_in">locals</span>()))<br>            <span class="hljs-keyword">return</span> result<br><br>        <span class="hljs-keyword">return</span> inner<br>    <span class="hljs-keyword">return</span> clock<br></code></pre></td></tr></table></figure>
 
-def clock_plus(fmt=DEFAULT_FMT):
-    def clock(func: Callable) -&gt; Callable:
-        def inner(*args, **kwargs):
-            &quot;&quot;&quot;inner doc&quot;&quot;&quot;
-            t0 = time.perf_counter()
-            result = func(*args, **kwargs)
-            elapsed = time.perf_counter() - t0
-            print(fmt.format(**locals()))
-            return result
-
-        return inner
-    return clock
-</code></pre>
 <p>用法和效果如下：</p>
-<pre><code class="python">@clock_plus(fmt=&#39;&#123;elapsed:.4f&#125;&#39;)
-def snooze(second: float):
-    &quot;&quot;&quot;snooze doc&quot;&quot;&quot;
-    time.sleep(second)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@clock_plus(<span class="hljs-params">fmt=<span class="hljs-string">&#x27;&#123;elapsed:.4f&#125;&#x27;</span></span>)</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">snooze</span>(<span class="hljs-params">second: <span class="hljs-built_in">float</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;snooze doc&quot;&quot;&quot;</span><br>    time.sleep(second)<br><br>snooze(<span class="hljs-number">0.1</span>)  <span class="hljs-comment"># 输出：0.1001</span><br></code></pre></td></tr></table></figure>
 
-snooze(0.1)  # 输出：0.1001
-</code></pre>
 <p>所以，带参数的函数装饰器只是在不带函数的装饰器外面裹了一层，并没有太多魔术操作。</p>
 <h1 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h1><p>《流畅的Python》第七章（函数装饰器和闭包）的概念不算少，同时笔者也没能在提取关键信息的基础上控制好篇幅，再加上文章里还有笔者的一些个人理解，所以文章最后只能草草收尾，没有介绍叠放装饰器、<code>functools.lru_cache</code>等内容。</p>
 <p>也许在读完这类书籍后，画一个思维导图，或单纯写一篇给自己看的笔记才是最好的选择，至少不会在博客里丢人（逃</p>
@@ -606,20 +441,21 @@ snooze(0.1)  # 输出：0.1001
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

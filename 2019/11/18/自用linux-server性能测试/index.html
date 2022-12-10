@@ -357,31 +357,21 @@
 </tr>
 </tbody></table>
 <h1 id="测试项说明"><a href="#测试项说明" class="headerlink" title="测试项说明"></a>测试项说明</h1><h2 id="sysbench-cpu"><a href="#sysbench-cpu" class="headerlink" title="sysbench(cpu)"></a>sysbench(cpu)</h2><p>直接运行如下shell命令，并取运行输出中的<code>Threads fairness avg events</code>作为测试结果（表中括号内为sysbench软件版本），数值越大越好：</p>
-<pre><code class="shell">sysbench --test=cpu --cpu-max-prime=10000 run
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sysbench --test=cpu --cpu-max-prime=10000 run<br></code></pre></td></tr></table></figure>
+
 <h2 id="4K-W-x2F-R"><a href="#4K-W-x2F-R" class="headerlink" title="4K W&#x2F;R"></a>4K W&#x2F;R</h2><p>用如下dd命令以4K为块单位测试硬盘写读速度（测3次取平均值），数值越大越好：</p>
-<pre><code class="shell">dd if=/dev/zero of=tmpfile bs=4096 count=32768 oflag=direct
-dd of=/dev/null if=tmpfile bs=4096 count=32768 iflag=direct
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">dd if=/dev/zero of=tmpfile bs=4096 count=32768 oflag=direct<br>dd of=/dev/null if=tmpfile bs=4096 count=32768 iflag=direct<br></code></pre></td></tr></table></figure>
+
 <h2 id="1M-W-x2F-R"><a href="#1M-W-x2F-R" class="headerlink" title="1M W&#x2F;R"></a>1M W&#x2F;R</h2><p>用如下dd命令以1M为块单位测试硬盘写读速度（测3次取平均值），数值越大越好：</p>
-<pre><code class="shell">dd if=/dev/zero of=tmpfile bs=1048576 count=1024 oflag=direct
-dd of=/dev/null if=tmpfile bs=1048576 count=1024 iflag=direct
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">dd if=/dev/zero of=tmpfile bs=1048576 count=1024 oflag=direct<br>dd of=/dev/null if=tmpfile bs=1048576 count=1024 iflag=direct<br></code></pre></td></tr></table></figure>
+
 <h2 id="RAM-4K"><a href="#RAM-4K" class="headerlink" title="RAM 4K"></a>RAM 4K</h2><p>挂载出一块内存盘，用dd命令以4K为块单位测试内存写读速度（由于内存盘不支持direct io，第二次之后的测试结果有较大波动，故只取首次运行结果），数值越大越好：</p>
-<pre><code class="shell">mkdir ~/ram
-sudo mount -t tmpfs -o size=512m ramdisk ~/ram
-sudo chown $USER:$USER ~/ram
-cd ~/ram
-dd if=/dev/zero of=tmpfile bs=4096 count=65536
-dd of=/dev/null if=tmpfile bs=4096 count=65536
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell">mkdir ~/ram<br>sudo mount -t tmpfs -o size=512m ramdisk ~/ram<br>sudo chown $USER:$USER ~/ram<br>cd ~/ram<br>dd if=/dev/zero of=tmpfile bs=4096 count=65536<br>dd of=/dev/null if=tmpfile bs=4096 count=65536<br></code></pre></td></tr></table></figure>
+
 <h2 id="MariaDB-ENCODING"><a href="#MariaDB-ENCODING" class="headerlink" title="MariaDB ENCODING"></a>MariaDB ENCODING</h2><p>用Docker运行一个MariaDB实例，运行之后使用ENCODING命令测试MariaDB运行速度（表中括号内为Docker版本），数值越小越好：</p>
-<pre><code class="shell">mkdir ~/mariadb_vol
-docker run -d -v ~/mariadb_vol:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=12345 --name mariadb_test --restart=always mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-docker exec -it mariadb_test mysql -uroot -p12345
-</code></pre>
-<pre><code class="sql">SELECT BENCHMARK(10000000,ENCODE(&#39;hello&#39;,&#39;goodbye&#39;));
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">mkdir ~/mariadb_vol<br>docker run -d -v ~/mariadb_vol:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=12345 --name mariadb_test --restart=always mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci<br>docker exec -it mariadb_test mysql -uroot -p12345<br></code></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> BENCHMARK(<span class="hljs-number">10000000</span>,ENCODE(<span class="hljs-string">&#x27;hello&#x27;</span>,<span class="hljs-string">&#x27;goodbye&#x27;</span>));<br></code></pre></td></tr></table></figure>
+
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>便宜自有便宜的道理，NAT VPS有着大带宽（虽然是共享的）、低价格的优势，但换来的是老旧的硬件平台（2012年的Ivy Bridge + DDR3）和接近机械硬盘的4K读写速度。<br>阿里云、谷歌云等大型云平台的VPS虽然带宽或流量贵、价格也贵，但硬件平台往往是较新的（阿里云是2016年的Broadwell + DDR4，谷歌云则更新），硬盘性能也更有保障（不过谷歌云实在是贵啊……）。怎么取舍，还是要看个人需求。</p>
 
                 
@@ -480,20 +470,21 @@ docker exec -it mariadb_test mysql -uroot -p12345
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

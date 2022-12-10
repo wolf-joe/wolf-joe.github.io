@@ -212,7 +212,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.2k 字
+          3.3k 字
         
       </span>
     
@@ -223,7 +223,7 @@
         
         
         
-          27 分钟
+          28 分钟
         
       </span>
     
@@ -267,40 +267,15 @@
               <div class="markdown-body">
                 
                 <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在前一篇文章中，我介绍了测量执行Python代码所需要的总体时间的几种方法。而在实际的性能分析场景中，目标代码的逻辑往往比较复杂，光靠总体执行耗时并不能帮助我们快速定位性能瓶颈。这个时候就需要请出Python的标准库：<code>cProfile</code>（<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/profile.html">官方文档</a>）来对代码进行细致的性能分析了。<br>和前一篇文章一样，本文所使用的测试平台为<code>Ubuntu 18.04</code>+<code>Python 3.6</code>，并使用代码文件<code>slow_func.py</code>作为样例进行性能分析，内容如下：</p>
-<pre><code class="python"># coding:utf-8
-import time
-import random
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># coding:utf-8</span><br><span class="hljs-keyword">import</span> time<br><span class="hljs-keyword">import</span> random<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">func1</span>():<br>    time.sleep(<span class="hljs-number">1</span>)  <span class="hljs-comment"># 等待一秒</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">func2</span>():<br>    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span> ** <span class="hljs-number">24</span>):<br>        random.random()  <span class="hljs-comment"># 生成1600万个随机数</span><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    func1()<br>    func2()<br></code></pre></td></tr></table></figure>
 
-def func1():
-    time.sleep(1)  # 等待一秒
-
-def func2():
-    for _ in range(2 ** 24):
-        random.random()  # 生成1600万个随机数
-
-if __name__ == &#39;__main__&#39;:
-    func1()
-    func2()
-</code></pre>
 <h1 id="命令行使用cProfile"><a href="#命令行使用cProfile" class="headerlink" title="命令行使用cProfile"></a>命令行使用cProfile</h1><p>对于单独的Python代码文件来说，通过命令行使用cProfile无疑是最方便的选择。<br>执行如下shell命令：</p>
-<pre><code class="shell">python3 -m cProfile -s tottime slow_func.py
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">python3 -m cProfile -s tottime slow_func.py<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>首先用<code>python3</code>的<code>-m</code>选项调用<code>cProfile</code>模块，然后用<code>cProfile</code>的<code>-s</code>选项让输出结果按<code>tottime</code>进行排序，最后执行<code>slow_func.py</code>文件。<br>完整调用格式为：<code>python -m cProfile [-o output_file] [-s sort_order] myscript.py</code></p>
 </blockquote>
 <p>得到如下结果：</p>
-<pre><code class="shell">         16778563 function calls (16778520 primitive calls) in 3.176 seconds
-
-   Ordered by: internal time
-
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    1.456    1.456    2.172    2.172 slow_func.py:8(func2)
-        1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;
- 16777216    0.716    0.000    0.716    0.000 &#123;method &#39;random&#39; of &#39;_random.Random&#39; objects&#125;
-        1    0.001    0.001    0.001    0.001 &#123;built-in method _imp.create_dynamic&#125;
-        3    0.000    0.000    0.000    0.000 &#123;built-in method marshal.loads&#125;
-        # ...省略后续100多行
-</code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs shell">        16778563 function calls (16778520 primitive calls) in 3.176 seconds<br><br>  Ordered by: internal time<br><br>  ncalls  tottime  percall  cumtime  percall filename:lineno(function)<br>       1    1.456    1.456    2.172    2.172 slow_func.py:8(func2)<br>       1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;<br>16777216    0.716    0.000    0.716    0.000 &#123;method &#x27;random&#x27; of &#x27;_random.Random&#x27; objects&#125;<br>       1    0.001    0.001    0.001    0.001 &#123;built-in method _imp.create_dynamic&#125;<br>       3    0.000    0.000    0.000    0.000 &#123;built-in method marshal.loads&#125;<br>       # ...省略后续100多行<br></code></pre></td></tr></table></figure>
 <ul>
 <li>输出的第1行表明，脚本文件执行中存在1600多万次的函数调用，共耗费3.268秒。<ul>
 <li>而根据前一篇文章的测试结果，直接执行该脚本文件只需要2秒左右的时间，那多出来的1秒多花在了哪里？这是因为<code>cProfile</code>需要对每一次函数调用进行监控和记录，由于该文件存在较多的函数调用，所以总执行耗时也就增长了许多了。</li>
@@ -320,39 +295,13 @@ if __name__ == &#39;__main__&#39;:
 <li>由于是用<code>cProfile</code>分析整个脚本文件，所以许多Python自身所需的函数调用也被展示在了结果里，所以分析结果表才会有100多行的规模。这个问题可以在下一小节中解决。</li>
 </ul>
 <h1 id="代码里使用cProfile"><a href="#代码里使用cProfile" class="headerlink" title="代码里使用cProfile"></a>代码里使用cProfile</h1><p>从本质上来说，通过命令行使用<code>cProfile</code>相当于在代码里使用<code>cProfile</code>的一个简化操作。而在命令行里分析代码有着明显的局限性：目标代码必须独立成文件、输出格式固定等等。所以，在代码里使用<code>cProfile</code>往往是一个更优的选择。<br>执行如下Python代码：</p>
-<pre><code class="python">import cProfile
-import pstats
-from io import StringIO
-
-from slow_func import func1, func2
-
-profile = cProfile.Profile()
-profile.enable()  # 分析开始
-func1()
-func2()
-profile.disable()  # 分析结束
-ram_file = StringIO()
-sort_by = &#39;tottime&#39;
-stats = pstats.Stats(profile, stream=ram_file)  # 读取结果
-stats.strip_dirs().sort_stats(sort_by).print_stats()  # 按格式输出至ram_file
-
-print(ram_file.getvalue())
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> cProfile<br><span class="hljs-keyword">import</span> pstats<br><span class="hljs-keyword">from</span> io <span class="hljs-keyword">import</span> StringIO<br><br><span class="hljs-keyword">from</span> slow_func <span class="hljs-keyword">import</span> func1, func2<br><br>profile = cProfile.Profile()<br>profile.enable()  <span class="hljs-comment"># 分析开始</span><br>func1()<br>func2()<br>profile.disable()  <span class="hljs-comment"># 分析结束</span><br>ram_file = StringIO()<br>sort_by = <span class="hljs-string">&#x27;tottime&#x27;</span><br>stats = pstats.Stats(profile, stream=ram_file)  <span class="hljs-comment"># 读取结果</span><br>stats.strip_dirs().sort_stats(sort_by).print_stats()  <span class="hljs-comment"># 按格式输出至ram_file</span><br><br><span class="hljs-built_in">print</span>(ram_file.getvalue())<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>代码的核心逻辑是使用<code>cProfile</code>模块的<code>Profile</code>类对代码块进行性能分析，分析完成后使用<code>pstats</code>模块的<code>Stats</code>类将分析结果按一定格式写入至内存文件，最后输出该文件里写入的内容。<br>实际上这只是一个较为简单的样例，<code>pstats</code>模块还可以获得函数之间的调用关系、将结果持久化、显示文件路径等等，更完整的说明可以参考<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/profile.html">官方文档</a>。</p>
 </blockquote>
 <p>得到如下结果：</p>
-<pre><code class="shell">         16777220 function calls in 3.225 seconds
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell">        16777220 function calls in 3.225 seconds<br><br>  Ordered by: internal time<br><br>  ncalls  tottime  percall  cumtime  percall filename:lineno(function)<br>       1    1.517    1.517    2.224    2.224 slow_func.py:8(func2)<br>       1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;<br>16777216    0.707    0.000    0.707    0.000 &#123;method &#x27;random&#x27; of &#x27;_random.Random&#x27; objects&#125;<br>       1    0.000    0.000    1.001    1.001 slow_func.py:5(func1)<br>       1    0.000    0.000    0.000    0.000 &#123;method &#x27;disable&#x27; of &#x27;_lsprof.Profiler&#x27; objects&#125;<br></code></pre></td></tr></table></figure>
 
-   Ordered by: internal time
-
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    1.517    1.517    2.224    2.224 slow_func.py:8(func2)
-        1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;
- 16777216    0.707    0.000    0.707    0.000 &#123;method &#39;random&#39; of &#39;_random.Random&#39; objects&#125;
-        1    0.000    0.000    1.001    1.001 slow_func.py:5(func1)
-        1    0.000    0.000    0.000    0.000 &#123;method &#39;disable&#39; of &#39;_lsprof.Profiler&#39; objects&#125;
-</code></pre>
 <h1 id="cProfile结果可视化"><a href="#cProfile结果可视化" class="headerlink" title="cProfile结果可视化"></a>cProfile结果可视化</h1><p>一般来说，通过以上两个例子就可以获得完善的性能分析报告了。但通过一些可视化工具对<code>cProfile</code> 的报告进行二次处理，我们可以更清晰地观察函数之间的调用关系、更轻松地找出性能瓶颈，算是一个不错的辅助手段。在这里只介绍一种可视化工具：JetBrain PyCharm自带的<code>Profile</code>工具。</p>
 <ul>
 <li><p>点击Pycharm中<code>Run</code>菜单里的<code>Profile &#39;xxx&#39;项目</code>，即可对当前运行执行方案使用<code>cProfile</code>进行性能分析，如下图：<br><img src="/images/2019-03-08.01.png" srcset="/img/loading.gif" lazyload></p>
@@ -456,20 +405,21 @@ print(ram_file.getvalue())
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })

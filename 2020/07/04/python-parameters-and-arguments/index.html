@@ -210,7 +210,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          3.7k 字
         
       </span>
     
@@ -221,7 +221,7 @@
         
         
         
-          30 分钟
+          31 分钟
         
       </span>
     
@@ -277,122 +277,51 @@
 <li><em>POSITIONAL_ONLY</em>，只能通过定位实参传递，Python语法暂不支持，只有一些C函数（如<code>divmod</code>）使用。</li>
 </ul>
 <p>比如定义如下函数：</p>
-<pre><code class="python">def foo(a, *args):
-    print(a, args)
-</code></pre>
-<p>其中形参<code>a</code>属于<em>POSITIONAL_OR_KEYWORD</em>，可通过定位&#x2F;关键字实参传递：</p>
-<pre><code class="python">&gt;&gt;&gt; foo(1)
-1 ()
-&gt;&gt;&gt; foo(a=1)
-1 ()
-</code></pre>
-<p>满足形参<code>a</code>之后，剩余的定位实参将被<code>*args</code>以元组的形式捕获：</p>
-<pre><code class="python">&gt;&gt;&gt; foo(1, 2, 3)
-1 (2, 3)
-</code></pre>
-<p>再比如定义如下函数：</p>
-<pre><code class="python">def foo(a, *args, b, **kwargs):
-    print(a, args, b, kwargs)
-</code></pre>
-<p>形参<code>b</code>属于<em>KEYWORD_ONLY</em>，因为它在<code>*args</code>之后定义：</p>
-<pre><code class="python">&gt;&gt;&gt; foo(1, b=2)
-1 () 2 &#123;&#125;
-</code></pre>
-<p>满足形参<code>b</code>之后，剩余的关键字实参将被<code>**kwargs</code>以字典的形式捕获：</p>
-<pre><code class="python">&gt;&gt;&gt; foo(1, b=2, c=3)
-1 () 2 &#123;&#39;c&#39;: 3&#125;
-</code></pre>
-<p>如果想定义<em>KEYWORD_ONLY</em>形参，但不想使用<em>VAR_POSITIONAL</em>形参（即<code>*args</code>），则可以在定义函数时单独的<code>*</code>号：</p>
-<pre><code class="python">&gt;&gt;&gt; def foo(a, *, b):
-...     print(a, b)
-...
-&gt;&gt;&gt; foo(1, b=2)
-1 2
-&gt;&gt;&gt; foo(1, 2)
-Traceback (most recent call last):
-  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-TypeError: foo() takes 1 positional argument but 2 were given
-</code></pre>
-<h1 id="参数默认值"><a href="#参数默认值" class="headerlink" title="参数默认值"></a>参数默认值</h1><p>在定义函数时，我们可以给形参指定默认值，比如：</p>
-<pre><code class="python">&gt;&gt;&gt; def foo(a=1, *args, b=2, **kwargs):
-...     print(a, args, b, kwargs)
-... 
-&gt;&gt;&gt; foo()
-1 () 2 &#123;&#125;
-</code></pre>
-<p>需要注意的是，形参的默认值存储在函数对象的<code>__defaults__</code>和<code>__kwdefaults__</code>属性里，而不是每次调用函数时动态生成，所以最好不要用可变对象充当形参的默认值。下面的例子就是反面教材：</p>
-<pre><code class="python">&gt;&gt;&gt; def foo(param=[]):
-...     param.append(1)
-...     print(id(param), param)
-... 
-&gt;&gt;&gt; 
-&gt;&gt;&gt; print(id(foo.__defaults__[0]), foo.__defaults__[0])
-140009169940232 []
-&gt;&gt;&gt; foo()
-140009169940232 [1]
-&gt;&gt;&gt; foo()
-140009169940232 [1, 1]
-</code></pre>
-<h1 id="获取关于参数的信息"><a href="#获取关于参数的信息" class="headerlink" title="获取关于参数的信息"></a>获取关于参数的信息</h1><p><strong>内省</strong>指程序在运行时检查对象类型的一种能力，本节介绍的内容就属于函数内省的范围。假设有如下函数：</p>
-<pre><code class="python">def foo(a=1, *args, b=2, **kwargs):
-    c = a
-    print(c, args, b, kwargs)
-</code></pre>
-<p>就像上一节中提到的，<code>foo</code>函数有<code>__defaults__</code>、<code>__kwdefaults__</code>属性，用于记录定位参数和关键字参数的默认值；有<code>__code__</code>属性，存储函数编译后的字节码信息，其中就包括参数的名称。通过这些属性，我们可以获取关于函数参数的信息：</p>
-<pre><code class="python">&gt;&gt;&gt; foo.__defaults__
-(1,)
-&gt;&gt;&gt; foo.__kwdefaults__
-&#123;&#39;b&#39;: 2&#125;
-&gt;&gt;&gt; foo.__code__.co_varnames  # 参数&amp;局部变量名称
-(&#39;a&#39;, &#39;b&#39;, &#39;args&#39;, &#39;kwargs&#39;, &#39;c&#39;)
-&gt;&gt;&gt; foo.__code__.co_argcount  # 定位参数数量
-1
-&gt;&gt;&gt; foo.__code__.co_kwonlyargcount  # 仅限关键字参数数量
-1
-</code></pre>
-<p>但这样还是太原始、太不方便了。幸好，我们有更好的选择：Python内置的<code>inspect</code>模块。下面这个例子就提取了<code>foo</code>函数的签名，然后获取函数的参数信息：</p>
-<pre><code class="python">&gt;&gt;&gt; from inspect import signature
-&gt;&gt;&gt; sig = signature(foo)
-&gt;&gt;&gt; sig
-&lt;Signature (a=1, *args, b=2, **kwargs)&gt;
-&gt;&gt;&gt; for name, param in sig.parameters.items():
-...     print(f&#39;&#123;str(param.kind):&lt;21&#125; : &#123;param.name:&lt;6&#125; = &#123;param.default&#125;&#39;)
-... 
-POSITIONAL_OR_KEYWORD : a      = 1
-VAR_POSITIONAL        : args   = &lt;class &#39;inspect._empty&#39;&gt;
-KEYWORD_ONLY          : b      = 2
-VAR_KEYWORD           : kwargs = &lt;class &#39;inspect._empty&#39;&gt;
-</code></pre>
-<p>同时，<code>inspect.Signature</code>对象还有一个<code>bind</code>方法，该方法可以将一些对象绑定到函数的形参上，就像Python解释器在调用函数时做的那样。通过这种方法，框架可以在真正执行函数前验证参数，就像下面这个例子：</p>
-<pre><code class="python">&gt;&gt;&gt; bound = sig.bind(1, 2, 3, c=3)
-&gt;&gt;&gt; for name, value in bound.arguments.items():
-...     print(f&#39;&#123;name:&lt;6&#125; = &#123;value&#125;&#39;)
-... 
-a      = 1
-args   = (2, 3)
-kwargs = &#123;&#39;c&#39;: 3&#125;
-&gt;&gt;&gt; bound = sig.bind(1, 2, 3, a=4)
-Traceback (most recent call last):
-  File ...
-TypeError: multiple values for argument &#39;a&#39;
-</code></pre>
-<h1 id="函数参数传递"><a href="#函数参数传递" class="headerlink" title="函数参数传递"></a>函数参数传递</h1><p>说起函数参数传递，可能就有人想起了<code>引用传递</code>、<code>值传递</code>……忘掉这两个概念，来看看下面两个例子：</p>
-<pre><code class="python">def foo1(param: list):
-    param += [4, 5]
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *args</span>):<br>    <span class="hljs-built_in">print</span>(a, args)<br></code></pre></td></tr></table></figure>
 
-arg1 = [1, 2, 3]
-foo1(arg1)
-print(arg1)  # 输出[1, 2, 3, 4, 5]
-</code></pre>
+<p>其中形参<code>a</code>属于<em>POSITIONAL_OR_KEYWORD</em>，可通过定位&#x2F;关键字实参传递：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>)<br><span class="hljs-number">1</span> ()<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(a=<span class="hljs-number">1</span>)<br><span class="hljs-number">1</span> ()<br></code></pre></td></tr></table></figure>
+
+<p>满足形参<code>a</code>之后，剩余的定位实参将被<code>*args</code>以元组的形式捕获：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br><span class="hljs-number">1</span> (<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br></code></pre></td></tr></table></figure>
+
+<p>再比如定义如下函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *args, b, **kwargs</span>):<br>    <span class="hljs-built_in">print</span>(a, args, b, kwargs)<br></code></pre></td></tr></table></figure>
+
+<p>形参<code>b</code>属于<em>KEYWORD_ONLY</em>，因为它在<code>*args</code>之后定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>)<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;&#125;<br></code></pre></td></tr></table></figure>
+
+<p>满足形参<code>b</code>之后，剩余的关键字实参将被<code>**kwargs</code>以字典的形式捕获：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>, c=<span class="hljs-number">3</span>)<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;<span class="hljs-string">&#x27;c&#x27;</span>: <span class="hljs-number">3</span>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果想定义<em>KEYWORD_ONLY</em>形参，但不想使用<em>VAR_POSITIONAL</em>形参（即<code>*args</code>），则可以在定义函数时单独的<code>*</code>号：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *, b</span>):<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(a, b)<br>...<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>)<br><span class="hljs-number">1</span> <span class="hljs-number">2</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)<br>Traceback (most recent call last):<br>  File <span class="hljs-string">&quot;&lt;stdin&gt;&quot;</span>, line <span class="hljs-number">1</span>, <span class="hljs-keyword">in</span> &lt;module&gt;<br>TypeError: foo() takes <span class="hljs-number">1</span> positional argument but <span class="hljs-number">2</span> were given<br></code></pre></td></tr></table></figure>
+
+<h1 id="参数默认值"><a href="#参数默认值" class="headerlink" title="参数默认值"></a>参数默认值</h1><p>在定义函数时，我们可以给形参指定默认值，比如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs</span>):<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(a, args, b, kwargs)<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;&#125;<br></code></pre></td></tr></table></figure>
+
+<p>需要注意的是，形参的默认值存储在函数对象的<code>__defaults__</code>和<code>__kwdefaults__</code>属性里，而不是每次调用函数时动态生成，所以最好不要用可变对象充当形参的默认值。下面的例子就是反面教材：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">param=[]</span>):<br><span class="hljs-meta">... </span>    param.append(<span class="hljs-number">1</span>)<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(param), param)<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(foo.__defaults__[<span class="hljs-number">0</span>]), foo.__defaults__[<span class="hljs-number">0</span>])<br><span class="hljs-number">140009169940232</span> []<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">140009169940232</span> [<span class="hljs-number">1</span>]<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">140009169940232</span> [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>]<br></code></pre></td></tr></table></figure>
+
+<h1 id="获取关于参数的信息"><a href="#获取关于参数的信息" class="headerlink" title="获取关于参数的信息"></a>获取关于参数的信息</h1><p><strong>内省</strong>指程序在运行时检查对象类型的一种能力，本节介绍的内容就属于函数内省的范围。假设有如下函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs</span>):<br>    c = a<br>    <span class="hljs-built_in">print</span>(c, args, b, kwargs)<br></code></pre></td></tr></table></figure>
+
+<p>就像上一节中提到的，<code>foo</code>函数有<code>__defaults__</code>、<code>__kwdefaults__</code>属性，用于记录定位参数和关键字参数的默认值；有<code>__code__</code>属性，存储函数编译后的字节码信息，其中就包括参数的名称。通过这些属性，我们可以获取关于函数参数的信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__defaults__<br>(<span class="hljs-number">1</span>,)<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__kwdefaults__<br>&#123;<span class="hljs-string">&#x27;b&#x27;</span>: <span class="hljs-number">2</span>&#125;<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_varnames  <span class="hljs-comment"># 参数&amp;局部变量名称</span><br>(<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>, <span class="hljs-string">&#x27;args&#x27;</span>, <span class="hljs-string">&#x27;kwargs&#x27;</span>, <span class="hljs-string">&#x27;c&#x27;</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_argcount  <span class="hljs-comment"># 定位参数数量</span><br><span class="hljs-number">1</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_kwonlyargcount  <span class="hljs-comment"># 仅限关键字参数数量</span><br><span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
+
+<p>但这样还是太原始、太不方便了。幸好，我们有更好的选择：Python内置的<code>inspect</code>模块。下面这个例子就提取了<code>foo</code>函数的签名，然后获取函数的参数信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">from</span> inspect <span class="hljs-keyword">import</span> signature<br><span class="hljs-meta">&gt;&gt;&gt; </span>sig = signature(foo)<br><span class="hljs-meta">&gt;&gt;&gt; </span>sig<br>&lt;Signature (a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs)&gt;<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">for</span> name, param <span class="hljs-keyword">in</span> sig.parameters.items():<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;<span class="hljs-built_in">str</span>(param.kind):&lt;<span class="hljs-number">21</span>&#125;</span> : <span class="hljs-subst">&#123;param.name:&lt;<span class="hljs-number">6</span>&#125;</span> = <span class="hljs-subst">&#123;param.default&#125;</span>&#x27;</span>)<br><span class="hljs-meta">... </span><br>POSITIONAL_OR_KEYWORD : a      = <span class="hljs-number">1</span><br>VAR_POSITIONAL        : args   = &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;inspect._empty&#x27;</span>&gt;<br>KEYWORD_ONLY          : b      = <span class="hljs-number">2</span><br>VAR_KEYWORD           : kwargs = &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;inspect._empty&#x27;</span>&gt;<br></code></pre></td></tr></table></figure>
+
+<p>同时，<code>inspect.Signature</code>对象还有一个<code>bind</code>方法，该方法可以将一些对象绑定到函数的形参上，就像Python解释器在调用函数时做的那样。通过这种方法，框架可以在真正执行函数前验证参数，就像下面这个例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>bound = sig.bind(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, c=<span class="hljs-number">3</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">for</span> name, value <span class="hljs-keyword">in</span> bound.arguments.items():<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;name:&lt;<span class="hljs-number">6</span>&#125;</span> = <span class="hljs-subst">&#123;value&#125;</span>&#x27;</span>)<br><span class="hljs-meta">... </span><br>a      = <span class="hljs-number">1</span><br>args   = (<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br>kwargs = &#123;<span class="hljs-string">&#x27;c&#x27;</span>: <span class="hljs-number">3</span>&#125;<br><span class="hljs-meta">&gt;&gt;&gt; </span>bound = sig.bind(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, a=<span class="hljs-number">4</span>)<br>Traceback (most recent call last):<br>  File ...<br>TypeError: multiple values <span class="hljs-keyword">for</span> argument <span class="hljs-string">&#x27;a&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<h1 id="函数参数传递"><a href="#函数参数传递" class="headerlink" title="函数参数传递"></a>函数参数传递</h1><p>说起函数参数传递，可能就有人想起了<code>引用传递</code>、<code>值传递</code>……忘掉这两个概念，来看看下面两个例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo1</span>(<span class="hljs-params">param: <span class="hljs-built_in">list</span></span>):<br>    param += [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>]<br><br>arg1 = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]<br>foo1(arg1)<br><span class="hljs-built_in">print</span>(arg1)  <span class="hljs-comment"># 输出[1, 2, 3, 4, 5]</span><br></code></pre></td></tr></table></figure>
+
 <p>内存中有一个<code>list</code>对象（<code>[1, 2, 3]</code>），该对象有两个别名：<code>arg1</code>和<code>param</code>。由于<code>list</code>对象是可变的（<code>mutable</code>），所以可以通过<code>param</code>这个别名修改这个<code>list</code>对象的内容。</p>
 <p><img src="/images/2020/07/04/list.webp" srcset="/img/loading.gif" lazyload alt="tuple.webp"></p>
-<pre><code class="python">def foo2(param: tuple):
-    param += (4, 5)
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo2</span>(<span class="hljs-params">param: <span class="hljs-built_in">tuple</span></span>):<br>    param += (<span class="hljs-number">4</span>, <span class="hljs-number">5</span>)<br><br>arg2 = (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br>foo2(arg2)<br><span class="hljs-built_in">print</span>(arg2)  <span class="hljs-comment"># 输出(1, 2, 3)</span><br></code></pre></td></tr></table></figure>
 
-arg2 = (1, 2, 3)
-foo2(arg2)
-print(arg2)  # 输出(1, 2, 3)
-</code></pre>
 <p>内存中有一个<code>tuple</code>对象（<code>(1, 2, 3)</code>），该对象也有两个别名：<code>arg2</code>和<code>param</code>。但由于<code>tuple</code>对象是不可变的<code>(immutable)</code>，当执行<code>param += (4, 5)</code>时，解释器创建了一个新的<code>tuple</code>对象（<code>(1, 2, 3, 4, 5)</code>），并让<code>param</code>指向这个新的对象，而原来的对象没有被改变。</p>
 <p><img src="/images/2020/07/04/tuple.webp" srcset="/img/loading.gif" lazyload alt="tuple.webp"></p>
 <p>在Python中，参数传递本质上是为已有的对象取了一个函数作用域级别的别名。如果该对象是可变的，那么就可以在函数内修改该对象，这种修改也可以被其它的别名所感知。弄清楚对象、别名的关系，就不会对<code>值传递</code>、<code>引用传递</code>这种说法感到困惑了。</p>
@@ -489,20 +418,21 @@ print(arg2)  # 输出(1, 2, 3)
             
   <article id="comments" lazyload>
     
-  <div id="valine"></div>
+  <div id="waline"></div>
   <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
         var options = Object.assign(
-          {"appId":"lsd83dfd4okhHI7EUsVx4SYj-gzGzoHsz","appKey":"FpvviTjZ8LByco72i9dnbOc0","path":"window.location.pathname","placeholder":"说点什么呢？","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
           {
-            el: "#valine",
+            el: '#waline',
             path: window.location.pathname
           }
         )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
           Fluid.plugins.imageCaption(imgSelector);
           Fluid.plugins.fancyBox(imgSelector);
         })
