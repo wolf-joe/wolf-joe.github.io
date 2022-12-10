@@ -16,41 +16,36 @@
   <meta name="author" content="OrangeWolf">
   <meta name="keywords" content="">
   
-    <meta name="description" content="1. 背景在上一篇文章[1]中，笔者搭建了一套空气质量监控方案。但随之而来的是持续的告警以及糟糕的空气。最极端的时候，笔者能从监控上观察到超过100的室内PM2.5浓度。         在下决心改善室内空气质量后，摆在笔者面前的有两个选择：空气净化器和新风。两者都可以降低室内PM2.5，但前者只能被动净化流入室内的室外空气（先污染后治理），而后者能主动净化室外空气并送入屋内，除了能降低室内PM2">
+    <meta name="description" content="1. 前言在前一篇文章[1]中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%[2]，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。 2. 方案选择室内加湿器是比较直接的选择。笔者了解后">
 <meta property="og:type" content="article">
-<meta property="og:title" content="改善室内空气质量-新风篇">
-<meta property="og:url" content="https://www.yooo.ltd/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/index.html">
+<meta property="og:title" content="改善室内空气质量-加湿篇">
+<meta property="og:url" content="https://www.yooo.ltd/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/index.html">
 <meta property="og:site_name" content="OrangeWolf的博客">
-<meta property="og:description" content="1. 背景在上一篇文章[1]中，笔者搭建了一套空气质量监控方案。但随之而来的是持续的告警以及糟糕的空气。最极端的时候，笔者能从监控上观察到超过100的室内PM2.5浓度。         在下决心改善室内空气质量后，摆在笔者面前的有两个选择：空气净化器和新风。两者都可以降低室内PM2.5，但前者只能被动净化流入室内的室外空气（先污染后治理），而后者能主动净化室外空气并送入屋内，除了能降低室内PM2">
+<meta property="og:description" content="1. 前言在前一篇文章[1]中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%[2]，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。 2. 方案选择室内加湿器是比较直接的选择。笔者了解后">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209201254014.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209203204756.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/20190724150419_3180.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205604949.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205820116.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209210021944.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/biguashi-xinfengqi.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209211336151.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212241148.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212709055.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209214635749.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209220045066.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209220229005.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209215915645.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221136039.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221543799.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221252008.webp">
-<meta property="article:published_time" content="2022-12-09T05:04:56.000Z">
-<meta property="article:modified_time" content="2022-12-10T01:19:38.195Z">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183141611.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210184130772.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183820899.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190138737.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190514003.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191018549.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191135433.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191233201.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191440960.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200802577.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200033630.webp">
+<meta property="article:published_time" content="2022-12-10T09:45:58.000Z">
+<meta property="article:modified_time" content="2022-12-10T12:10:38.048Z">
 <meta property="article:author" content="OrangeWolf">
 <meta property="article:tag" content="监控">
 <meta property="article:tag" content="生活">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209201254014.webp">
+<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp">
   
   
   
-  <title>改善室内空气质量-新风篇 - OrangeWolf的博客</title>
+  <title>改善室内空气质量-加湿篇 - OrangeWolf的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -203,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="改善室内空气质量-新风篇"></span>
+            <span id="subtitle" data-typed-text="改善室内空气质量-加湿篇"></span>
           
         </div>
 
@@ -214,8 +209,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-12-09 13:04" pubdate>
-          2022年12月9日 下午
+        <time datetime="2022-12-10 17:45" pubdate>
+          2022年12月10日 下午
         </time>
       </span>
     
@@ -226,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k 字
+          1.8k 字
         
       </span>
     
@@ -237,7 +232,7 @@
         
         
         
-          11 分钟
+          15 分钟
         
       </span>
     
@@ -275,83 +270,125 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">改善室内空气质量-新风篇</h1>
+            <h1 style="display: none">改善室内空气质量-加湿篇</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><p>在上一篇文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[监控室内空气质量](/2022/12/05/监控室内空气质量/)">[1]</span></a></sup>中，笔者搭建了一套空气质量监控方案。但随之而来的是持续的告警以及糟糕的空气。最极端的时候，笔者能从监控上观察到超过100的室内PM2.5浓度。</p>
+                <h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h1><p>在前一篇文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[改善室内空气质量-新风篇](/2022/12/09/改善室内空气质量-新风篇)">[1]</span></a></sup>中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[房间湿度40%，不爱得病（家居健康）--科技--人民网](http://scitech.people.com.cn/n/2013/0702/c1007-22041057.html)">[2]</span></a></sup>，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。</p>
+<h1 id="2-方案选择"><a href="#2-方案选择" class="headerlink" title="2. 方案选择"></a>2. 方案选择</h1><p>室内加湿器是比较直接的选择。笔者了解后发现市面上主要有两类加湿器：超声波加湿器、蒸发型加湿器。</p>
 <table>
 <thead>
 <tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209201254014.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209203204756.webp" srcset="/img/loading.gif" lazyload alt="image-20221209203204756"></th>
+<th>品类</th>
+<th>原理</th>
+<th>加湿效果</th>
+<th>价格</th>
+<th>使用水质</th>
+<th>清洗频率</th>
+<th>安全性</th>
 </tr>
 </thead>
-</table>
-<p>在下决心改善室内空气质量后，摆在笔者面前的有两个选择：<code>空气净化器</code>和<code>新风</code>。两者都可以降低室内PM2.5，但前者只能被动净化流入室内的室外空气（<del>先污染后治理</del>），而后者能主动净化室外空气并送入屋内，除了能降低室内PM2.5，还能保证低CO2浓度、避免室内积灰。<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[新风系统VS空气净化器，它完美胜出！-苏州米亚智能科技有限公司MIAVENTILATION-新风系统-家用新风系统-新风系统OEM-全热交换器-新风换气机-新风机](http://www.miachina.net/MIANews?id=684)">[2]</span></a></sup></p>
-<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/20190724150419_3180.webp" srcset="/img/loading.gif" lazyload></p>
-<p>虽然新风会导致室内温湿度容易受室外影响，但在一众视频的诱惑下<sup id="fnref:3" class="footnote-ref"><a href="#fn:3" rel="footnote"><span class="hint--top hint--rounded" aria-label="[新风消费者报告 | 爱否出品\_哔哩哔哩\_bilibili](https://www.bilibili.com/video/BV1A4411u7gg/?vd_source=834a38204871938e13afaddb910f3b67)">[3]</span></a></sup><sup id="fnref:4" class="footnote-ref"><a href="#fn:4" rel="footnote"><span class="hint--top hint--rounded" aria-label="[25岁自装修｜新风最强「避坑指南」吐血整理！\_哔哩哔哩\_bilibili](https://www.bilibili.com/video/BV18R4y1V7DV/?spm_id_from=333.337.search-card.all.click&vd_source=834a38204871938e13afaddb910f3b67)">[4]</span></a></sup>，笔者最终还是将目光锁定在了新风上。</p>
-<h1 id="2-新风产品选择"><a href="#2-新风产品选择" class="headerlink" title="2. 新风产品选择"></a>2. 新风产品选择</h1><p>新风的形态多种多样，笔者了解到有如下几种。</p>
-<h2 id="2-1-中央新风"><a href="#2-1-中央新风" class="headerlink" title="2.1 中央新风"></a>2.1 中央新风</h2><table>
-<thead>
+<tbody><tr>
+<td>超声波加湿器</td>
+<td>将水打碎成小水滴</td>
+<td>强</td>
+<td>低</td>
+<td>纯净水</td>
+<td>高</td>
+<td>低<sup id="fnref:3" class="footnote-ref"><a href="#fn:3" rel="footnote"><span class="hint--top hint--rounded" aria-label="[超声波加湿器，到底能不能用？\_科普中国网](https://www.kepuchina.cn/yc/202201/t20220107_3114895.shtml)">[3]</span></a></sup><sup id="fnref:4" class="footnote-ref"><a href="#fn:4" rel="footnote"><span class="hint--top hint--rounded" aria-label="[韩国加湿器“杀人”事件最新调查：至少1.4万人死亡 加湿器还能用吗？\_新闻\_央视网(cctv.com)](http://m.news.cctv.com/2020/07/29/ARTITgCagrGFrX6jBuDWdLSn200729.shtml)">[4]</span></a></sup></td>
+</tr>
 <tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205604949.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209205820116.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209210021944.webp" srcset="/img/loading.gif" lazyload></th>
+<td>蒸发型加湿器</td>
+<td>让水蒸发</td>
+<td>弱</td>
+<td>高</td>
+<td>无特殊要求</td>
+<td>低</td>
+<td>高</td>
 </tr>
-</thead>
-</table>
-<p>中央新风系统作为新风产品的顶级形态，被广泛运用于商场、写字楼等场合。虽然中央新风换气效果强大、还可以使用热交换来减少室外温度对室内的影响，但由于价格昂贵、且需要在装修房屋之前提前规划，所以在家庭场合较为少见。</p>
-<h2 id="2-2-壁挂新风机"><a href="#2-2-壁挂新风机" class="headerlink" title="2.2  壁挂新风机"></a>2.2  壁挂新风机</h2><table>
-<thead>
-<tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/biguashi-xinfengqi.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209211336151.webp" srcset="/img/loading.gif" lazyload></th>
-</tr>
-</thead>
-</table>
-<p>相比中央新风系统，壁挂式新风的安装灵活性就要强不少，一般只需要在墙上打出大小合适的洞作为进风口即可。</p>
-<h2 id="2-3-新风空调"><a href="#2-3-新风空调" class="headerlink" title="2.3 新风空调"></a>2.3 新风空调</h2><table>
-<thead>
-<tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212241148.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209212709055.webp" srcset="/img/loading.gif" lazyload></th>
-</tr>
-</thead>
-</table>
-<p>新风空调作为结合空调和新风的新品类，先看评测对相关产品进行过详细的评测<sup id="fnref:5" class="footnote-ref"><a href="#fn:5" rel="footnote"><span class="hint--top hint--rounded" aria-label="[空调新物种？米家新风空调体验 | 先睹为快\_哔哩哔哩\_bilibili](https://www.bilibili.com/video/BV1dy4y1t7E8/?vd_source=834a38204871938e13afaddb910f3b67)">[5]</span></a></sup>。新风空调相比新风机来说安装灵活性更强，但非专用的进风口也会影响新风空调的换气能力。</p>
-<h2 id="2-4-空气净化器-新风"><a href="#2-4-空气净化器-新风" class="headerlink" title="2.4 空气净化器+新风"></a>2.4 空气净化器+新风</h2><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209214635749.webp" srcset="/img/loading.gif" lazyload alt="image-20221209214635749"></p>
-<p>虽然新风空调的安装灵活性已经足够高，但对于租房一族的笔者来说买一个新风空调还是有点过于奢侈。万幸的是市面上还有终极廉价解决方案：空气净化器+导风管。空气净化器不再净化室内空气，而是经由可灵活安装的导风管净化室外空气，再将新鲜空气输出到室内（<del>充分体现了管道和分而治之的思想</del>）。笔者在研究了室内的导风条件后，立即在淘宝上购入了相关套件。</p>
-<h1 id="3-安装"><a href="#3-安装" class="headerlink" title="3. 安装"></a>3. 安装</h1><table>
-<thead>
-<tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209220045066.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209220229005.webp" srcset="/img/loading.gif" lazyload alt="image-20221209220229005"></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209215915645.webp" srcset="/img/loading.gif" lazyload></th>
-</tr>
-</thead>
-</table>
-<p>安装过程比较简单。将空气净化器的下半部分替换为导风底座，并在其中放入滤芯；将净化器主体用导风管和挡风板相连后，再用推拉窗紧紧夹住挡风板即可。</p>
-<h1 id="4-效果"><a href="#4-效果" class="headerlink" title="4. 效果"></a>4. 效果</h1><p>笔者在安装完这套新风取得了立竿见影的效果：数小时内室内PM2.5浓度就从100+下降至了0。可惜默认保留15天数据的Prometheus已经丢失了当时的监控记录，无法以图片形式展示。</p>
+</tbody></table>
+<p>由于原理限制，超声波加湿器会无差别地将水中杂质（细菌&#x2F;化学物质等）扩散到空气中。所以在使用超声波加湿器中，不仅要保证水质干净、还要频繁清洁加湿器，否则容易有安全风险。笔者并不想在使用加湿器时花费太多精力，所以选择了价格更贵、但更使用起来更便捷的蒸发型加湿器。具体型号的选择可以参考先看评测的视频<sup id="fnref:5" class="footnote-ref"><a href="#fn:5" rel="footnote"><span class="hint--top hint--rounded" aria-label="[认真测了一个月！告诉你 2022 年哪款加湿器值得买\_哔哩哔哩\_bilibili](https://www.bilibili.com/video/BV1KD4y1e7nA/)">[5]</span></a></sup>。</p>
+<p>影响蒸发型加湿器加湿效果的要素主要有三点：</p>
+<ul>
+<li><strong>温度</strong>。水的温度越高，加湿效果越好。</li>
+<li><strong>蒸发面积</strong>。蒸发面积越大，加湿效果越好。</li>
+<li><strong>风量</strong>。风量越大，加湿效果越好。</li>
+</ul>
+<h1 id="3-实践"><a href="#3-实践" class="headerlink" title="3. 实践"></a>3. 实践</h1><h2 id="3-1-改造空气净化器"><a href="#3-1-改造空气净化器" class="headerlink" title="3.1 改造空气净化器"></a>3.1 改造空气净化器</h2><p>在前一篇文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[改善室内空气质量-新风篇](/2022/12/09/改善室内空气质量-新风篇)">[1]</span></a></sup>中，笔者通过改造空气净化器实现了新风的效果。同商家还有将空气净化器改造成加湿器的套件，复用组件+价格低廉（￥200）两大优势让笔者立刻下了单。</p>
 <table>
 <thead>
 <tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221136039.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221543799.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183141611.webp" srcset="/img/loading.gif" lazyload></th>
 </tr>
 </thead>
 </table>
-<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221209221252008.webp" srcset="/img/loading.gif" lazyload></p>
-<p>笔者在写这篇文章时，北京的PM2.5浓度已经接近100<sup id="fnref:6" class="footnote-ref"><a href="#fn:6" rel="footnote"><span class="hint--top hint--rounded" aria-label="[北京空气质量指数（AQI）和中国 空气污染| IQAir](https://www.iqair.cn/cn/china/beijing)">[6]</span></a></sup>，但即使是一个相当低的换气速度（笔者卧室约17平米），这套新风系统依然能将室内PM2.5浓度控制在20以下，室内二氧化碳浓度在经过了连续几天的在家办公后也依然足够低。笔者对此表示很满意！</p>
-<p>PS：从空气净化器的湿度传感器来看，笔者的室内空气已经远不像北京冬天的室外空气那样干燥。这是因为笔者已经采取措施改善了室内湿度，下篇文章见~</p>
-<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/">监控室内空气质量</a>
-<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://www.miachina.net/MIANews?id=684">新风系统VS空气净化器，它完美胜出！-苏州米亚智能科技有限公司MIAVENTILATION-新风系统-家用新风系统-新风系统OEM-全热交换器-新风换气机-新风机</a>
-<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1A4411u7gg/?vd_source=834a38204871938e13afaddb910f3b67">新风消费者报告 | 爱否出品_哔哩哔哩_bilibili</a>
-<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV18R4y1V7DV/?spm_id_from=333.337.search-card.all.click&vd_source=834a38204871938e13afaddb910f3b67">25岁自装修｜新风最强「避坑指南」吐血整理！_哔哩哔哩_bilibili</a>
-<a href="#fnref:4" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:5" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1dy4y1t7E8/?vd_source=834a38204871938e13afaddb910f3b67">空调新物种？米家新风空调体验 | 先睹为快_哔哩哔哩_bilibili</a>
-<a href="#fnref:5" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:6" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.iqair.cn/cn/china/beijing">北京空气质量指数（AQI）和中国 空气污染| IQAir</a>
-<a href="#fnref:6" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210184130772.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183820899.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>然而实际体验后，笔者发现这个加湿方案效果非常一般。中午开始加湿后，室内湿度从25%缓慢提升至30%，之后就停滞在30%左右。从耗水速度推测，这个加湿方案的实际加湿能力约为100ml&#x2F;h，而市面上常见的蒸发型加湿器加湿能力普遍能达到600ml&#x2F;h。</p>
+<p>笔者分析之后，发现这个加湿方案在上文提到的加湿三要素上都做得较差：</p>
+<ul>
+<li><strong>温度</strong>。由于空气净化器接的是室外空气，而北京冬季室外温度往往在零下，所以空气净化器吹出的风温度也很低。</li>
+<li><strong>蒸发面积</strong>。这个改装套件用了吸水网提升蒸发面积。水箱里水位较高时吸水网透风的部分较少、水位较低时高处的吸水网很难吸到水分。所以这个方案的蒸发面积始终比较低。</li>
+<li><strong>风量</strong>。由于新风不需要太大风量，所以笔者一直让空气净化器保持在比较低的风量。</li>
+</ul>
+<h2 id="3-2-换用加湿器"><a href="#3-2-换用加湿器" class="headerlink" title="3.2 换用加湿器"></a>3.2 换用加湿器</h2><p>发现改造净化器的方案行不通后，笔者很快选择了一款“正经”的加湿器（￥600）。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190138737.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190514003.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>相比上一个加湿方案，这款加湿器在加湿三要素上都有改进：</p>
+<ul>
+<li><strong>温度</strong>。由于是直接放在室内，环境温度更高。</li>
+<li><strong>蒸发面积</strong>。这款加湿器使用的滤芯（上图3号）位于水箱（上图8号）之上，水通过一个小管道提升到滤芯顶部，始终保证蒸发面积最大。</li>
+<li><strong>风量</strong>。由于不和室外空气交换，所以调整加湿器风量时只需考虑噪音。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191018549.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191135433.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191233201.webp" srcset="/img/loading.gif" lazyload></td>
+<td><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191440960.webp" srcset="/img/loading.gif" lazyload></td>
+</tr>
+</tbody></table>
+<p>笔者放置加湿器的房间面积约为17平米，温度约为25°。收到加湿器后，笔者在14:30用最大风量（比较吵）开始加湿，此时湿度不到30%；傍晚时室内湿度升高至50%。到了晚上23:30，笔者将加湿器调整为睡眠模式，室内湿度逐渐从50%下降到43%。从耗水速度来看，这款加湿器的实际能力是接近其宣传值（最大600ml&#x2F;h、睡眠模式260ml&#x2F;h）的。</p>
+<p>虽然在日常使用时不能始终只开启睡眠模式，但考虑到其加水较为方便（将水箱拆除后可直接用水龙头加满5升水），所以总体而言笔者对这款加湿器的表现十分满意。</p>
+<h1 id="4-后记"><a href="#4-后记" class="headerlink" title="4. 后记"></a>4. 后记</h1><p>相比其它效果更好（当然价格也更贵）的蒸发型加湿器，笔者选择的这款加湿器只适用于面积不大的房间。想要加湿更大的房价、甚至是全屋加湿，蒸发型加湿器就得考虑用电辅热提高效率了，可能这也是为什么许多工业级加湿器会选择超声波加湿的方案。加湿器的选择，更多也得结合具体的需求来看吧。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200802577.webp" srcset="/img/loading.gif" lazyload><br /><sup id="fnref:6" class="footnote-ref"><a href="#fn:6" rel="footnote"><span class="hint--top hint--rounded" aria-label="[352 H300加湿净化一体机评测\_使用效果怎么样\_智能家](https://m.znj.com/news/120978.html)">[6]</span></a></sup></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200033630.webp" srcset="/img/loading.gif" lazyload><br /><sup id="fnref:7" class="footnote-ref"><a href="#fn:7" rel="footnote"><span class="hint--top hint--rounded" aria-label="[超声波加湿器除湿产品-加湿产品-防爆空调-恒温恒湿机-精密空调-转轮除湿机-湿美电气](http://m.msshimei.com/product.html?type1=2&type2=14)">[7]</span></a></sup></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>加湿量2500ml&#x2F;h</td>
+<td>加湿量3000ml&#x2F;h</td>
+</tr>
+</tbody></table>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87">改善室内空气质量-新风篇</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://scitech.people.com.cn/n/2013/0702/c1007-22041057.html">房间湿度40%，不爱得病（家居健康）–科技–人民网</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.kepuchina.cn/yc/202201/t20220107_3114895.shtml">超声波加湿器，到底能不能用？_科普中国网</a>
+<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://m.news.cctv.com/2020/07/29/ARTITgCagrGFrX6jBuDWdLSn200729.shtml">韩国加湿器“杀人”事件最新调查：至少1.4万人死亡 加湿器还能用吗？_新闻_央视网(cctv.com)</a>
+<a href="#fnref:4" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:5" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1KD4y1e7nA/">认真测了一个月！告诉你 2022 年哪款加湿器值得买_哔哩哔哩_bilibili</a>
+<a href="#fnref:5" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:6" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://m.znj.com/news/120978.html">352 H300加湿净化一体机评测_使用效果怎么样_智能家</a>
+<a href="#fnref:6" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:7" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://m.msshimei.com/product.html?type1=2&type2=14">超声波加湿器除湿产品-加湿产品-防爆空调-恒温恒湿机-精密空调-转轮除湿机-湿美电气</a>
+<a href="#fnref:7" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
                 
               </div>
             
@@ -377,8 +414,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>改善室内空气质量-新风篇</div>
-      <div>https://www.yooo.ltd/2022/12/09/改善室内空气质量-新风篇/</div>
+      <div>改善室内空气质量-加湿篇</div>
+      <div>https://www.yooo.ltd/2022/12/10/改善室内空气质量-加湿篇/</div>
     </div>
     <div class="license-meta">
       
@@ -390,7 +427,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年12月9日</div>
+          <div>2022年12月10日</div>
         </div>
       
       
@@ -422,18 +459,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/" title="改善室内空气质量-加湿篇">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">改善室内空气质量-加湿篇</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/" title="监控室内空气质量">
-                        <span class="hidden-mobile">监控室内空气质量</span>
+                      <a href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/" title="改善室内空气质量-新风篇">
+                        <span class="hidden-mobile">改善室内空气质量-新风篇</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
