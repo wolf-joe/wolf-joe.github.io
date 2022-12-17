@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>安卓对指定WiFi禁用IPv6</title>
+    <link href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/"/>
+    <url>/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/</url>
+    
+    <content type="html"><![CDATA[<h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><p>这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_old.drawio.svg"></p><p>后来由于某些设备有连接公网 IPv6 地址的需求，所以笔者将二级 NAT 改成了无线 AP ，所有设备直连宽带网关以拿到 IPv6 地址：</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_new.drawio.svg"></p><p>OP 的安卓设备在之前的网络架构中将旁路由作为网关。但在新的网络架构中，由于安卓设备无法设置静态 IPv6 ，所以 IPv6 流量无法经过旁路由；而且即使 OP 将安卓设备的 DNS 和 IPv4 网关设置为旁路由，但其 DNS 请求还是<strong>有可能</strong>直接发送到宽带网关上。</p><p>由于笔者对基于旁路由的透明代理和自定义DNS有较强需求，所以笔者决定让安卓设备在家庭网络中不使用IPv6（且不影响在其它网络环境中使用IPv6）。</p><h1 id="2-远程端控制（失败）"><a href="#2-远程端控制（失败）" class="headerlink" title="2. 远程端控制（失败）"></a>2. 远程端控制（失败）</h1><p>安卓设备通过无线AP接入网路，笔者首先想到的解决方案是在无线AP处进行控制。只要避免安卓设备获取到IPv6地址，问题就解决了。按照锐捷的文章介绍<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[IPv6系列基础篇（下）—邻居发现协议NDP - 锐捷网络](https://www.ruijie.com.cn/jszl/83220/)">[1]</span></a></sup>，主机无状态配置IPv6是通过 ICMPv6协议进行的：</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217114114257.webp" alt="IPv6主机无状态自动配置的过程"></p><p>但笔者在无线AP（运行着padavan系统的路由器）上用<code>tcpdump</code>探测安卓设备相关的网络流量，只发现了邻居请求（NS）的流量：</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">tcpdump -i br0 ether src $&#123;安卓mac&#125; or ether dst  $&#123;安卓mac&#125;<br></code></pre></td></tr></table></figure><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">10:56:16.700518 IP6 :: &gt; ff02::1:ff48:xxx: ICMP6, neighbor solicitation, who has fe80::xxx, length 32<br>10:56:16.705741 IP6 :: &gt; ff02::16: HBH ICMP6, multicast listener report v2, 2 group record(s), length 48<br></code></pre></td></tr></table></figure><p>再考虑到ICMP是网络层协议，无法通过<code>iptables</code>等工具进行过滤，故笔者选择放弃。</p><h1 id="3-安卓端控制（成功）"><a href="#3-安卓端控制（成功）" class="headerlink" title="3. 安卓端控制（成功）"></a>3. 安卓端控制（成功）</h1><p>虽然不能阻止安卓设备获取IPv6地址，但我们依然可以直接在安卓端禁用IPv6功能。Reddit<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[Disable IPv6 over wifi? : androiddev](https://www.reddit.com/r/androiddev/comments/k15y0a/disable_ipv6_over_wifi/)">[2]</span></a></sup>论坛有人指出，安卓在root后可以通过如下命令禁用WiFi的IPv6功能：</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">echo 0 | tee /proc/sys/net/ipv6/conf/wlan0/accept_ra<br>echo 1 | tee /proc/sys/net/ipv6/conf/all/disable_ipv6<br></code></pre></td></tr></table></figure><p>笔者通过JuiceSSH验证后确认有效，但重连WiFi后IPv6地址会恢复。再加上笔者只想在家庭网络禁用安卓的IPv6，所以笔者使用Tasker软件进行了额外配置：</p><table><thead><tr><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123841698.webp"></th><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123710721.webp"></th><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123755563.webp"></th></tr></thead><tbody><tr><td>在Tasker内创建一个配置</td><td>当WiFi连接到指定SSID</td><td>使用root执行对应命令</td></tr></tbody></table><p>配置完成后，保持Tasker运行，就可以让笔者的安卓设备在接入家庭网络时不使用IPv6了。</p><h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="https://www.ruijie.com.cn/jszl/83220/">IPv6系列基础篇（下）—邻居发现协议NDP - 锐捷网络</a><a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a href="https://www.reddit.com/r/androiddev/comments/k15y0a/disable_ipv6_over_wifi/">Disable IPv6 over wifi? : androiddev</a><a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>数码</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>改善室内空气质量-加湿篇</title>
     <link href="/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/"/>
     <url>/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/</url>
