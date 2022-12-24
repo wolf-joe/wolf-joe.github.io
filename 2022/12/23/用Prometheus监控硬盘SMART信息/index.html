@@ -16,29 +16,29 @@
   <meta name="author" content="OrangeWolf">
   <meta name="keywords" content="">
   
-    <meta name="description" content="1. 背景这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：  后来由于某些设备有连接公网 IPv6 地址的需求，所以笔者将二级 NAT 改成了无线 AP ，所有设备直连宽带网关以拿到 IPv6 地址：  OP 的安卓设备在之前的网络架构中将旁路由作为网关。但在新的网络架构中，由于安卓设备无法设置静态 IPv6 ，所以 IPv6 流量无法经过旁">
+    <meta name="description" content="1. 背景笔者的NAS（或者说ALL IN ONE主机）内有两块3.5寸的机械硬盘。群晖、TrueNAS等系统内置了比较完善的监控，可通过SMART信息（参数、温度、通电时长等）观察硬盘健康状况。可惜笔者使用的是Ubuntu系统，只能定期通过命令行进行检查。为了更方便地掌握硬盘的健康状况，笔者决定搭建一套关于硬盘的监控解决方案。 2. 思路 由于笔者已经搭建了一套Prometheus监控套件，所以">
 <meta property="og:type" content="article">
-<meta property="og:title" content="安卓对指定WiFi禁用IPv6">
-<meta property="og:url" content="https://www.yooo.ltd/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/index.html">
+<meta property="og:title" content="用Prometheus监控硬盘SMART信息">
+<meta property="og:url" content="https://www.yooo.ltd/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/index.html">
 <meta property="og:site_name" content="OrangeWolf的博客">
-<meta property="og:description" content="1. 背景这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：  后来由于某些设备有连接公网 IPv6 地址的需求，所以笔者将二级 NAT 改成了无线 AP ，所有设备直连宽带网关以拿到 IPv6 地址：  OP 的安卓设备在之前的网络架构中将旁路由作为网关。但在新的网络架构中，由于安卓设备无法设置静态 IPv6 ，所以 IPv6 流量无法经过旁">
+<meta property="og:description" content="1. 背景笔者的NAS（或者说ALL IN ONE主机）内有两块3.5寸的机械硬盘。群晖、TrueNAS等系统内置了比较完善的监控，可通过SMART信息（参数、温度、通电时长等）观察硬盘健康状况。可惜笔者使用的是Ubuntu系统，只能定期通过命令行进行检查。为了更方便地掌握硬盘的健康状况，笔者决定搭建一套关于硬盘的监控解决方案。 2. 思路 由于笔者已经搭建了一套Prometheus监控套件，所以">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_old.drawio.svg">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_new.drawio.svg">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217114114257.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123841698.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123710721.webp">
-<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123755563.webp">
-<meta property="article:published_time" content="2022-12-17T02:07:12.000Z">
-<meta property="article:modified_time" content="2022-12-17T04:41:51.809Z">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221223093351427.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221223095133005.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091210859.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091333135.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091333135.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224093415453.webp">
+<meta property="article:published_time" content="2022-12-23T01:02:55.000Z">
+<meta property="article:modified_time" content="2022-12-24T01:34:53.024Z">
 <meta property="article:author" content="OrangeWolf">
-<meta property="article:tag" content="数码">
+<meta property="article:tag" content="监控">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_old.drawio.svg">
+<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221223093351427.webp">
   
   
   
-  <title>安卓对指定WiFi禁用IPv6 - OrangeWolf的博客</title>
+  <title>用Prometheus监控硬盘SMART信息 - OrangeWolf的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="安卓对指定WiFi禁用IPv6"></span>
+            <span id="subtitle" data-typed-text="用Prometheus监控硬盘SMART信息"></span>
           
         </div>
 
@@ -202,8 +202,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-12-17 10:07" pubdate>
-          2022年12月17日 上午
+        <time datetime="2022-12-23 09:02" pubdate>
+          2022年12月23日 上午
         </time>
       </span>
     
@@ -214,7 +214,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.2k 字
+          2.5k 字
         
       </span>
     
@@ -225,7 +225,7 @@
         
         
         
-          11 分钟
+          21 分钟
         
       </span>
     
@@ -263,46 +263,78 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">安卓对指定WiFi禁用IPv6</h1>
+            <h1 style="display: none">用Prometheus监控硬盘SMART信息</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><p>这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：</p>
-<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_old.drawio.svg" srcset="/img/loading.gif" lazyload></p>
-<p>后来由于某些设备有连接公网 IPv6 地址的需求，所以笔者将二级 NAT 改成了无线 AP ，所有设备直连宽带网关以拿到 IPv6 地址：</p>
-<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/home_net_arch_new.drawio.svg" srcset="/img/loading.gif" lazyload></p>
-<p>OP 的安卓设备在之前的网络架构中将旁路由作为网关。但在新的网络架构中，由于安卓设备无法设置静态 IPv6 ，所以 IPv6 流量无法经过旁路由；而且即使 OP 将安卓设备的 DNS 和 IPv4 网关设置为旁路由，但其 DNS 请求还是<strong>有可能</strong>直接发送到宽带网关上。</p>
-<p>由于笔者对基于旁路由的透明代理和自定义DNS有较强需求，所以笔者决定让安卓设备在家庭网络中不使用IPv6（且不影响在其它网络环境中使用IPv6）。</p>
-<h1 id="2-远程端控制（失败）"><a href="#2-远程端控制（失败）" class="headerlink" title="2. 远程端控制（失败）"></a>2. 远程端控制（失败）</h1><p>安卓设备通过无线AP接入网路，笔者首先想到的解决方案是在无线AP处进行控制。只要避免安卓设备获取到IPv6地址，问题就解决了。按照锐捷的文章介绍<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[IPv6系列基础篇（下）—邻居发现协议NDP - 锐捷网络](https://www.ruijie.com.cn/jszl/83220/)">[1]</span></a></sup>，主机无状态配置IPv6是通过 ICMPv6协议进行的：</p>
-<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217114114257.webp" srcset="/img/loading.gif" lazyload alt="IPv6主机无状态自动配置的过程"></p>
-<p>但笔者在无线AP（运行着padavan系统的路由器）上用<code>tcpdump</code>探测安卓设备相关的网络流量，只发现了邻居请求（NS）的流量：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">tcpdump -i br0 ether src $&#123;安卓mac&#125; or ether dst  $&#123;安卓mac&#125;<br></code></pre></td></tr></table></figure>
+                <h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><p>笔者的NAS（或者说ALL IN ONE主机）内有两块3.5寸的机械硬盘。群晖、TrueNAS等系统内置了比较完善的监控，可通过SMART信息（参数、温度、通电时长等）观察硬盘健康状况。可惜笔者使用的是Ubuntu系统，只能定期通过命令行进行检查。为了更方便地掌握硬盘的健康状况，笔者决定搭建一套关于硬盘的监控解决方案。</p>
+<h1 id="2-思路"><a href="#2-思路" class="headerlink" title="2. 思路"></a>2. 思路</h1><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221223093351427.webp" srcset="/img/loading.gif" lazyload alt="Prometheus架构图"></p>
+<p>由于笔者已经搭建了一套Prometheus监控套件，所以该解决方案也会基于Prometheus搭建。我们可以像之前的文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[监控室内空气质量](/2022/12/05/监控室内空气质量/)">[1]</span></a></sup>一样通过代码上报SMART信息，但监控硬盘作为比较通用的需求，应该已经有成熟方案了。果不其然，<a target="_blank" rel="noopener" href="https://github.com/prometheus-community/node-exporter-textfile-collector-scripts">node-exporter-textfile-collector-scripts</a>仓库提供了SMART信息抓取脚本，可通过node_exporter的<code>textfile-collector</code>提供给Promethues。整体的流程如下所示：</p>
+<pre><code class=" mermaid">flowchart LR
+    A[数据抓取脚本]--sponge--&gt;B[.prom文件]
+    C[node_exporter]--读取--&gt;B
 
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">10:56:16.700518 IP6 :: &gt; ff02::1:ff48:xxx: ICMP6, neighbor solicitation, who has fe80::xxx, length 32<br>10:56:16.705741 IP6 :: &gt; ff02::16: HBH ICMP6, multicast listener report v2, 2 group record(s), length 48<br></code></pre></td></tr></table></figure>
+    D[Promethues]--pull--&gt;C
+    D--&gt;E[Alertmanager]
+    E--&gt;G[Telegram告警]
+    F[Grafana监控]--&gt;D
+    style A stroke-dasharray:5
+    style B stroke-dasharray:5
+</code></pre>
 
-<p>再考虑到ICMP是网络层协议，无法通过<code>iptables</code>等工具进行过滤，故笔者选择放弃。</p>
-<h1 id="3-安卓端控制（成功）"><a href="#3-安卓端控制（成功）" class="headerlink" title="3. 安卓端控制（成功）"></a>3. 安卓端控制（成功）</h1><p>虽然不能阻止安卓设备获取IPv6地址，但我们依然可以直接在安卓端禁用IPv6功能。Reddit<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[Disable IPv6 over wifi? : androiddev](https://www.reddit.com/r/androiddev/comments/k15y0a/disable_ipv6_over_wifi/)">[2]</span></a></sup>论坛有人指出，安卓在root后可以通过如下命令禁用WiFi的IPv6功能：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">echo 0 | tee /proc/sys/net/ipv6/conf/wlan0/accept_ra<br>echo 1 | tee /proc/sys/net/ipv6/conf/all/disable_ipv6<br></code></pre></td></tr></table></figure>
 
-<p>笔者通过JuiceSSH验证后确认有效，但重连WiFi后IPv6地址会恢复。再加上笔者只想在家庭网络禁用安卓的IPv6，所以笔者使用Tasker软件进行了额外配置：</p>
+
+<h1 id="3-施工"><a href="#3-施工" class="headerlink" title="3. 施工"></a>3. 施工</h1><ol>
+<li><p>下载抓取脚本。克隆仓库后，使用root权限命令执行<code>smartmon.sh</code>即可看到SMART输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">git clone git@github.com:prometheus-community/node-exporter-textfile-collector-scripts.git<br>cd node-exporter-textfile-collector-scripts<br>sudo ./smartmon.sh<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221223095133005.webp" srcset="/img/loading.gif" lazyload></p>
+<p>同时按照仓库的推荐，安装sponge用于输出重定向：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo apt install moreutils<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>定时运行脚本并保存结果。由于获取SMART信息需要root权限，所以笔者使用root用户的crontab，每分钟运行一次抓取脚本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo crontab -e<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs crontab">* * * * * /home/worker/git/prometheus-community/node-exporter-textfile-collector-scripts/smartmon.sh | sponge /home/worker/log/smartmon.prom 2&gt;/home/worker/log/smartmon.stderr<br></code></pre></td></tr></table></figure>
+
+<p>之所以使用sponge而不是管道进行输出重定向，是因为shell在进行输出重定向时会先清空原文件，导致node_exporter在读取时有机率读取到空数据。验证一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">head</span> ~/log/smartmon.prom</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">HELP smartmon_smartctl_version SMART metric smartctl_version</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">TYPE smartmon_smartctl_version gauge</span><br>smartmon_smartctl_version&#123;version=&quot;7.1&quot;&#125; 1<br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>配置node_exporter。在运行node_exporter时指定<code>textfile-collector</code>目录，然后可通过curl验证：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shel">node_exporter --collector.textfile.directory=&#x27;/home/worker/log/&#x27;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">curl 127.0.0.1:9100/metrics</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">HELP smartmon_smartctl_version SMART metric smartctl_version</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">TYPE smartmon_smartctl_version gauge</span><br>smartmon_smartctl_version&#123;version=&quot;7.1&quot;&#125; 1<br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br></code></pre></td></tr></table></figure>
+
+</li>
+<li><p>配置监控。有国外网友针对上述脚本配置了精美的Grafana面板并分享在了GrafanaLabs上<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[S.M.A.R.T Dashboard | Grafana Labs](https://grafana.com/grafana/dashboards/13654-s-m-a-r-t-dashboard/)">[2]</span></a></sup>，在Grafana上输入其ID<code>13654</code>即可导入：</p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091210859.webp" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091333135.webp" srcset="/img/loading.gif" lazyload></p>
+</li>
+<li><p>修复面板。左上角<code>Unhealthy Disks</code>的原查询语句为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-built_in">sum</span>(smartmon_device_smart_healthy&#123;instance<span class="hljs-operator">=</span><span class="hljs-operator">~</span>&quot;$instance&quot;&#125;)<span class="hljs-operator">-</span><span class="hljs-built_in">sum</span>(smartmon_device_smart_healthy&#123;instance<span class="hljs-operator">=</span><span class="hljs-operator">~</span>&quot;$instance&quot;&#125;)<br></code></pre></td></tr></table></figure>
+
+<p>由于减号两边相等，所以看起来这个查询结果永远为0。笔者发邮件询问了原作者，不过还没有得到回复。改动为如下查询语句应该应该能修复这个问题：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-built_in">count</span>(smartmon_device_smart_healthy&#123;instance<span class="hljs-operator">=</span><span class="hljs-operator">~</span>&quot;$instance&quot;&#125;)<span class="hljs-operator">-</span><span class="hljs-built_in">sum</span>(smartmon_device_smart_healthy&#123;instance<span class="hljs-operator">=</span><span class="hljs-operator">~</span>&quot;$instance&quot;&#125;)<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>设置告警。在alert配置文件（细节见之前的文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[监控室内空气质量](/2022/12/05/监控室内空气质量/)">[1]</span></a></sup>）中增加如下内容，promethues会在出现硬盘smart异常后对笔者进行告警：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">smart</span><br>  <span class="hljs-attr">rules:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">alert:</span> <span class="hljs-string">unhealthy_disks</span><br>    <span class="hljs-attr">expr:</span> <span class="hljs-string">count(smartmon_device_smart_healthy)-sum(smartmon_device_smart_healthy)</span> <span class="hljs-string">&gt;</span> <span class="hljs-number">0</span><br>    <span class="hljs-attr">for:</span> <span class="hljs-string">10m</span><br>    <span class="hljs-attr">annotations:</span><br>      <span class="hljs-attr">summary:</span> <span class="hljs-string">&quot;有不健康的硬盘&quot;</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="4-效果"><a href="#4-效果" class="headerlink" title="4. 效果"></a>4. 效果</h1><p>最终效果如下：</p>
 <table>
 <thead>
 <tr>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123841698.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123710721.webp" srcset="/img/loading.gif" lazyload></th>
-<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221217123755563.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224091333135.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221224093415453.webp" srcset="/img/loading.gif" lazyload></th>
 </tr>
 </thead>
 <tbody><tr>
-<td>在Tasker内创建一个配置</td>
-<td>当WiFi连接到指定SSID</td>
-<td>使用root执行对应命令</td>
+<td>Grafana看板</td>
+<td>Telegram通知</td>
 </tr>
 </tbody></table>
-<p>配置完成后，保持Tasker运行，就可以让笔者的安卓设备在接入家庭网络时不使用IPv6了。</p>
-<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.ruijie.com.cn/jszl/83220/">IPv6系列基础篇（下）—邻居发现协议NDP - 锐捷网络</a>
-<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.reddit.com/r/androiddev/comments/k15y0a/disable_ipv6_over_wifi/">Disable IPv6 over wifi? : androiddev</a>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/">监控室内空气质量</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://grafana.com/grafana/dashboards/13654-s-m-a-r-t-dashboard/">S.M.A.R.T Dashboard | Grafana Labs</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
                 
               </div>
@@ -315,7 +347,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%95%B0%E7%A0%81/">#数码</a>
+        <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
       
     </div>
   
@@ -327,8 +359,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>安卓对指定WiFi禁用IPv6</div>
-      <div>https://www.yooo.ltd/2022/12/17/安卓对指定WiFi禁用IPv6/</div>
+      <div>用Prometheus监控硬盘SMART信息</div>
+      <div>https://www.yooo.ltd/2022/12/23/用Prometheus监控硬盘SMART信息/</div>
     </div>
     <div class="license-meta">
       
@@ -340,7 +372,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年12月17日</div>
+          <div>2022年12月23日</div>
         </div>
       
       
@@ -372,18 +404,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/" title="用Prometheus监控硬盘SMART信息">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">用Prometheus监控硬盘SMART信息</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/" title="改善室内空气质量-加湿篇">
-                        <span class="hidden-mobile">改善室内空气质量-加湿篇</span>
+                      <a href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/" title="安卓对指定WiFi禁用IPv6">
+                        <span class="hidden-mobile">安卓对指定WiFi禁用IPv6</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -467,6 +493,19 @@
 
   
 
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('mermaid' in window) {
+        mermaid.init();
+      }
+    });
+  });
+</script>
 
 
 
