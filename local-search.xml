@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>macOS安装lxml报错&#39;Python.h&#39; file not found</title>
+    <link href="/2023/01/16/install-lxml-on-mac/"/>
+    <url>/2023/01/16/install-lxml-on-mac/</url>
+    
+    <content type="html"><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><blockquote><p>macOS环境：Ventura 13.0 (Apple Silicon)</p><p>Python版本：3.9.6</p></blockquote><p>lxml是笔者常用的html内容解析库。但笔者在macOS上安装lxml时碰到了如下报错：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pip3 install lxml<br></code></pre></td></tr></table></figure><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs txt">...<br>src/lxml/etree.c:96:10: fatal error: &#x27;Python.h&#x27; file not found<br>      #include &quot;Python.h&quot;<br>               ^~~~~~~~~~<br>...<br></code></pre></td></tr></table></figure><p>这篇文章简单记录下解决方案。</p><h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol><li><p>找到<code>Python.h</code>文件所处位置：</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo find / -iname &quot;Python.h&quot;<br></code></pre></td></tr></table></figure><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs txt">...<br>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers/Python.h<br>/Library/umad/Python.framework/Versions/3.8/include/python3.8/Python.h<br>/Library/Crypt/Python.framework/Versions/3.8/include/python3.8/Python.h<br>...<br></code></pre></td></tr></table></figure></li><li><p>笔者使用的Python版本为3.9，将对应版本的文件夹设置到环境变量中：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> C_INCLUDE_PATH=/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers/<br></code></pre></td></tr></table></figure></li><li><p>重新安装，搞定</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">...<br>Successfully built lxml<br>Installing collected packages: lxml<br>Successfully installed lxml-4.9.2<br></code></pre></td></tr></table></figure></li></ol><h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><p><a href="https://stackoverflow.com/questions/35778495/fatal-error-python-h-file-not-found-while-installing-opencv">macos - fatal error: ‘Python.h’ file not found while installing opencv - Stack Overflow</a></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Python</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>2022年度总结</title>
     <link href="/2022/12/31/2022-annual-summary/"/>
     <url>/2022/12/31/2022-annual-summary/</url>
