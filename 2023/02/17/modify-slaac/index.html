@@ -16,12 +16,12 @@
   <meta name="author" content="OrangeWolf">
   <meta name="keywords" content="">
   
-    <meta name="description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源MAC地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问">
+    <meta name="description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源IP地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问题">
 <meta property="og:type" content="article">
 <meta property="og:title" content="偷天换日2.0：篡改光猫的IPv6地址自动分配">
 <meta property="og:url" content="https://www.yooo.ltd/2023/02/17/modify-slaac/index.html">
 <meta property="og:site_name" content="OrangeWolf的博客">
-<meta property="og:description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源MAC地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问">
+<meta property="og:description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源IP地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问题">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-default.svg">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230217094605079.webp">
@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210347954.webp">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210512956.webp">
 <meta property="article:published_time" content="2023-02-17T00:46:38.000Z">
-<meta property="article:modified_time" content="2023-02-19T13:28:29.593Z">
+<meta property="article:modified_time" content="2023-02-19T13:50:39.037Z">
 <meta property="article:author" content="OrangeWolf">
 <meta property="article:tag" content="网络">
 <meta property="article:tag" content="IPv6">
@@ -295,7 +295,7 @@
 <ul>
 <li>如何将一台双口linux设备变成一台交换机</li>
 <li>如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包</li>
-<li>如何修改IPv6数据包中的来源MAC地址并发送以太网帧</li>
+<li>如何修改IPv6数据包中的来源IP地址并发送以太网帧</li>
 </ul>
 </blockquote>
 <p>下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：</p>
