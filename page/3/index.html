@@ -223,6 +223,48 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" target="_self">
+          如何在Golang里实现一个高性能的TTLMap
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" target="_self">
+        <div>
+          前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-24 18:17" pubdate>
+              2020-05-24
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Golang/">#Golang</a>
+            
+              <a href="/tags/map/">#map</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2020/05/02/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/" target="_self">
           Django多数据库历险记（番外）
         </a>
@@ -614,50 +656,6 @@
               <a href="/tags/API-GATEWAY/">#API GATEWAY</a>
             
               <a href="/tags/Docker/">#Docker</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2019/05/23/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%8D%95%E6%8D%89%E5%BC%82%E5%B8%B8/" target="_self">
-          Django视图函数捕捉异常
-        </a>
-      </h1>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2019/05/23/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%8D%95%E6%8D%89%E5%BC%82%E5%B8%B8/" target="_self">
-        <div>
-          前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2019-05-23 18:56" pubdate>
-              2019-05-23
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
-            
-              <a href="/tags/Python/">#Python</a>
-            
-              <a href="/tags/Django/">#Django</a>
             
           </div>
         
