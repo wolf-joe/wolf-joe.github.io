@@ -4,6 +4,27 @@
   
   
   <entry>
+    <title>将txt格式电子书转换为kindle格式</title>
+    <link href="/2023/12/27/txt-to-kindle/"/>
+    <url>/2023/12/27/txt-to-kindle/</url>
+    
+    <content type="html"><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>笔者有时候会阅读一些txt格式的电子书；同时为了护眼，笔者倾向于在kindle上阅读电子书。但作为纯文本格式，txt在kindle上的阅读体验比较一般：字体无法随意调节、缺少目录。为了解决这个问题，笔者研究了一套转换流程，用于将txt格式的电子书转换为kindle的azw3格式（也适用于其它电子书格式），以获得更好的阅读体验。</p><table><thead><tr><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227103239489.webp" alt="转换前"></th><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227103414900.webp" alt="转换后"></th><th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227103329881.webp" alt="转换后"></th></tr></thead><tbody><tr><td>转换前</td><td>转换后</td><td>转换后</td></tr></tbody></table><h1 id="处理txt文件"><a href="#处理txt文件" class="headerlink" title="处理txt文件"></a>处理txt文件</h1><p>这部分处理的核心是将txt文件转换为带格式的html文件。为此，我们需要准备一个带正则表达式替换功能的文本编辑器，如<a href="https://notepad-plus-plus.org/">Notepad++</a>。</p><h2 id="转换二级标题"><a href="#转换二级标题" class="headerlink" title="转换二级标题"></a>转换二级标题</h2><p>首先将“第XX章”转换为二级标题，使用正则替换：</p><ul><li>查找目标：<code>^(第[一二三四五六七八九十百千0-9]+章.*)</code></li><li>替换为：<code>&lt;h2&gt;$1&lt;/h2&gt;</code></li></ul><p>点击“全部替换”按钮即可看到效果。</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102627720.webp" alt="image-20231227102627720"></p><h2 id="转换一级标题"><a href="#转换一级标题" class="headerlink" title="转换一级标题"></a>转换一级标题</h2><p>然后将“第XX卷”转换为一级标题，使用正则替换：</p><ul><li>查找目标：<code>^(第[一二三四五六七八九十百千0-9]+卷.*)</code></li><li>替换为：<code>&lt;h1&gt;$1&lt;/h1&gt;</code></li></ul><p>点击“全部替换”按钮即可看到效果。</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102642685.webp" alt="image-20231227102642685"></p><h2 id="转换换行"><a href="#转换换行" class="headerlink" title="转换换行"></a>转换换行</h2><p>然后将“换行”转换为html标签，使用正则替换：</p><ul><li>查找目标：<code>\r?\n</code></li><li>替换为：<code>&lt;/br&gt;\n</code></li></ul><p>点击“全部替换”按钮即可看到效果。</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102724977.webp" alt="image-20231227102724977"></p><h2 id="修改文件后缀为-html"><a href="#修改文件后缀为-html" class="headerlink" title="修改文件后缀为.html"></a>修改文件后缀为.html</h2><p>将文件的<code>.txt</code>后缀修改为<code>.html</code>，之后将文件用浏览器打开即可观察到效果。</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102734359.webp" alt="image-20231227102734359"></p><h1 id="转换电子书"><a href="#转换电子书" class="headerlink" title="转换电子书"></a>转换电子书</h1><p>这部分处理的核心是将html格式的电子书转换为azw3等格式。为此，我们需要准备一个功能完善的电子书管理软件，比如<a href="https://calibre-ebook.com/">calibre - E-book management</a>。</p><h2 id="加入calibre书库"><a href="#加入calibre书库" class="headerlink" title="加入calibre书库"></a>加入calibre书库</h2><p>将html文件拖入calibre，即可加入书库</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227105124993.webp" alt="image-20231227105124993"></p><h2 id="完善书籍元数据"><a href="#完善书籍元数据" class="headerlink" title="完善书籍元数据"></a>完善书籍元数据</h2><p>编辑书籍元数据，可完善书籍的书名&#x2F;作者等信息。</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102833783.webp" alt="image-20231227102833783"></p><h2 id="转换书籍格式"><a href="#转换书籍格式" class="headerlink" title="转换书籍格式"></a>转换书籍格式</h2><p>转换书籍为azw3，注意指定输出格式和目录结构：</p><ul><li>1级目录为<code>//h:h1</code></li><li>2级目录为<code>//h:h2</code></li></ul><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227103132931.webp" alt="image-20231227103132931"><br><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227102951708.webp" alt="image-20231227102951708"></p><h1 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h1><p>最后将书籍导入kindle即可，享受阅读吧~</p><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20231227105812486.webp" alt="image-20231227105812486"></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>生活</tag>
+      
+      <tag>多媒体</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>简易Docker日志持久化&amp;中心化方案 Loki</title>
     <link href="/2023/12/26/docker-log-center/"/>
     <url>/2023/12/26/docker-log-center/</url>
