@@ -1,0 +1,711 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 1234567891011var file *os.Filevar err errorfile, err &#x3D; os.Open(&quot;something.txt&quot;)if">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go语言error四问">
+<meta property="og:url" content="https://www.yooo.ltd/2021/07/17/Go%E8%AF%AD%E8%A8%80error%E5%9B%9B%E9%97%AE/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 1234567891011var file *os.Filevar err errorfile, err &#x3D; os.Open(&quot;something.txt&quot;)if">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2021/07/17/most_used_words.png">
+<meta property="article:published_time" content="2021-07-17T03:33:54.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Golang">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2021/07/17/most_used_words.png">
+  
+  
+  
+  <title>Go语言error四问 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Go语言error四问"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-07-17 11:33" pubdate>
+          2021年7月17日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Go语言error四问</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="什么是error"><a href="#什么是error" class="headerlink" title="什么是error"></a>什么是error</h1><p>Go语言没有像Java&#x2F;Python一样提供<code>try</code>&amp;<code>catch</code>这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> file *os.File<br><span class="hljs-keyword">var</span> err <span class="hljs-type">error</span><br>file, err = os.Open(<span class="hljs-string">&quot;something.txt&quot;</span>)<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-comment">// 处理打开文件时的错误，比如panic</span><br>    <span class="hljs-built_in">panic</span>(file)<br>&#125;<br><span class="hljs-comment">// 处理文件</span><br>fmt.Println(file.Stat())<br><span class="hljs-comment">// 处理关闭文件时的错误，比如直接忽略</span><br>_ = file.Close()<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/2021/07/17/most_used_words.png" srcset="/img/loading.gif" lazyload alt="words.png"></p>
+<p>Go在标准库里提供了一种错误表现形式：<code>error</code>接口，定义很简单：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> builtin<br><br><span class="hljs-comment">// The error built-in interface type is the conventional interface for</span><br><span class="hljs-comment">// representing an error condition, with the nil value representing no error.</span><br><span class="hljs-keyword">type</span> <span class="hljs-type">error</span> <span class="hljs-keyword">interface</span> &#123;<br>    Error() <span class="hljs-type">string</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>而Go提倡的组合机制让任何实现了<code>Error() string</code>方法的类型都可以视作<code>error</code>，这就带来了极大的灵活性。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Error1 <span class="hljs-type">string</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e Error1)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> <span class="hljs-type">string</span>(e) &#125;<br><br><span class="hljs-keyword">type</span> Error2 <span class="hljs-keyword">struct</span>&#123; msg <span class="hljs-type">string</span> &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *Error2)</span></span> SetMsg(msg <span class="hljs-type">string</span>) &#123; e.msg = msg &#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *Error2)</span></span> Error() <span class="hljs-type">string</span>     &#123; <span class="hljs-keyword">return</span> e.msg &#125;<br><br><span class="hljs-keyword">var</span> err1 <span class="hljs-type">error</span> = Error1(<span class="hljs-string">&quot;hello&quot;</span>) <span class="hljs-comment">// Error1可以被视为Error</span><br><span class="hljs-keyword">var</span> err2 <span class="hljs-type">error</span> = &amp;Error2&#123;msg: <span class="hljs-string">&quot;world&quot;</span>&#125; <span class="hljs-comment">// Error2也可以被视为Error</span><br></code></pre></td></tr></table></figure>
+
+<h1 id="如何创建error"><a href="#如何创建error" class="headerlink" title="如何创建error"></a>如何创建error</h1><p>Go原生提供了两种方式来创建一个<code>error</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> err1 <span class="hljs-type">error</span> = errors.New(<span class="hljs-string">&quot;error msg&quot;</span>)<br><span class="hljs-keyword">var</span> err2 <span class="hljs-type">error</span> = fmt.Errorf(<span class="hljs-string">&quot;error msg: %s&quot;</span>, <span class="hljs-string">&quot;hello&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>前者比较简单，单纯地创建了一个<code>string</code>的封装类型：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> errors<br><br><span class="hljs-comment">// New returns an error that formats as the given text.</span><br><span class="hljs-comment">// Each call to New returns a distinct error value even if the text is identical.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New</span><span class="hljs-params">(text <span class="hljs-type">string</span>)</span></span> <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> &amp;errorString&#123;text&#125; &#125;<br><br><span class="hljs-comment">// errorString is a trivial implementation of error.</span><br><span class="hljs-keyword">type</span> errorString <span class="hljs-keyword">struct</span>&#123; s <span class="hljs-type">string</span> &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *errorString)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> e.s &#125;<br></code></pre></td></tr></table></figure>
+
+<p>后者在示例代码中也很简单，可以看成<code>fmt.Sprintf</code>+<code>errors.New</code>。当然Go1.13做了点小改进，下文会提到。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Go1.12源码</span><br><span class="hljs-keyword">package</span> fmt<br><br><span class="hljs-comment">// Errorf formats according to a format specifier and returns the string</span><br><span class="hljs-comment">// as a value that satisfies error.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Errorf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> <span class="hljs-type">error</span> &#123;<br>    <span class="hljs-keyword">return</span> errors.New(Sprintf(format, a...))<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但这两种方式还是太简陋了，毕竟携带的只是字符串信息。所以在实际应用场景中，更常见的做法是自定义错误类型：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> BizError <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 自定义业务错误</span><br>    Code <span class="hljs-type">int32</span> <span class="hljs-comment">// 错误码</span><br>    Msg  <span class="hljs-type">string</span> <span class="hljs-comment">// 错误提示</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *BizError)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> fmt.Sprintf(<span class="hljs-string">&quot;BizError&lt;%d&gt;: %s&quot;</span>, e.Code, e.Msg) &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewBizErr</span><span class="hljs-params">(code <span class="hljs-type">int32</span>, msg <span class="hljs-type">string</span>)</span></span> <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> &amp;BizError&#123;Code: code, Msg: msg&#125; &#125;<br></code></pre></td></tr></table></figure>
+
+<p>当然，为某些特定场景设计的公用错误（如标准库里的<code>io.EOF</code>）也会使用<code>errors.New</code>，这些错误的意思也足以用简短的字符串描述。</p>
+<h1 id="如何向上游传递error"><a href="#如何向上游传递error" class="headerlink" title="如何向上游传递error"></a>如何向上游传递error</h1><p>由于Go中的错误一般是通过<code>error</code>接口以返回值的形式传递给上游的，且一般不会包含函数调用栈信息，所以在给上游传递<code>error</code>时就需要考虑附加上下文信息以便排查问题，特别是将下游的<code>error</code>传递给上游时。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    addr, timeout := <span class="hljs-string">&quot;127.0.0.1:80&quot;</span>, time.Second<br>        <span class="hljs-comment">// do something</span><br>    <span class="hljs-keyword">if</span> ... &#123;<br>        timeout = time.Second * <span class="hljs-number">3</span><br>    &#125;<br>    conn, err := net.DialTimeout(<span class="hljs-string">&quot;tcp&quot;</span>, addr, timeout)<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> err<br>    &#125;<br>    _ = conn.Close()<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>比如这个简单的函数，如果上游<strong>有必要</strong>感知出现错误时的上下文信息（比如超时配置），应该怎么处理呢？</p>
+<p>一种简单的方法是将错误信息重新拼装一下，比如：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-comment">// 对error来说，%s会调用.Error()方法</span><br>        <span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dial80 timeout %s: %s&quot;</span>, timeout, err)<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>另一种方法是将<code>error</code>再包装一层：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> dial80Err <span class="hljs-keyword">struct</span> &#123;<br>    timeout time.Duration<br>    err     <span class="hljs-type">error</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *dial80Err)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> fmt.Sprintf(<span class="hljs-string">&quot;dial80 timeout %s: %s&quot;</span>, e.timeout, e.err) &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> &amp;dial80Err&#123;timeout: timeout, err: err&#125;<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但两种方法都并不完美。前者会丢失<code>error</code>中除<code>.Error()</code>返回值外的其它信息，后者用起来很繁琐，有没有更好的方法呢？当然是有的。Go1.13引入了<em>Error wrapping</em>的概念，通过扩展<code>fmt.Errorf</code>来包装<code>error</code>：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">dial80</span><span class="hljs-params">()</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dial80 timeout %s: %w&quot;</span>, timeout, err)<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意其中<code>%w</code>占位符，<code>fmt.Errorf</code>会特殊处理这个占位符，如果存在这个占位符，<code>fmt.Errorf</code>会将其对应的<code>error</code>与错误信息一起放入一个新的结构体里：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Go1.13源码</span><br><span class="hljs-keyword">package</span> fmt<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Errorf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> <span class="hljs-type">error</span> &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> p.wrappedErr == <span class="hljs-literal">nil</span> &#123;<br>        err = errors.New(s)<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        err = &amp;wrapError&#123;s, p.wrappedErr&#125;<br>    &#125;<br>    ...<br>&#125;<br><br><span class="hljs-keyword">type</span> wrapError <span class="hljs-keyword">struct</span> &#123;<br>    msg <span class="hljs-type">string</span><br>    err <span class="hljs-type">error</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *wrapError)</span></span> Error() <span class="hljs-type">string</span> &#123; <span class="hljs-keyword">return</span> e.msg &#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(e *wrapError)</span></span> Unwrap() <span class="hljs-type">error</span> &#123; <span class="hljs-keyword">return</span> e.err &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这种方法综合了前两种的优点，即使用便捷又不会丢失信息。所以在Go1.13之后，非常推荐使用<code>%w</code>占位符来为错误附加上下文信息并传递给上游。</p>
+<h1 id="如何分析下游传递的error"><a href="#如何分析下游传递的error" class="headerlink" title="如何分析下游传递的error"></a>如何分析下游传递的error</h1><p>当我们得到下游传递的<code>error</code>且需要根据其类型、属性做进一步操作时，该怎么办呢？（当然，前提是下游不能使用<code>errors.New</code>或<code>fmt.Errorf</code>+<code>%s</code>来传递错误，笑）</p>
+<p>由于下游可能传递<code>wrapError</code>给上游，所以上游并不能直接对<code>error</code>进行比较运算（<code>==</code>）、类型断言，而是要用<code>errors</code>包提供的API进行分析。</p>
+<p>比如，用<code>errors.Is</code>替代<code>==</code>运算符来判断两个<code>error</code>是否相等：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go">myRead := <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> ... &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, fmt.Errorf(<span class="hljs-string">&quot;myRead: %w&quot;</span>, io.EOF)<br>    &#125;<br>    ...<br>&#125;<br>buf, err := myRead()<br><span class="hljs-keyword">if</span> errors.Is(err, io.EOF) &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>又比如，用<code>errors.As</code>替代<code>.(type)</code>来做类型断言：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs go">err := dial80()<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-keyword">var</span> opErr *net.OpError<br>    <span class="hljs-comment">// 判断err是否为超时错误</span><br>    <span class="hljs-keyword">if</span> ok := errors.As(err, &amp;opErr); ok &amp;&amp; opErr.Timeout() &#123;<br>        <span class="hljs-comment">// do something</span><br>    &#125;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="github-com-x2F-pkg-x2F-errors"><a href="#github-com-x2F-pkg-x2F-errors" class="headerlink" title="github.com&#x2F;pkg&#x2F;errors"></a>github.com&#x2F;pkg&#x2F;errors</h1><p>标准库中<code>errors.Is</code>和<code>errors.As</code>两个函数需要频繁使用性能较差的反射，<code>errors.As</code>使用起来也很繁琐，所以如果有条件的话可以使用功能更丰富的<a target="_blank" rel="noopener" href="https://github.com/pkg/errors/">github.com&#x2F;pkg&#x2F;errors</a>包，例子如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// import github.com/pkg/errors</span><br>myRead := <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> ... &#123;<br>        <span class="hljs-comment">// 效果类似 fmt.Errorf(&quot;myRead: %w&quot;, io.EOF)</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, errors.WithMessage(io.EOF, <span class="hljs-string">&quot;myRead&quot;</span>)<br>    &#125;<br>    ...<br>&#125;<br>buf, err := myRead()<br><span class="hljs-keyword">if</span> errors.Is(err, io.EOF) &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br><span class="hljs-comment">// 谨慎使用</span><br><span class="hljs-keyword">if</span> errors.Cause(err) == io.EOF &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>使用时在下游通过<code>errors.WithMessage</code>&#x2F;<code>errors.WithMessagef</code>包装错误，在上游通过<code>errors.Cause</code>获取被包装的原始错误。不过<code>errors.Cause</code>不能穿透被<code>fmt.Errorf</code>+<code>%w</code>包装的<code>wrapError</code>，所以使用时一定要谨慎。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>Go中的<code>error</code>是一个只需实现<code>Error() string</code>方法的接口。</li>
+<li>除非是公用错误，否则尽量使用自定义错误类型来生成错误，而不是使用<code>errors.New</code>和<code>fmt.Errorf</code>。</li>
+<li>使用<code>fmt.Errorf</code>与<code>%w</code>来为错误附加上下文信息。</li>
+<li>使用<code>errors.Is</code>、<code>errors.As</code>来分析错误。</li>
+<li>如有条件，可使用更优秀的<a target="_blank" rel="noopener" href="https://github.com/pkg/errors/">github.com&#x2F;pkg&#x2F;errors</a>包替代标准库的<code>errors</code>包和<code>fmt.Errorf</code>。</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Golang/">#Golang</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Go语言error四问</div>
+      <div>https://www.yooo.ltd/2021/07/17/Go语言error四问/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年7月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/" title="用Afterburner和Grafana监控PC性能">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">用Afterburner和Grafana监控PC性能</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/05/fluent-python-chap-5/" title="读《流畅的Python》：一等函数">
+                        <span class="hidden-mobile">读《流畅的Python》：一等函数</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

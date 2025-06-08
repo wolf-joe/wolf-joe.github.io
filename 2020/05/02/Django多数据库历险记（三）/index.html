@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前情提要这篇文章基于前两篇文章Django多数据库历险记（一）、Django多数据库历险记（二），将继续讲述关于Django多数据库的历险记。好吧其实这篇文章的内容已经和Django多数据库没有太大关系了……只是为了和前两篇文章的命名保持一致才取了这个标题。 秘技：避免物理外键约束 对于数据库层面的物理外键，国内互联网上的声音普遍一致，那就是不推荐使用（比如这个知乎问题），公司的DBA也持这个态度">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django多数据库历险记（番外）">
+<meta property="og:url" content="https://www.yooo.ltd/2020/05/02/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前情提要这篇文章基于前两篇文章Django多数据库历险记（一）、Django多数据库历险记（二），将继续讲述关于Django多数据库的历险记。好吧其实这篇文章的内容已经和Django多数据库没有太大关系了……只是为了和前两篇文章的命名保持一致才取了这个标题。 秘技：避免物理外键约束 对于数据库层面的物理外键，国内互联网上的声音普遍一致，那就是不推荐使用（比如这个知乎问题），公司的DBA也持这个态度">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/05/02/document.webp">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/05/02/sqlmigrate.webp">
+<meta property="article:published_time" content="2020-05-02T07:45:27.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Web开发">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Django">
+<meta property="article:tag" content="多数据库">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/05/02/document.webp">
+  
+  
+  
+  <title>Django多数据库历险记（番外） - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Django多数据库历险记（番外）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-05-02 15:45" pubdate>
+          2020年5月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Django多数据库历险记（番外）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h1><p>这篇文章基于前两篇文章<a href="/2020/04/23/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Django多数据库历险记（一）</a>、<a href="/2020/04/25/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89">Django多数据库历险记（二）</a>，将继续讲述关于Django多数据库的历险记。<br>好吧其实这篇文章的内容已经和Django多数据库没有太大关系了……只是为了和前两篇文章的命名保持一致才取了这个标题。</p>
+<h1 id="秘技：避免物理外键约束"><a href="#秘技：避免物理外键约束" class="headerlink" title="秘技：避免物理外键约束"></a>秘技：避免物理外键约束</h1><p><a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.db_constraint"><img src="/images/2020/05/02/document.webp" srcset="/img/loading.gif" lazyload alt="document.webp"></a></p>
+<p>对于数据库层面的物理外键，国内互联网上的声音普遍一致，那就是不推荐使用（比如这个<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/39062169">知乎问题</a>），公司的DBA也持这个态度。既然如此，就应该想办法在执行<code>Migrate</code>操作时避免产生物理外键了。<br>幸运的时，从很早开始（不晚于<code>Django1.8</code>）Django就提供了直接的手段来避免产生物理外键：<code>db_constraint</code>属性。从Django DB模块的源码（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/db/backends/base/schema.py">schema.py</a>）中可以看出，Django在创建Model、添加&#x2F;修改Field时都会通过<code>db_constraint</code>属性的值来决定是否加入物理外键约束。实验一下（省略内容见<a href="/2020/04/23/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">上一篇文章</a>）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># app_1/models.py</span><br><span class="hljs-comment"># ... 略</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ChildModel1</span>(models.Model):<br>    name = models.CharField(max_length=<span class="hljs-number">255</span>)<br>    parent1 = models.ForeignKey(<span class="hljs-string">&quot;Model1&quot;</span>, on_delete=models.CASCADE, db_constraint=<span class="hljs-literal">False</span>)<br>    parent2 = models.ForeignKey(<span class="hljs-string">&quot;app_2.Model2&quot;</span>, on_delete=models.CASCADE, db_constraint=<span class="hljs-literal">False</span>)<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py makemigrations</span><br>Migrations for &#x27;app_1&#x27;:<br>  app_1/migrations/0002_childmodel1.py<br>    - Create model ChildModel1<br><span class="hljs-meta prompt_">$</span><span class="language-bash"></span><br><span class="language-bash">$ python manage.py migrate app_1 --database db_1</span><br>Operations to perform:<br>  Apply all migrations: app_1<br>Running migrations:<br>  Applying app_2.0001_initial... OK<br>  Applying app_1.0002_childmodel1... OK<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">select</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">from</span> django_migrations<br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br><span class="hljs-operator">|</span> id <span class="hljs-operator">|</span> app   <span class="hljs-operator">|</span> name             <span class="hljs-operator">|</span> applied                    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br><span class="hljs-operator">|</span> <span class="hljs-number">1</span>  <span class="hljs-operator">|</span> app_1 <span class="hljs-operator">|</span> <span class="hljs-number">0001</span>_initial     <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-operator">-</span>xx<span class="hljs-operator">-</span>xx xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> <span class="hljs-number">3</span>  <span class="hljs-operator">|</span> app_2 <span class="hljs-operator">|</span> <span class="hljs-number">0001</span>_initial     <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-operator">-</span>xx<span class="hljs-operator">-</span>xx xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> <span class="hljs-number">3</span>  <span class="hljs-operator">|</span> app_1 <span class="hljs-operator">|</span> <span class="hljs-number">0002</span>_childmodel1 <span class="hljs-operator">|</span> <span class="hljs-number">2020</span><span class="hljs-operator">-</span>xx<span class="hljs-operator">-</span>xx xx:xx:xx.xxxxxx <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----+-------+------------------+----------------------------+</span><br>mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables<br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> Tables_in_db_1    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> app_1_childmodel1 <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> app_1_model1      <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> django_migrations <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br>mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> <span class="hljs-keyword">create</span> <span class="hljs-keyword">table</span> app_1_model1<br><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> `app_1_childmodel1` (<br>  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span> AUTO_INCREMENT,<br>  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">COLLATE</span> utf8mb4_unicode_ci <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  `parent1_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  `parent2_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>  <span class="hljs-keyword">PRIMARY</span> KEY (`id`),<br>  KEY `app_1_childmodel1_parent1_id_8dfbb0b1` (`parent1_id`),<br>  KEY `app_1_childmodel1_parent2_id_db0fdb2e` (`parent2_id`)<br>) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_unicode_ci<br></code></pre></td></tr></table></figure>
+
+<h1 id="秘技：migrations转SQL语句"><a href="#秘技：migrations转SQL语句" class="headerlink" title="秘技：migrations转SQL语句"></a>秘技：<code>migrations</code>转SQL语句</h1><p><a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/2.2/ref/django-admin/#django-admin-sqlmigrate"><img src="/images/2020/05/02/sqlmigrate.webp" srcset="/img/loading.gif" lazyload alt="sqlmigrate.webp"></a></p>
+<p>在某些特殊场景下（比如处于安全考量），Django自带的<code>migrate</code>命令可能不被允许运行。如果此时还想使用Django的数据迁移功能，则可以使用<code>sqlmigrate</code>命令来将创建好的迁移方案转换为SQL语句。比如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py sqlmigrate app_1 0001_initial --database db_1</span><br>BEGIN;<br>--<br>-- Create model Model1<br>--<br>CREATE TABLE `app_1_model1` (`id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY, `name` varchar(255) NOT NULL);<br>COMMIT;<br></code></pre></td></tr></table></figure>
+
+<p>不过这个命令并一次只能转换一条迁移方案，所以我们可以参考魔改一下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># my_sqlmigrate.py</span><br><span class="hljs-comment">#!/usr/bin/env python</span><br><span class="hljs-keyword">import</span> os<br><br><span class="hljs-keyword">import</span> django<br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.core.management <span class="hljs-keyword">import</span> execute_from_command_line, CommandParser<br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> DEFAULT_DB_ALIAS<br><span class="hljs-keyword">from</span> django.db.migrations.loader <span class="hljs-keyword">import</span> MigrationLoader<br><br>os.environ.setdefault(<span class="hljs-string">&#x27;DJANGO_SETTINGS_MODULE&#x27;</span>, <span class="hljs-string">&#x27;multi_db.settings&#x27;</span>)<br>django.setup()<br><br>parser = CommandParser()<br>parser.add_argument(<br>    <span class="hljs-string">&#x27;app_label&#x27;</span>, nargs=<span class="hljs-string">&#x27;?&#x27;</span>,<br>    <span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;App label of an application to synchronize the state.&#x27;</span>,<br>)<br>app_label = parser.parse_args().app_label<br><br>loader = MigrationLoader(<span class="hljs-literal">None</span>)  <span class="hljs-comment"># 获取所有migration</span><br>db = settings.DB_ROUTING.get(app_label, DEFAULT_DB_ALIAS)<br><span class="hljs-comment"># 遍历app下所有migration</span><br>migrations = <span class="hljs-built_in">sorted</span>(name <span class="hljs-keyword">for</span> app, name <span class="hljs-keyword">in</span> loader.disk_migrations <span class="hljs-keyword">if</span> app == app_label)<br><span class="hljs-keyword">for</span> migration <span class="hljs-keyword">in</span> migrations:<br>    argv = [<span class="hljs-string">&quot;manage.py&quot;</span>, <span class="hljs-string">&quot;sqlmigrate&quot;</span>, <span class="hljs-string">&quot;--database&quot;</span>, db, app_label, migration]<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\n-- python &quot;</span> + <span class="hljs-string">&quot; &quot;</span>.join(argv))<br>    execute_from_command_line(argv)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;-- my_sqlmigrate complete&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>现在可以一次性转换所有迁移方案了：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python my_sqlmigrate.py app_1</span><br><br>-- python manage.py sqlmigrate --database db_1 app_1 0001_initial<br>BEGIN;<br>--<br>-- Create model Model1<br>--<br>CREATE TABLE `app_1_model1` (`id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY, `name` varchar(255) NOT NULL);<br>COMMIT;<br><br>-- python manage.py sqlmigrate --database db_1 app_1 0002_childmodel1<br>BEGIN;<br>--<br>-- Create model ChildModel1<br>--<br>CREATE TABLE `app_1_childmodel1` (`id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY, `name` varchar(255) NOT NULL, `parent1_id` integer NOT NULL, `parent2_id` integer NOT NULL);<br>CREATE INDEX `app_1_childmodel1_parent1_id_8dfbb0b1` ON `app_1_childmodel1` (`parent1_id`);<br>CREATE INDEX `app_1_childmodel1_parent2_id_db0fdb2e` ON `app_1_childmodel1` (`parent2_id`);<br>COMMIT;<br>-- my_sqlmigrate complete<br></code></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>文章的实用性可能谈不上有多高，只能说聊以自慰。虽然我在第一篇文章的开头说<code>对多数据库的支持……坑无处不在</code>，但在深入了解之后，我还是被Django完善的架构给折服了：不愧是最优秀的Python Web框架，我还是too young, too simple。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+        <a href="/tags/Django/">#Django</a>
+      
+        <a href="/tags/%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93/">#多数据库</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Django多数据库历险记（番外）</div>
+      <div>https://www.yooo.ltd/2020/05/02/Django多数据库历险记（三）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年5月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" title="如何在Golang里实现一个高性能的TTLMap">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">如何在Golang里实现一个高性能的TTLMap</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/04/25/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/" title="Django多数据库历险记（二）">
+                        <span class="hidden-mobile">Django多数据库历险记（二）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

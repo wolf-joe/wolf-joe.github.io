@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python中的函数参数与参数传递">
+<meta property="og:url" content="https://www.yooo.ltd/2020/07/04/python-parameters-and-arguments/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/07/04/list.webp">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/07/04/tuple.webp">
+<meta property="article:published_time" content="2020-07-04T02:42:40.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/07/04/list.webp">
+  
+  
+  
+  <title>Python中的函数参数与参数传递 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Python中的函数参数与参数传递"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-07-04 10:42" pubdate>
+          2020年7月4日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          31 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Python中的函数参数与参数传递</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>注：本篇文章使用CPython3.6</p>
+</blockquote>
+<h1 id="定位参数、关键字参数"><a href="#定位参数、关键字参数" class="headerlink" title="定位参数、关键字参数"></a>定位参数、关键字参数</h1><p>在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（<code>parameters</code>），以下简称<strong>形参</strong>；当调用一个函数时，调用者传递给该函数的值叫做实际参数（<code>arguments</code>），以下简称<strong>实参</strong>。</p>
+<p>根据<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/inspect.html">inspect模块</a>的描述，Python的形参可以分成如下五类：</p>
+<ul>
+<li><em>POSITIONAL_OR_KEYWORD</em>，默认类型，可通过定位&#x2F;关键字实参传递；</li>
+<li><em>VAR_POSITIONAL</em>，定位形参元祖，如<code>*args</code>，捕获剩下的定位实参；</li>
+<li><em>KEYWORD_ONLY</em>，在<code>*</code>或<code>*args</code>之后的形参，只能通过关键字实参传递；</li>
+<li><em>VAR_KEYWORD</em>，关键字形参字典，如<code>**kwargs</code>，捕获剩下的关键字实参；</li>
+<li><em>POSITIONAL_ONLY</em>，只能通过定位实参传递，Python语法暂不支持，只有一些C函数（如<code>divmod</code>）使用。</li>
+</ul>
+<p>比如定义如下函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *args</span>):<br>    <span class="hljs-built_in">print</span>(a, args)<br></code></pre></td></tr></table></figure>
+
+<p>其中形参<code>a</code>属于<em>POSITIONAL_OR_KEYWORD</em>，可通过定位&#x2F;关键字实参传递：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>)<br><span class="hljs-number">1</span> ()<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(a=<span class="hljs-number">1</span>)<br><span class="hljs-number">1</span> ()<br></code></pre></td></tr></table></figure>
+
+<p>满足形参<code>a</code>之后，剩余的定位实参将被<code>*args</code>以元组的形式捕获：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br><span class="hljs-number">1</span> (<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br></code></pre></td></tr></table></figure>
+
+<p>再比如定义如下函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *args, b, **kwargs</span>):<br>    <span class="hljs-built_in">print</span>(a, args, b, kwargs)<br></code></pre></td></tr></table></figure>
+
+<p>形参<code>b</code>属于<em>KEYWORD_ONLY</em>，因为它在<code>*args</code>之后定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>)<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;&#125;<br></code></pre></td></tr></table></figure>
+
+<p>满足形参<code>b</code>之后，剩余的关键字实参将被<code>**kwargs</code>以字典的形式捕获：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>, c=<span class="hljs-number">3</span>)<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;<span class="hljs-string">&#x27;c&#x27;</span>: <span class="hljs-number">3</span>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果想定义<em>KEYWORD_ONLY</em>形参，但不想使用<em>VAR_POSITIONAL</em>形参（即<code>*args</code>），则可以在定义函数时单独的<code>*</code>号：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, *, b</span>):<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(a, b)<br>...<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, b=<span class="hljs-number">2</span>)<br><span class="hljs-number">1</span> <span class="hljs-number">2</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)<br>Traceback (most recent call last):<br>  File <span class="hljs-string">&quot;&lt;stdin&gt;&quot;</span>, line <span class="hljs-number">1</span>, <span class="hljs-keyword">in</span> &lt;module&gt;<br>TypeError: foo() takes <span class="hljs-number">1</span> positional argument but <span class="hljs-number">2</span> were given<br></code></pre></td></tr></table></figure>
+
+<h1 id="参数默认值"><a href="#参数默认值" class="headerlink" title="参数默认值"></a>参数默认值</h1><p>在定义函数时，我们可以给形参指定默认值，比如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs</span>):<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(a, args, b, kwargs)<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">1</span> () <span class="hljs-number">2</span> &#123;&#125;<br></code></pre></td></tr></table></figure>
+
+<p>需要注意的是，形参的默认值存储在函数对象的<code>__defaults__</code>和<code>__kwdefaults__</code>属性里，而不是每次调用函数时动态生成，所以最好不要用可变对象充当形参的默认值。下面的例子就是反面教材：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">param=[]</span>):<br><span class="hljs-meta">... </span>    param.append(<span class="hljs-number">1</span>)<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(param), param)<br><span class="hljs-meta">... </span><br><span class="hljs-meta">&gt;&gt;&gt; </span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(foo.__defaults__[<span class="hljs-number">0</span>]), foo.__defaults__[<span class="hljs-number">0</span>])<br><span class="hljs-number">140009169940232</span> []<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">140009169940232</span> [<span class="hljs-number">1</span>]<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo()<br><span class="hljs-number">140009169940232</span> [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>]<br></code></pre></td></tr></table></figure>
+
+<h1 id="获取关于参数的信息"><a href="#获取关于参数的信息" class="headerlink" title="获取关于参数的信息"></a>获取关于参数的信息</h1><p><strong>内省</strong>指程序在运行时检查对象类型的一种能力，本节介绍的内容就属于函数内省的范围。假设有如下函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs</span>):<br>    c = a<br>    <span class="hljs-built_in">print</span>(c, args, b, kwargs)<br></code></pre></td></tr></table></figure>
+
+<p>就像上一节中提到的，<code>foo</code>函数有<code>__defaults__</code>、<code>__kwdefaults__</code>属性，用于记录定位参数和关键字参数的默认值；有<code>__code__</code>属性，存储函数编译后的字节码信息，其中就包括参数的名称。通过这些属性，我们可以获取关于函数参数的信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__defaults__<br>(<span class="hljs-number">1</span>,)<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__kwdefaults__<br>&#123;<span class="hljs-string">&#x27;b&#x27;</span>: <span class="hljs-number">2</span>&#125;<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_varnames  <span class="hljs-comment"># 参数&amp;局部变量名称</span><br>(<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>, <span class="hljs-string">&#x27;args&#x27;</span>, <span class="hljs-string">&#x27;kwargs&#x27;</span>, <span class="hljs-string">&#x27;c&#x27;</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_argcount  <span class="hljs-comment"># 定位参数数量</span><br><span class="hljs-number">1</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>foo.__code__.co_kwonlyargcount  <span class="hljs-comment"># 仅限关键字参数数量</span><br><span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
+
+<p>但这样还是太原始、太不方便了。幸好，我们有更好的选择：Python内置的<code>inspect</code>模块。下面这个例子就提取了<code>foo</code>函数的签名，然后获取函数的参数信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">from</span> inspect <span class="hljs-keyword">import</span> signature<br><span class="hljs-meta">&gt;&gt;&gt; </span>sig = signature(foo)<br><span class="hljs-meta">&gt;&gt;&gt; </span>sig<br>&lt;Signature (a=<span class="hljs-number">1</span>, *args, b=<span class="hljs-number">2</span>, **kwargs)&gt;<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">for</span> name, param <span class="hljs-keyword">in</span> sig.parameters.items():<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;<span class="hljs-built_in">str</span>(param.kind):&lt;<span class="hljs-number">21</span>&#125;</span> : <span class="hljs-subst">&#123;param.name:&lt;<span class="hljs-number">6</span>&#125;</span> = <span class="hljs-subst">&#123;param.default&#125;</span>&#x27;</span>)<br><span class="hljs-meta">... </span><br>POSITIONAL_OR_KEYWORD : a      = <span class="hljs-number">1</span><br>VAR_POSITIONAL        : args   = &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;inspect._empty&#x27;</span>&gt;<br>KEYWORD_ONLY          : b      = <span class="hljs-number">2</span><br>VAR_KEYWORD           : kwargs = &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;inspect._empty&#x27;</span>&gt;<br></code></pre></td></tr></table></figure>
+
+<p>同时，<code>inspect.Signature</code>对象还有一个<code>bind</code>方法，该方法可以将一些对象绑定到函数的形参上，就像Python解释器在调用函数时做的那样。通过这种方法，框架可以在真正执行函数前验证参数，就像下面这个例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>bound = sig.bind(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, c=<span class="hljs-number">3</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">for</span> name, value <span class="hljs-keyword">in</span> bound.arguments.items():<br><span class="hljs-meta">... </span>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;name:&lt;<span class="hljs-number">6</span>&#125;</span> = <span class="hljs-subst">&#123;value&#125;</span>&#x27;</span>)<br><span class="hljs-meta">... </span><br>a      = <span class="hljs-number">1</span><br>args   = (<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br>kwargs = &#123;<span class="hljs-string">&#x27;c&#x27;</span>: <span class="hljs-number">3</span>&#125;<br><span class="hljs-meta">&gt;&gt;&gt; </span>bound = sig.bind(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, a=<span class="hljs-number">4</span>)<br>Traceback (most recent call last):<br>  File ...<br>TypeError: multiple values <span class="hljs-keyword">for</span> argument <span class="hljs-string">&#x27;a&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<h1 id="函数参数传递"><a href="#函数参数传递" class="headerlink" title="函数参数传递"></a>函数参数传递</h1><p>说起函数参数传递，可能就有人想起了<code>引用传递</code>、<code>值传递</code>……忘掉这两个概念，来看看下面两个例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo1</span>(<span class="hljs-params">param: <span class="hljs-built_in">list</span></span>):<br>    param += [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>]<br><br>arg1 = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]<br>foo1(arg1)<br><span class="hljs-built_in">print</span>(arg1)  <span class="hljs-comment"># 输出[1, 2, 3, 4, 5]</span><br></code></pre></td></tr></table></figure>
+
+<p>内存中有一个<code>list</code>对象（<code>[1, 2, 3]</code>），该对象有两个别名：<code>arg1</code>和<code>param</code>。由于<code>list</code>对象是可变的（<code>mutable</code>），所以可以通过<code>param</code>这个别名修改这个<code>list</code>对象的内容。</p>
+<p><img src="/images/2020/07/04/list.webp" srcset="/img/loading.gif" lazyload alt="tuple.webp"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">foo2</span>(<span class="hljs-params">param: <span class="hljs-built_in">tuple</span></span>):<br>    param += (<span class="hljs-number">4</span>, <span class="hljs-number">5</span>)<br><br>arg2 = (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)<br>foo2(arg2)<br><span class="hljs-built_in">print</span>(arg2)  <span class="hljs-comment"># 输出(1, 2, 3)</span><br></code></pre></td></tr></table></figure>
+
+<p>内存中有一个<code>tuple</code>对象（<code>(1, 2, 3)</code>），该对象也有两个别名：<code>arg2</code>和<code>param</code>。但由于<code>tuple</code>对象是不可变的<code>(immutable)</code>，当执行<code>param += (4, 5)</code>时，解释器创建了一个新的<code>tuple</code>对象（<code>(1, 2, 3, 4, 5)</code>），并让<code>param</code>指向这个新的对象，而原来的对象没有被改变。</p>
+<p><img src="/images/2020/07/04/tuple.webp" srcset="/img/loading.gif" lazyload alt="tuple.webp"></p>
+<p>在Python中，参数传递本质上是为已有的对象取了一个函数作用域级别的别名。如果该对象是可变的，那么就可以在函数内修改该对象，这种修改也可以被其它的别名所感知。弄清楚对象、别名的关系，就不会对<code>值传递</code>、<code>引用传递</code>这种说法感到困惑了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Python中的函数参数与参数传递</div>
+      <div>https://www.yooo.ltd/2020/07/04/python-parameters-and-arguments/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年7月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/05/fluent-python-chap-5/" title="读《流畅的Python》：一等函数">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">读《流畅的Python》：一等函数</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/20/python-decorators-source-code/" title="Python部分内置函数装饰器源码浅析">
+                        <span class="hidden-mobile">Python部分内置函数装饰器源码浅析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

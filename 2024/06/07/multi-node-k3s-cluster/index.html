@@ -1,0 +1,712 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 背景由于笔者需要部署一些计算服务并实现扩展灵活、可用性高，所以决定用K8S体系来代替原有的Docker部署。K8S对于个人来说维护成本太高了，所以笔者选用了更轻量的K3S。 本篇文章记录的是笔者搭建这个K3S集群的过程。 2. 离线安装K3S服务K3S的快速入门指南给出了简洁的安装脚本： 123curl -sfL https:&#x2F;&#x2F;get.k3s.io | sh -# 国内加速脚本👇curl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多机K3S集群搭建踩坑记">
+<meta property="og:url" content="https://www.yooo.ltd/2024/06/07/multi-node-k3s-cluster/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="1. 背景由于笔者需要部署一些计算服务并实现扩展灵活、可用性高，所以决定用K8S体系来代替原有的Docker部署。K8S对于个人来说维护成本太高了，所以笔者选用了更轻量的K3S。 本篇文章记录的是笔者搭建这个K3S集群的过程。 2. 离线安装K3S服务K3S的快速入门指南给出了简洁的安装脚本： 123curl -sfL https:&#x2F;&#x2F;get.k3s.io | sh -# 国内加速脚本👇curl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607082747333.png">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607085753410.png">
+<meta property="article:published_time" content="2024-06-07T00:10:58.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="云原生">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607082747333.png">
+  
+  
+  
+  <title>多机K3S集群搭建踩坑记 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="多机K3S集群搭建踩坑记"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-06-07 08:10" pubdate>
+          2024年6月7日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          37 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">多机K3S集群搭建踩坑记</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><p>由于笔者需要部署一些计算服务并实现扩展灵活、可用性高，所以决定用K8S体系来代替原有的Docker部署。K8S对于个人来说维护成本太高了，所以笔者选用了更轻量的K3S。</p>
+<p>本篇文章记录的是笔者搭建这个K3S集群的过程。</p>
+<h1 id="2-离线安装K3S服务"><a href="#2-离线安装K3S服务" class="headerlink" title="2. 离线安装K3S服务"></a>2. 离线安装K3S服务</h1><p>K3S的<a target="_blank" rel="noopener" href="https://docs.k3s.io/zh/quick-start">快速入门指南</a>给出了简洁的安装脚本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">curl -sfL https://get.k3s.io | sh -<br><span class="hljs-meta prompt_"># </span><span class="language-bash">国内加速脚本👇</span><br>curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -<br></code></pre></td></tr></table></figure>
+
+<p>但由于国内愈加恶劣的网络环境，即使这个脚本成功安装了K3S服务，也无法成功启动：K3S所需的pause镜像无法从docker.io上拉取下来。所以笔者选择离线安装K3S。</p>
+<p>参考文档：<a target="_blank" rel="noopener" href="https://docs.k3s.io/zh/installation/airgap">Air-Gap Install | K3s</a></p>
+<h2 id="2-1-下载所需文件"><a href="#2-1-下载所需文件" class="headerlink" title="2.1 下载所需文件"></a>2.1 下载所需文件</h2><p>在K3S的<a target="_blank" rel="noopener" href="https://github.com/k3s-io/k3s/releases">Releases</a>页可以下载到我们所需的文件：k3s和k3s-airgap-images-amd64.tar.gz。</p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607082747333.png" srcset="/img/loading.gif" lazyload alt="image-20240607082747333"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">wget &lt;k3s链接&gt;<br>wget &lt;k3s镜像链接&gt;<br>chmod +x k3s<br></code></pre></td></tr></table></figure>
+
+<p>本来还需要下载<code>k3s-install.sh</code>，但由于笔者的安装环境可以顺畅从rancher.cn获取该文件，所以笔者没有下载。</p>
+<h2 id="2-2-K3S主节点安装服务"><a href="#2-2-K3S主节点安装服务" class="headerlink" title="2.2 K3S主节点安装服务"></a>2.2 K3S主节点安装服务</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">准备文件</span><br>sudo mkdir -p /var/lib/rancher/k3s/agent/images<br>sudo cp ./k3s-airgap-images-amd64.tar.gz /var/lib/rancher/k3s/agent/images<br>sudo cp ./k3s /usr/local/bin/<br><span class="hljs-meta prompt_"># </span><span class="language-bash">开始安装</span><br>curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_SKIP_DOWNLOAD=true sh -<br></code></pre></td></tr></table></figure>
+
+<h2 id="2-3-K3S从节点安装服务"><a href="#2-3-K3S从节点安装服务" class="headerlink" title="2.3 K3S从节点安装服务"></a>2.3 K3S从节点安装服务</h2><p>流程和主节点相同，只是需要先从主节点上获取K3S TOKEN：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo cat /var/lib/rancher/k3s/server/token<br></code></pre></td></tr></table></figure>
+
+<p>然后在从节点安装是加入环境变量：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">准备文件</span><br>sudo mkdir -p /var/lib/rancher/k3s/agent/images<br>sudo cp ./k3s-airgap-images-amd64.tar.gz /var/lib/rancher/k3s/agent/images<br>sudo cp ./k3s /usr/local/bin/<br><span class="hljs-meta prompt_"># </span><span class="language-bash">开始安装</span><br>export K3S_URL=&quot;https://&lt;主节点IP&gt;:6443&quot;<br>export K3S_TOKEN=&quot;&lt;上一步获取到的K3S TOKEN&gt;&quot;<br>curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_SKIP_DOWNLOAD=true sh -<br></code></pre></td></tr></table></figure>
+
+<h1 id="3-配置K3S服务"><a href="#3-配置K3S服务" class="headerlink" title="3. 配置K3S服务"></a>3. 配置K3S服务</h1><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607085753410.png" srcset="/img/loading.gif" lazyload alt="image-20240607085753410"></p>
+<p>上图是笔者的网络环境，每个节点有两张网卡，通过网段为<code>100.x.x.x</code>的网卡互相联通。</p>
+<p>在主节点和从节点安装完K3S服务后，笔者发现从节点无法成功启动K3S服务：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo journalctl -u k3s-agent.service</span><br>...<br>Starting k3s agent v1.29.5+k3s1 (4e53a323)<br>Adding server to load balancer k3s-agent-load-balancer: 100.x.x.x:6443<br>Running load balancer k3s-agent-load-balancer 127.0.0.1:6444 -&gt; [100.x.x.x:6443] [default: 100.x.x.x:6443]<br>...<br>Getting list of apiserver endpoints from server<br>Updated load balancer k3s-agent-load-balancer default server address -&gt; 192.x.x.x:6443<br>Adding server to load balancer k3s-agent-load-balancer: 192.x.x.x:6443<br>Removing server from load balancer k3s-agent-load-balancer: 100.x.x.x:6443<br>...<br>error=&quot;dial tcp 192.x.x.x:6443: connect: connection timed out&quot;<br></code></pre></td></tr></table></figure>
+
+<p>原来，即使在从节点安装K3S时已经指定了K3S_URL为<code>100.x.x.x</code>，但K3S Agent在连接上主节点后依然选择连接<code>192.x.x.x</code>，但从节点实际上无法连接这个IP。为此，我们需要强制指定节点IP。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://docs.k3s.io/zh/cli/server">server | K3s</a>、<a target="_blank" rel="noopener" href="https://docs.k3s.io/zh/cli/agent">agent | K3s</a></p>
+<h2 id="3-1-修改K3S服务文件"><a href="#3-1-修改K3S服务文件" class="headerlink" title="3.1 修改K3S服务文件"></a>3.1 修改K3S服务文件</h2><p>在主节点上修改配置<code>/etc/systemd/system/k3s.service</code>:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ini">...<br><span class="hljs-attr">ExecStart</span>=/usr/local/bin/k3s \<br>    server --node-ip &quot;100.x.x.x&quot; --node-external-ip &quot;100.x.x.x&quot; \<br></code></pre></td></tr></table></figure>
+
+<p>在从节点上修改配置<code>/etc/systemd/system/k3s-agent.service</code>:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">ExecStart</span>=/usr/local/bin/k3s \<br>    agent --node-ip &quot;100.x.x.x&quot; --node-external-ip &quot;100.x.x.x&quot; \<br></code></pre></td></tr></table></figure>
+
+<p>然后各自重启服务：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo systemctl daemon-reload<br>sudo systemctl restart k3s # 主节点<br>sudo systemctl restart k3s-agent # 从节点<br></code></pre></td></tr></table></figure>
+
+<p>现在从节点正常加入集群了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ sudo kubectl get nodes<br>NAME      STATUS   ROLES                  AGE   VERSION<br>xxxxxxx   Ready    &lt;none&gt;                 10m   v1.30.1+k3s1<br>xxxxx     Ready    control-plane,master   32m   v1.30.1+k3s1<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-2-查看Node信息"><a href="#3-2-查看Node信息" class="headerlink" title="3.2 查看Node信息"></a>3.2 查看Node信息</h2><p>此时如果我们查看节点信息（<code>sudo kubectl describe node xxx</code>），会发现注解<code>flannel.alpha.coreos.com/public-ip</code>依然是节点另一张网卡的IP。目前影响未知。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs stylus">Annotations:        alpha<span class="hljs-selector-class">.kubernetes</span>.io/provided-node-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/backend-data: &#123;<span class="hljs-string">&quot;VNI&quot;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&quot;VtepMAC&quot;</span>:<span class="hljs-string">&quot;xx&quot;</span>&#125;<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/backend-type: vxlan<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/kube-subnet-manager: true<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/public-ip: <span class="hljs-number">10</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    k3s.io/external-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    k3s.io/hostname: xx<br>                    k3s.io/internal-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span>.x<br></code></pre></td></tr></table></figure>
+
+<h1 id="4-设置静态CPU调度策略"><a href="#4-设置静态CPU调度策略" class="headerlink" title="4. 设置静态CPU调度策略"></a>4. 设置静态CPU调度策略</h1><p>Docker&#x2F;K8S体系下，CPU默认是按时间片调度的。容器获取到CPU时间片后，可以在不同的CPU核心中切换。这在IO密集型场景中可以提升资源利用率。</p>
+<p>但笔者的场景是计算密集型，切换CPU核心会导致性能下降，所以需要将容器和CPU进行绑定。</p>
+<h2 id="4-1-Docker实现"><a href="#4-1-Docker实现" class="headerlink" title="4.1 Docker实现"></a>4.1 Docker实现</h2><p>用docker命令运行容器时，可以用<code>--cpuset-cpus</code>等参数绑定CPU核心（<a target="_blank" rel="noopener" href="https://docs.docker.com/config/containers/resource_constraints/#cpu">Runtime options with Memory, CPUs, and GPUs | Docker Docs</a>），或者用docker-compose配置实现类似效果（<a target="_blank" rel="noopener" href="https://docs.docker.com/compose/compose-file/05-services/#cpuset">Services top-level elements | Docker Docs</a>）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;2.4&#x27;</span><br><br><span class="hljs-attr">services:</span><br>  <span class="hljs-attr">xxx:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">xxx</span><br><br>    <span class="hljs-comment"># 绑定cpu核心</span><br>    <span class="hljs-attr">cpuset:</span> <span class="hljs-string">&quot;0-3&quot;</span><br>    <span class="hljs-attr">cpu_count:</span> <span class="hljs-number">4</span><br>    <span class="hljs-comment"># 预留内存</span><br>    <span class="hljs-attr">mem_limit:</span> <span class="hljs-string">&#x27;4g&#x27;</span><br>    <span class="hljs-attr">memswap_limit:</span> <span class="hljs-string">&#x27;4g&#x27;</span><br>    <span class="hljs-attr">mem_reservation:</span> <span class="hljs-string">&#x27;2g&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="4-2-K3S实现"><a href="#4-2-K3S实现" class="headerlink" title="4.2 K3S实现"></a>4.2 K3S实现</h2><p>kubelet也可以设置类似的调度策略：static 策略（<a target="_blank" rel="noopener" href="https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/cpu-management-policies/">控制节点上的 CPU 管理策略 | Kubernetes</a>）。但由于K3S已经将kubelet集成到了二进制内容里，所以无法单独配置kubelet。编辑K3S的配置文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo mkdir -p /etc/rancher/k3s/<br>sudo vim /etc/rancher/k3s/config.yaml<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">kubelet-arg:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;--cpu-manager-policy=static&quot;</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;--system-reserved=cpu=1,memory=1Gi&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>删除已有CPU调度策略并重启K3S服务：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo rm /var/lib/kubelet/cpu_manager_state<br>sudo systemctl restart k3s # 主节点<br>sudo systemctl restart k3s-agent # 从节点<br></code></pre></td></tr></table></figure>
+
+<p>此时可以看到配置生效：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo kubectl describe node xxx</span><br>...<br>Annotations:        alpha.kubernetes.io/provided-node-ip: 100.x.x.x<br>                    k3s.io/node-args:<br>                      [&quot;agent&quot;,&quot;--kubelet-arg&quot;,&quot;--cpu-manager-policy=static&quot;,&quot;--kubelet-arg&quot;,&quot;--system-reserved=cpu=1,memory=1Gi&quot;,&quot;--node-ip&quot;,&quot;10<br>...<br>Capacity:<br>  cpu:                16<br>  ...<br>Allocatable:<br>  cpu:                15<br>  ...<br></code></pre></td></tr></table></figure>
+
+<p>大功告成，愉快享受K3S了~</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">#云原生</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>多机K3S集群搭建踩坑记</div>
+      <div>https://www.yooo.ltd/2024/06/07/multi-node-k3s-cluster/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年6月7日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/06/08/self-host-docker-hub-mirror/" title="自建Docker Hub镜像服务">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">自建Docker Hub镜像服务</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/01/01/2023%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/" title="2023年度总结">
+                        <span class="hidden-mobile">2023年度总结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

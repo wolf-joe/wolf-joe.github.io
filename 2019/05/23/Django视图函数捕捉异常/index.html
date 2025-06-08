@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django视图函数捕捉异常">
+<meta property="og:url" content="https://www.yooo.ltd/2019/05/23/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%8D%95%E6%8D%89%E5%BC%82%E5%B8%B8/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为500 Internal Server Error的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。  注：本文所使用的运行环境为uWSGI 2.0.18+Python3.6+Django 2.2  在uWSGI的日志中显示Traceba">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-05-23.01.png">
+<meta property="article:published_time" content="2019-05-23T10:56:59.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Web开发">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Django">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2019-05-23.01.png">
+  
+  
+  
+  <title>Django视图函数捕捉异常 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Django视图函数捕捉异常"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2019-05-23 18:56" pubdate>
+          2019年5月23日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Django视图函数捕捉异常</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2019-05-23.01.png" srcset="/img/loading.gif" lazyload><br>不存在没有BUG的代码，也不存在不会出现异常的视图函数。当Django视图函数中的代码出现异常时，访问这个URL的用户就会收到状态码为<code>500 Internal Server Error</code>的HTTP 响应。如何捕捉视图函数里出现的异常，这是本篇文章要讨论的问题。</p>
+<blockquote>
+<p>注：本文所使用的运行环境为<code>uWSGI 2.0.18</code>+<code>Python3.6</code>+<code>Django 2.2</code></p>
+</blockquote>
+<h1 id="在uWSGI的日志中显示Traceback"><a href="#在uWSGI的日志中显示Traceback" class="headerlink" title="在uWSGI的日志中显示Traceback"></a>在uWSGI的日志中显示Traceback</h1><p>这种方法算是一种比较消极的异常捕捉方式——仅将<code>Traceback</code>异常信息记录在uWSGI的日志中，不做进一步处理。日志可以用于日后分析，但用户收到的仍然是<code>500 Internal Server Error</code>响应。而这种捕捉方式也是默认启用的，只要所使用的Django版本高于或等于<code>1.9</code>就行。例子如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/urls.py</span><br><span class="hljs-keyword">from</span> django.urls <span class="hljs-keyword">import</span> path<br><span class="hljs-keyword">from</span> .views <span class="hljs-keyword">import</span> index<br><br>urlpatterns = [<br>    path(<span class="hljs-string">&#x27;index&#x27;</span>, index),<br>]<br><br><span class="hljs-comment"># django_test/views.py</span><br><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>(<span class="hljs-params">request</span>):<br>    <span class="hljs-number">1</span> / <span class="hljs-number">0</span><br>    <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-string">b&#x27;hello world&#x27;</span>)<br></code></pre></td></tr></table></figure>
+<p>配置好路由和视图函数并用<code>uWSGI</code>启动应用后，访问<code>/index</code>页面就会触发<code>ZeroDivisionError</code>异常，该异常的Traceback信息也会输出至<code>uWSGI</code>的日志中，效果如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">uwsgi --module django_test.wsgi --http 0.0.0.0:5000</span><br>*** Starting uWSGI 2.0.18 (64bit) on [Thu May 23 16:27:42 2019] ***<br>......<br>spawned uWSGI worker 1 (and the only) (pid: 13888, cores: 1)<br>Traceback (most recent call last):<br>  ......<br>  File &quot;./django_test/views.py&quot;, line 3, in index<br>    1 / 0<br>ZeroDivisionError: division by zero<br>[pid: 13888|app: 0|req: 1/1] 127.0.0.1 () &#123;40 vars in 964 bytes&#125; [Thu May 23 08:27:44 2019] GET /index =&gt; generated 55641 bytes in 47 msecs (HTTP/1.1 500) 1 headers in 63 bytes (1 switches on core 0)<br></code></pre></td></tr></table></figure>
+
+<h1 id="用函数装饰器捕捉异常"><a href="#用函数装饰器捕捉异常" class="headerlink" title="用函数装饰器捕捉异常"></a>用函数装饰器捕捉异常</h1><p>Django中的视图函数只是一个普通的函数（废话），这就意味着我们可以用一个能够捕捉异常的函数装饰器来包裹这个视图函数，例子如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/views.py</span><br><span class="hljs-keyword">from</span> django.http.response <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">catch_exc</span>(<span class="hljs-params">func</span>):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-keyword">try</span>:<br>            <span class="hljs-keyword">return</span> func(*args, **kwargs)<br>        <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> ex:<br>            <span class="hljs-comment"># put your code here</span><br>            <span class="hljs-comment"># logger.error(traceback.format_exc())</span><br><br>            <span class="hljs-comment"># return Response or just raise</span><br>            <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-built_in">str</span>(ex))<br><br>    <span class="hljs-keyword">return</span> wrapper<br><br><br><span class="hljs-meta">@catch_exc</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>(<span class="hljs-params">request</span>):<br>    <span class="hljs-number">1</span> / <span class="hljs-number">0</span><br>    <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-string">b&#x27;hello world&#x27;</span>)<br></code></pre></td></tr></table></figure>
+<p>在例子第18行～第19行，我用<code>catch_exc</code>这个装饰器包裹了<code>index</code>这个视图函数。而在<code>catch_exc</code>这个装饰器内部，我用<code>except Exception</code>语句捕捉了<code>index</code>函数所有可能出现的异常。然后，我们就可以按照需要来进行各种操作了，比如：</p>
+<ul>
+<li>用<code>traceback.format_exc()</code>获取详细的<code>Traceback</code>信息；</li>
+<li>将错误信息输出至日志；</li>
+<li>通知某人；</li>
+</ul>
+<p>等等等等。对异常的处理完成后，我们既可以通过<code>raise</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应，还可以渲染一个提示HTML页面返回给用户。总之，Everything is under control.</p>
+<h1 id="用Django中间件捕捉异常"><a href="#用Django中间件捕捉异常" class="headerlink" title="用Django中间件捕捉异常"></a>用Django中间件捕捉异常</h1><p>函数装饰器很好用，但装饰器只能针对单个视图函数。有没有一种应用于所有视图函数之上的异常捕捉方法？有的，这就是Django的中间件。和我上一篇文章（<a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">使用中间件对视图函数进行性能分析</a>）不同的是，那篇文章里所使用的中间件hook为<code>process_request&amp;process_response</code>，而这里使用中间件hook为<code>process_exception</code>，因为前者无法捕捉异常。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># django_test/my_middleware.py</span><br><span class="hljs-keyword">from</span> django.http <span class="hljs-keyword">import</span> HttpResponse<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">CatchExcMiddleware</span>(<span class="hljs-title class_ inherited__">object</span>):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, get_response</span>):<br>        self.get_response = get_response<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__call__</span>(<span class="hljs-params">self, request</span>):<br>        <span class="hljs-keyword">return</span> self.get_response(request)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">process_exception</span>(<span class="hljs-params">self, request, exception</span>):<br>        <span class="hljs-comment"># put your code here</span><br>        <span class="hljs-comment"># logging.error(traceback.format_exc())</span><br><br>        <span class="hljs-comment"># return Response or None</span><br>        <span class="hljs-keyword">return</span> HttpResponse(<span class="hljs-built_in">str</span>(exception))<br><br><span class="hljs-comment"># django_test/settings.py</span><br><span class="hljs-comment"># ......</span><br>MIDDLEWARE = [<br>    <span class="hljs-comment"># ......</span><br>    <span class="hljs-string">&#x27;django_test.my_middleware.CatchExcMiddleware&#x27;</span>,  <span class="hljs-comment"># 启用中间件</span><br>]<br><span class="hljs-comment"># ......</span><br></code></pre></td></tr></table></figure>
+<p>和上一节的装饰器类似，当视图函数出现异常时，Django就会遍历所有中间件的<code>process_exception</code>hook，包括例子里的。在这个<code>process_exception</code>方法里，我们同样可以完成上一节提到的各种操作，操作完成后可以通过<code>return None</code>语句让用户仍然收到<code>500 Internal Server Error</code>响应，也可以像上面的例子中返回一个关于异常信息的<code>200 OK</code>响应……这里就不再重复了。</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>其实在非DEBUG模式（<code>settings.py</code>里<code>DEBUG = False</code>）下，Django可以将视图函数里出现的异常信息以电子邮件的形式发送给<code>ADMINS</code>里配置的邮箱地址。这个功能需要配置邮箱参数、LOGGING，这里就不详细展开了，有兴趣的话可以查看<a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/2.2/howto/error-reporting/">Django2.2官方文档(Error reporting)</a>或搜索相关教程。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+        <a href="/tags/Django/">#Django</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Django视图函数捕捉异常</div>
+      <div>https://www.yooo.ltd/2019/05/23/Django视图函数捕捉异常/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2019年5月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/05/30/%E4%BF%AE%E6%94%B9Kong%E5%AE%98%E6%96%B9Docker%E9%95%9C%E5%83%8F/" title="修改Kong官方Docker镜像">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">修改Kong官方Docker镜像</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" title="Django视图函数性能分析">
+                        <span class="hidden-mobile">Django视图函数性能分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

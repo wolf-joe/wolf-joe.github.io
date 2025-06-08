@@ -1,0 +1,772 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta property="og:type" content="website">
+<meta property="og:title" content="OrangeWolf的博客">
+<meta property="og:url" content="https://www.yooo.ltd/page/3/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="OrangeWolf">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="我写故我在"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          style="margin-top: 0">
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/07/17/Go%E8%AF%AD%E8%A8%80error%E5%9B%9B%E9%97%AE/" target="_self">
+          Go语言error四问
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2021/07/17/Go%E8%AF%AD%E8%A8%80error%E5%9B%9B%E9%97%AE/" target="_self">
+        <div>
+          什么是errorGo语言没有像Java&#x2F;Python一样提供try&amp;catch这种错误捕获方式，而是要求编码者显示地处理下游的传递的错误、显示地向上游抛出错误，也难怪总是有人吐槽Go在这方面的啰嗦。 1234567891011var file *os.Filevar err errorfile, err = os.Open(&quot;something.txt&quot;)if
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-07-17 11:33" pubdate>
+              2021-07-17
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Golang/">#Golang</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/07/05/fluent-python-chap-5/" target="_self">
+          读《流畅的Python》：一等函数
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/07/05/fluent-python-chap-5/" target="_self">
+        <div>
+          前言一等对象（first-class objects）是指拥有如下特性的程序实体：  在运行时创建 能赋值给变量或数据结构中的元素 能作为参数传给函数 能作为函数的返回结果  Python中的函数拥有这几个特性，所以被称作一等函数（functions as first-class objects，简称first-class functions）。 把函数视作对象12345678910111213&
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-07-05 10:07" pubdate>
+              2020-07-05
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%B5%81%E7%95%85%E7%9A%84Python/">#流畅的Python</a>
+            
+              <a href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">#读书笔记</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/07/04/python-parameters-and-arguments/" target="_self">
+          Python中的函数参数与参数传递
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/07/04/python-parameters-and-arguments/" target="_self">
+        <div>
+          注：本篇文章使用CPython3.6  定位参数、关键字参数在Python中，当定义一个函数时，函数接收的参数叫做为形式参数（parameters），以下简称形参；当调用一个函数时，调用者传递给该函数的值叫做实际参数（arguments），以下简称实参。 根据inspect模块的描述，Python的形参可以分成如下五类：  POSITIONAL_OR_KEYWORD，默认类型，可通过定位&#x2
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-07-04 10:42" pubdate>
+              2020-07-04
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/20/python-decorators-source-code/" target="_self">
+          Python部分内置函数装饰器源码浅析
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/06/20/python-decorators-source-code/" target="_self">
+        <div>
+          前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-20 13:01" pubdate>
+              2020-06-20
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">#源码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/19/fluent-python-chap-7/" target="_self">
+          读《流畅的Python》：函数装饰器与闭包
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/06/19/fluent-python-chap-7/" target="_self">
+        <div>
+          前言 读书笔记这种内容，放在Evernote等笔记软件里似乎要比放在博客里更合适。但其一是笔者还没有找到适合我的笔记同步方案，其二是博客相比笔记软件更能锻炼自身的表达能力（或许吧），其三是将读书笔记放在博客里可以避免在求职的时候被面试官吐槽博客内容太少（笑），所以还是决定将这篇文章放在博客里。 但不管怎样，读书笔记终归是读书笔记，对其他人的作用还是有限，如有读者觉得碍眼烦请无视。  注：本篇文章使
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-19 17:02" pubdate>
+              2020-06-19
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%B5%81%E7%95%85%E7%9A%84Python/">#流畅的Python</a>
+            
+              <a href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">#读书笔记</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/14/%E5%A6%82%E4%BD%95%E5%9C%A8Python%E4%B8%AD%E5%BC%95%E8%B5%B7%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+          如何在Python中引起内存泄露
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/06/14/%E5%A6%82%E4%BD%95%E5%9C%A8Python%E4%B8%AD%E5%BC%95%E8%B5%B7%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+        <div>
+          前言 嗯，怎么看怎么像标题党写的标题……其实这篇文章只是笔者对Python中引用计数、弱引用的一些记录和思考，不涉及引用循环、分代回收等概念，先打个预防针。  注：本篇文章基于CPython 3.6，可能不适用于其它CPython版本或其它类型的Python实现。  引用计数引用计数（Reference counting）可以说是一个老生常谈的问题了，炒冷饭也没啥意思。引用一下《流畅的Python
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-14 10:08" pubdate>
+              2020-06-14
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+              <a href="/tags/GC/">#GC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/13/%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E5%9C%B0%E5%AF%B9100%E4%B8%87%E4%B8%AAUUID%E8%BF%9B%E8%A1%8C%E5%89%8D%E7%BC%80%E5%8C%B9%E9%85%8D%E6%9F%A5%E8%AF%A2/" target="_self">
+          如何高效地对100万个UUID进行前缀匹配查询
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/06/13/%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E5%9C%B0%E5%AF%B9100%E4%B8%87%E4%B8%AAUUID%E8%BF%9B%E8%A1%8C%E5%89%8D%E7%BC%80%E5%8C%B9%E9%85%8D%E6%9F%A5%E8%AF%A2/" target="_self">
+        <div>
+          前言 在《Redis实战》这本书的第六章中，作者介绍了如何使用Redis的ZSET来实现通讯录自动补全（即前缀匹配查询）。这部分内容激发了我的兴趣，于是我借助这个机会抛出问题：如何高效地对100万个UUID进行前缀匹配，并尝试用这篇文章来解答。 数据准备首先是数据准备工作：生成100万个UUID、将其写入至Redis和MariaDB（后者可作为对比）。顺便一提，Redis和MariaDB均在笔者电
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-13 13:28" pubdate>
+              2020-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">#数据库</a>
+            
+              <a href="/tags/%E7%AE%97%E6%B3%95/">#算法</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" target="_self">
+          如何在Golang里实现一个高性能的TTLMap
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" target="_self">
+        <div>
+          前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-24 18:17" pubdate>
+              2020-05-24
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Golang/">#Golang</a>
+            
+              <a href="/tags/map/">#map</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/05/02/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/" target="_self">
+          Django多数据库历险记（番外）
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/05/02/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/" target="_self">
+        <div>
+          前情提要这篇文章基于前两篇文章Django多数据库历险记（一）、Django多数据库历险记（二），将继续讲述关于Django多数据库的历险记。好吧其实这篇文章的内容已经和Django多数据库没有太大关系了……只是为了和前两篇文章的命名保持一致才取了这个标题。 秘技：避免物理外键约束 对于数据库层面的物理外键，国内互联网上的声音普遍一致，那就是不推荐使用（比如这个知乎问题），公司的DBA也持这个态度
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-02 15:45" pubdate>
+              2020-05-02
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+              <a href="/tags/Django/">#Django</a>
+            
+              <a href="/tags/%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93/">#多数据库</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/04/25/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/" target="_self">
+          Django多数据库历险记（二）
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2020/04/25/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/" target="_self">
+        <div>
+          前情提要这篇文章基于上一篇文章Django多数据库历险记（一），将继续讲述关于Django多数据库的历险记。 在上一篇文章中，我创建了一个Django项目：multi_db，在这个项目里指定了两个app：app_1和app_2，每个app下各自创建了一个Model：Model1和Model2，并为这两个app各自分配了独立的数据库db_1和db_2。历险继续～ 第三关：TestCase在multi
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-04-25 18:22" pubdate>
+              2020-04-25
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+              <a href="/tags/Django/">#Django</a>
+            
+              <a href="/tags/%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93/">#多数据库</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

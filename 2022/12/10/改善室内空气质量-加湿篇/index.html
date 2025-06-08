@@ -1,0 +1,779 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 前言在前一篇文章[1]中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%[2]，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。 2. 方案选择室内加湿器是比较直接的选择。笔者了解后">
+<meta property="og:type" content="article">
+<meta property="og:title" content="改善室内空气质量-加湿篇">
+<meta property="og:url" content="https://www.yooo.ltd/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="1. 前言在前一篇文章[1]中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%[2]，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。 2. 方案选择室内加湿器是比较直接的选择。笔者了解后">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183141611.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210184130772.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183820899.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190138737.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190514003.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191018549.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191135433.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191233201.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191440960.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200802577.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200033630.webp">
+<meta property="article:published_time" content="2022-12-10T09:45:58.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="监控">
+<meta property="article:tag" content="生活">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp">
+  
+  
+  
+  <title>改善室内空气质量-加湿篇 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="改善室内空气质量-加湿篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-12-10 17:45" pubdate>
+          2022年12月10日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">改善室内空气质量-加湿篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h1><p>在前一篇文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[改善室内空气质量-新风篇](/2022/12/09/改善室内空气质量-新风篇)">[1]</span></a></sup>中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%<sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[房间湿度40%，不爱得病（家居健康）--科技--人民网](http://scitech.people.com.cn/n/2013/0702/c1007-22041057.html)">[2]</span></a></sup>，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。</p>
+<h1 id="2-方案选择"><a href="#2-方案选择" class="headerlink" title="2. 方案选择"></a>2. 方案选择</h1><p>室内加湿器是比较直接的选择。笔者了解后发现市面上主要有两类加湿器：超声波加湿器、蒸发型加湿器。</p>
+<table>
+<thead>
+<tr>
+<th>品类</th>
+<th>原理</th>
+<th>加湿效果</th>
+<th>价格</th>
+<th>使用水质</th>
+<th>清洗频率</th>
+<th>安全性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>超声波加湿器</td>
+<td>将水打碎成小水滴</td>
+<td>强</td>
+<td>低</td>
+<td>纯净水</td>
+<td>高</td>
+<td>低<sup id="fnref:3" class="footnote-ref"><a href="#fn:3" rel="footnote"><span class="hint--top hint--rounded" aria-label="[超声波加湿器，到底能不能用？\_科普中国网](https://www.kepuchina.cn/yc/202201/t20220107_3114895.shtml)">[3]</span></a></sup><sup id="fnref:4" class="footnote-ref"><a href="#fn:4" rel="footnote"><span class="hint--top hint--rounded" aria-label="[韩国加湿器“杀人”事件最新调查：至少1.4万人死亡 加湿器还能用吗？\_新闻\_央视网(cctv.com)](http://m.news.cctv.com/2020/07/29/ARTITgCagrGFrX6jBuDWdLSn200729.shtml)">[4]</span></a></sup></td>
+</tr>
+<tr>
+<td>蒸发型加湿器</td>
+<td>让水蒸发</td>
+<td>弱</td>
+<td>高</td>
+<td>无特殊要求</td>
+<td>低</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<p>由于原理限制，超声波加湿器会无差别地将水中杂质（细菌&#x2F;化学物质等）扩散到空气中。所以在使用超声波加湿器中，不仅要保证水质干净、还要频繁清洁加湿器，否则容易有安全风险。笔者并不想在使用加湿器时花费太多精力，所以选择了价格更贵、但更使用起来更便捷的蒸发型加湿器。具体型号的选择可以参考先看评测的视频<sup id="fnref:5" class="footnote-ref"><a href="#fn:5" rel="footnote"><span class="hint--top hint--rounded" aria-label="[认真测了一个月！告诉你 2022 年哪款加湿器值得买\_哔哩哔哩\_bilibili](https://www.bilibili.com/video/BV1KD4y1e7nA/)">[5]</span></a></sup>。</p>
+<p>影响蒸发型加湿器加湿效果的要素主要有三点：</p>
+<ul>
+<li><strong>温度</strong>。水的温度越高，加湿效果越好。</li>
+<li><strong>蒸发面积</strong>。蒸发面积越大，加湿效果越好。</li>
+<li><strong>风量</strong>。风量越大，加湿效果越好。</li>
+</ul>
+<h1 id="3-实践"><a href="#3-实践" class="headerlink" title="3. 实践"></a>3. 实践</h1><h2 id="3-1-改造空气净化器"><a href="#3-1-改造空气净化器" class="headerlink" title="3.1 改造空气净化器"></a>3.1 改造空气净化器</h2><p>在前一篇文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[改善室内空气质量-新风篇](/2022/12/09/改善室内空气质量-新风篇)">[1]</span></a></sup>中，笔者通过改造空气净化器实现了新风的效果。同商家还有将空气净化器改造成加湿器的套件，复用组件+价格低廉（￥200）两大优势让笔者立刻下了单。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210182921083.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183141611.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210184130772.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210183820899.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>然而实际体验后，笔者发现这个加湿方案效果非常一般。中午开始加湿后，室内湿度从25%缓慢提升至30%，之后就停滞在30%左右。从耗水速度推测，这个加湿方案的实际加湿能力约为100ml&#x2F;h，而市面上常见的蒸发型加湿器加湿能力普遍能达到600ml&#x2F;h。</p>
+<p>笔者分析之后，发现这个加湿方案在上文提到的加湿三要素上都做得较差：</p>
+<ul>
+<li><strong>温度</strong>。由于空气净化器接的是室外空气，而北京冬季室外温度往往在零下，所以空气净化器吹出的风温度也很低。</li>
+<li><strong>蒸发面积</strong>。这个改装套件用了吸水网提升蒸发面积。水箱里水位较高时吸水网透风的部分较少、水位较低时高处的吸水网很难吸到水分。所以这个方案的蒸发面积始终比较低。</li>
+<li><strong>风量</strong>。由于新风不需要太大风量，所以笔者一直让空气净化器保持在比较低的风量。</li>
+</ul>
+<h2 id="3-2-换用加湿器"><a href="#3-2-换用加湿器" class="headerlink" title="3.2 换用加湿器"></a>3.2 换用加湿器</h2><p>发现改造净化器的方案行不通后，笔者很快选择了一款“正经”的加湿器（￥600）。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190138737.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210190514003.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>相比上一个加湿方案，这款加湿器在加湿三要素上都有改进：</p>
+<ul>
+<li><strong>温度</strong>。由于是直接放在室内，环境温度更高。</li>
+<li><strong>蒸发面积</strong>。这款加湿器使用的滤芯（上图3号）位于水箱（上图8号）之上，水通过一个小管道提升到滤芯顶部，始终保证蒸发面积最大。</li>
+<li><strong>风量</strong>。由于不和室外空气交换，所以调整加湿器风量时只需考虑噪音。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191018549.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191135433.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191233201.webp" srcset="/img/loading.gif" lazyload></td>
+<td><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210191440960.webp" srcset="/img/loading.gif" lazyload></td>
+</tr>
+</tbody></table>
+<p>笔者放置加湿器的房间面积约为17平米，温度约为25°。收到加湿器后，笔者在14:30用最大风量（比较吵）开始加湿，此时湿度不到30%；傍晚时室内湿度升高至50%。到了晚上23:30，笔者将加湿器调整为睡眠模式，室内湿度逐渐从50%下降到43%。从耗水速度来看，这款加湿器的实际能力是接近其宣传值（最大600ml&#x2F;h、睡眠模式260ml&#x2F;h）的。</p>
+<p>虽然在日常使用时不能始终只开启睡眠模式，但考虑到其加水较为方便（将水箱拆除后可直接用水龙头加满5升水），所以总体而言笔者对这款加湿器的表现十分满意。</p>
+<h1 id="4-后记"><a href="#4-后记" class="headerlink" title="4. 后记"></a>4. 后记</h1><p>相比其它效果更好（当然价格也更贵）的蒸发型加湿器，笔者选择的这款加湿器只适用于面积不大的房间。想要加湿更大的房价、甚至是全屋加湿，蒸发型加湿器就得考虑用电辅热提高效率了，可能这也是为什么许多工业级加湿器会选择超声波加湿的方案。加湿器的选择，更多也得结合具体的需求来看吧。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200802577.webp" srcset="/img/loading.gif" lazyload><br /><sup id="fnref:6" class="footnote-ref"><a href="#fn:6" rel="footnote"><span class="hint--top hint--rounded" aria-label="[352 H300加湿净化一体机评测\_使用效果怎么样\_智能家](https://m.znj.com/news/120978.html)">[6]</span></a></sup></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221210200033630.webp" srcset="/img/loading.gif" lazyload><br /><sup id="fnref:7" class="footnote-ref"><a href="#fn:7" rel="footnote"><span class="hint--top hint--rounded" aria-label="[超声波加湿器除湿产品-加湿产品-防爆空调-恒温恒湿机-精密空调-转轮除湿机-湿美电气](http://m.msshimei.com/product.html?type1=2&type2=14)">[7]</span></a></sup></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>加湿量2500ml&#x2F;h</td>
+<td>加湿量3000ml&#x2F;h</td>
+</tr>
+</tbody></table>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87">改善室内空气质量-新风篇</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://scitech.people.com.cn/n/2013/0702/c1007-22041057.html">房间湿度40%，不爱得病（家居健康）–科技–人民网</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.kepuchina.cn/yc/202201/t20220107_3114895.shtml">超声波加湿器，到底能不能用？_科普中国网</a>
+<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://m.news.cctv.com/2020/07/29/ARTITgCagrGFrX6jBuDWdLSn200729.shtml">韩国加湿器“杀人”事件最新调查：至少1.4万人死亡 加湿器还能用吗？_新闻_央视网(cctv.com)</a>
+<a href="#fnref:4" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:5" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1KD4y1e7nA/">认真测了一个月！告诉你 2022 年哪款加湿器值得买_哔哩哔哩_bilibili</a>
+<a href="#fnref:5" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:6" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://m.znj.com/news/120978.html">352 H300加湿净化一体机评测_使用效果怎么样_智能家</a>
+<a href="#fnref:6" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:7" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://m.msshimei.com/product.html?type1=2&type2=14">超声波加湿器除湿产品-加湿产品-防爆空调-恒温恒湿机-精密空调-转轮除湿机-湿美电气</a>
+<a href="#fnref:7" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+      
+        <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>改善室内空气质量-加湿篇</div>
+      <div>https://www.yooo.ltd/2022/12/10/改善室内空气质量-加湿篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年12月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/" title="安卓对指定WiFi禁用IPv6">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">安卓对指定WiFi禁用IPv6</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/" title="改善室内空气质量-新风篇">
+                        <span class="hidden-mobile">改善室内空气质量-新风篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

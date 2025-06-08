@@ -1,0 +1,725 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。  注：本篇文章使用Python 3.6+Django 2.2  准备出发 创建Django项目multi_db和两个app：app_1和app_2 1234$ django-admin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django多数据库历险记（一）">
+<meta property="og:url" content="https://www.yooo.ltd/2020/04/23/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。  注：本篇文章使用Python 3.6+Django 2.2  准备出发 创建Django项目multi_db和两个app：app_1和app_2 1234$ django-admin">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-23T13:17:34.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Web开发">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Django">
+<meta property="article:tag" content="多数据库">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Django多数据库历险记（一） - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Django多数据库历险记（一）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-04-23 21:17" pubdate>
+          2020年4月23日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          81 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Django多数据库历险记（一）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>毫无疑问，Django是最优秀的Python Web框架之一，然而其对多数据库的支持却让我内心十分复杂。在数据库迁移、跨库外键、单元测试等方面，坑无处不在。于是就有了这篇文章，关于Django多数据库的历险记。</p>
+<blockquote>
+<p>注：本篇文章使用<code>Python 3.6</code>+<code>Django 2.2</code></p>
+</blockquote>
+<h1 id="准备出发"><a href="#准备出发" class="headerlink" title="准备出发"></a>准备出发</h1><ol>
+<li><p>创建Django项目<code>multi_db</code>和两个app：<code>app_1</code>和<code>app_2</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">django-admin startproject multi_db</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cd</span> multi_db/</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py startapp app_1</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py startapp app_2</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>在<code>app_1</code>和<code>app_2</code>里分别添加各自的<code>Model</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># app_1/models.py</span><br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> models<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Model1</span>(models.Model):<br>    name = models.CharField(max_length=<span class="hljs-number">255</span>)<br>    <span class="hljs-keyword">class</span> <span class="hljs-title class_">Meta</span>:<br>        app_label = <span class="hljs-string">&quot;app_1&quot;</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># app_2/models.py</span><br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> models<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Model2</span>(models.Model):<br>    name = models.CharField(max_length=<span class="hljs-number">255</span>)<br>    <span class="hljs-keyword">class</span> <span class="hljs-title class_">Meta</span>:<br>        app_label = <span class="hljs-string">&quot;app_2&quot;</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>为两个app指定不同的数据库并为其编写路由文件（省略部分内容）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># multi_db/settings.py</span><br><span class="hljs-comment"># ...</span><br>INSTALLED_APPS = [<br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-string">&#x27;app_1&#x27;</span>,<br>    <span class="hljs-string">&#x27;app_2&#x27;</span>,<br>]<br><span class="hljs-comment"># ...</span><br>DATABASES = &#123;<br>    <span class="hljs-string">&#x27;default&#x27;</span>: &#123;<br>        <span class="hljs-string">&#x27;ENGINE&#x27;</span>: <span class="hljs-string">&#x27;django.db.backends.sqlite3&#x27;</span>,<br>        <span class="hljs-string">&#x27;NAME&#x27;</span>: os.path.join(BASE_DIR, <span class="hljs-string">&#x27;db.sqlite3&#x27;</span>),<br>    &#125;,<br>    <span class="hljs-string">&#x27;db_1&#x27;</span>: &#123;<br>        <span class="hljs-string">&#x27;ENGINE&#x27;</span>: <span class="hljs-string">&#x27;django.db.backends.mysql&#x27;</span>, <span class="hljs-string">&#x27;NAME&#x27;</span>: <span class="hljs-string">&#x27;db_1&#x27;</span>,<br>        <span class="hljs-string">&#x27;HOST&#x27;</span>: <span class="hljs-string">&#x27;127.0.0.1&#x27;</span>, <span class="hljs-string">&#x27;PORT&#x27;</span>: <span class="hljs-string">&#x27;6603&#x27;</span>, <span class="hljs-string">&#x27;USER&#x27;</span>: <span class="hljs-string">&#x27;root&#x27;</span>,<br>        <span class="hljs-string">&#x27;PASSWORD&#x27;</span>: <span class="hljs-string">&#x27;password&#x27;</span>, <span class="hljs-string">&#x27;CHARSET&#x27;</span>: <span class="hljs-string">&#x27;utf-8&#x27;</span>, <span class="hljs-string">&#x27;TEST&#x27;</span>: &#123;<span class="hljs-string">&#x27;DEPENDENCIES&#x27;</span>: []&#125;,<br>    &#125;,<br>    <span class="hljs-string">&#x27;db_2&#x27;</span>: &#123;<br>        <span class="hljs-string">&#x27;ENGINE&#x27;</span>: <span class="hljs-string">&#x27;django.db.backends.mysql&#x27;</span>, <span class="hljs-string">&#x27;NAME&#x27;</span>: <span class="hljs-string">&#x27;db_2&#x27;</span>,<br>        <span class="hljs-string">&#x27;HOST&#x27;</span>: <span class="hljs-string">&#x27;127.0.0.1&#x27;</span>, <span class="hljs-string">&#x27;PORT&#x27;</span>: <span class="hljs-string">&#x27;6603&#x27;</span>, <span class="hljs-string">&#x27;USER&#x27;</span>: <span class="hljs-string">&#x27;root&#x27;</span>,<br>        <span class="hljs-string">&#x27;PASSWORD&#x27;</span>: <span class="hljs-string">&#x27;password&#x27;</span>, <span class="hljs-string">&#x27;CHARSET&#x27;</span>: <span class="hljs-string">&#x27;utf-8&#x27;</span>, <span class="hljs-string">&#x27;TEST&#x27;</span>: &#123;<span class="hljs-string">&#x27;DEPENDENCIES&#x27;</span>: []&#125;,<br>    &#125;,<br>&#125;<br>DB_ROUTING = &#123;<span class="hljs-string">&#x27;app_1&#x27;</span>: <span class="hljs-string">&#x27;db_1&#x27;</span>, <span class="hljs-string">&#x27;app_2&#x27;</span>: <span class="hljs-string">&#x27;db_2&#x27;</span>&#125;<br>DATABASE_ROUTERS = [<span class="hljs-string">&#x27;multi_db.db_routers.DBRouter&#x27;</span>]<br><span class="hljs-comment"># ...</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># multi_db/db_routers.py</span><br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">DBRouter</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">db_for_read</span>(<span class="hljs-params">self, model, **hints</span>):<br>        <span class="hljs-keyword">return</span> settings.DB_ROUTING.get(model._meta.app_label)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">db_for_write</span>(<span class="hljs-params">self, model, **hints</span>):<br>        <span class="hljs-keyword">return</span> settings.DB_ROUTING.get(model._meta.app_label)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">allow_relation</span>(<span class="hljs-params">self, obj1, obj2, **hints</span>):<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">allow_migrate</span>(<span class="hljs-params">self, db, app_label, model_name=<span class="hljs-literal">None</span>, **hints</span>):<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="第一关：数据迁移"><a href="#第一关：数据迁移" class="headerlink" title="第一关：数据迁移"></a>第一关：数据迁移</h1><p>Django里数据库迁移分两部分，<code>makemigrations</code>和<code>migrate</code>。前者负责在Model出现变动时生成迁移方案文件，后者则负责在数据库中应用前者的迁移方案。于是，麻烦来了。</p>
+<h2 id="makemigrations"><a href="#makemigrations" class="headerlink" title="makemigrations"></a>makemigrations</h2><p><code>makemigrations</code>命令不涉及数据库操作，所以用起来比较简单。使用时可以指定app以检测部分Model，也可以不指定app以检测全部Model。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py makemigrations</span><br>Migrations for &#x27;app_1&#x27;:<br>  app_1/migrations/0001_initial.py<br>    - Create model Model1<br>Migrations for &#x27;app_2&#x27;:<br>  app_2/migrations/0001_initial.py<br>    - Create model Model2<br></code></pre></td></tr></table></figure>
+
+<p>OK，两个app的迁移方案文件就生成好了。Django内置的一些app（比如<code>django.contrib.auth</code>）已经<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/contrib/auth/migrations">自带迁移方案</a>，所以这里没有生成迁移方案文件。</p>
+<h2 id="migrate"><a href="#migrate" class="headerlink" title="migrate"></a>migrate</h2><p><code>migrate</code>命令和<code>makemigrations</code>一样，可以指定app。这里我们不指定app，直接应用所有迁移方案。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">multi_db python manage.py migrate</span><br>Operations to perform:<br>  Apply all migrations: admin, app_1, app_2, auth, contenttypes, sessions<br>Running migrations:<br>  Applying contenttypes.0001_initial... OK<br>  Applying auth.0001_initial... OK<br>  Applying admin.0001_initial... OK<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">...</span><br>  Applying app_1.0001_initial... OK<br>  Applying app_2.0001_initial... OK<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">...</span><br>  Applying sessions.0001_initial... OK<br></code></pre></td></tr></table></figure>
+
+<p>很好，包括内置app、自定义app的所有迁移方案全部完成。按照前面的配置，默认的<code>db.sqlite3</code>里应该出现Django内置app的Model、<code>db_1</code>里应该出现<code>app_1</code>的Model、<code>db2</code>里应该出现<code>app_2</code>的Model，对吧？</p>
+<p>现实是残酷的。从<code>migrate</code>模块的源码（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/core/management/commands/migrate.py#L81">migrate.py#L81</a>）可以看出，<code>migrate</code>在应用迁移方案时根本不会考虑<code>DATABASE_ROUTERS</code>里的<code>db_for_read</code>和<code>db_for_write</code>，只会对参数<code>--database</code>指定的数据库（如不指定则为默认数据库）进行操作——也就是说，这里所有的Model都被一股脑写入到了默认的<code>db.sqlite3</code>中：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sqlite3 db.sqlite3 .tables</span><br>app_1_model1                auth_user_groups<br>app_2_model2                auth_user_user_permissions<br>auth_group                  django_admin_log<br>auth_group_permissions      django_content_type<br>auth_permission             django_migrations<br>auth_user                   django_session<br></code></pre></td></tr></table></figure>
+
+<p>很明显，这不是我想要的。如何补救呢？措施有两种。</p>
+<h3 id="补救措施1"><a href="#补救措施1" class="headerlink" title="补救措施1"></a>补救措施1</h3><p>第一种补救措施是在生成自定义app的迁移方案之前抢先完成对内置app的迁移方案，然后再进行自定义app的迁移。这种措施需要删除已经生成好的迁移方案文件。当然，这个补救措施有点耍滑头了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">rm</span> db.sqlite3</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">rm</span> app_?/migrations/0001_initial.py</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-comment"># 迁移内置app</span></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate</span><br>Operations to perform:<br>  Apply all migrations: admin, auth, contenttypes, sessions<br>Running migrations:<br>  Applying contenttypes.0001_initial... OK<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-comment"># 重新生成自定义app的model的迁移方案</span></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py makemigrations</span><br>Migrations for &#x27;app_1&#x27;:<br>  app_1/migrations/0001_initial.py<br>    - Create model Model1<br>Migrations for &#x27;app_2&#x27;:<br>  app_2/migrations/0001_initial.py<br>    - Create model Model2<br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-comment"># 迁移时指定数据库</span></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate app_1 --database db_1</span><br>Operations to perform:<br>  Apply all migrations: app_1<br>Running migrations:<br>  Applying app_1.0001_initial... OK<br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate app_2 --database db_2</span><br>Operations to perform:<br>  Apply all migrations: app_2<br>Running migrations:<br>  Applying app_2.0001_initial... OK<br></code></pre></td></tr></table></figure>
+
+<h3 id="补救措施2"><a href="#补救措施2" class="headerlink" title="补救措施2"></a>补救措施2</h3><p>第二种补救措施不必删除已经生成好的自定义app的迁移方案文件，而是单独迁移内置app。虽然<code>migrate</code>命令一次只能迁移一个app，但所幸需要用到的内置app一般不会太多。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">rm</span> db.sqlite3</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate admin</span><br>Operations to perform:<br>  Apply all migrations: admin<br>Running migrations:<br>  Applying contenttypes.0001_initial... OK<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate auth</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate contenttypes</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate sessions</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-comment"># 单独迁移完内置app后再迁移自定义app</span></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate app_1 --database db_1</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py migrate app_2 --database db_2</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">...</span><br><br></code></pre></td></tr></table></figure>
+
+<h2 id="自定义migrate"><a href="#自定义migrate" class="headerlink" title="自定义migrate"></a>自定义migrate</h2><p>前文提到的两个补救措施终究只是一时的权宜之计，用起来也很麻烦。反正只是多运行几次<code>migrate</code>命令，为什么不交给python来做呢？编辑<code>my_migrate.py</code>如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># my_migrate.py</span><br><span class="hljs-comment">#!/usr/bin/env python</span><br><span class="hljs-keyword">import</span> os<br><br><span class="hljs-keyword">import</span> django<br><span class="hljs-keyword">from</span> django.apps <span class="hljs-keyword">import</span> apps, AppConfig<br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.core.management <span class="hljs-keyword">import</span> execute_from_command_line, CommandError<br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> DEFAULT_DB_ALIAS<br><br>os.environ.setdefault(<span class="hljs-string">&#x27;DJANGO_SETTINGS_MODULE&#x27;</span>, <span class="hljs-string">&#x27;multi_db.settings&#x27;</span>)<br>django.setup()<br><br><span class="hljs-keyword">for</span> app_config <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(apps.get_app_configs()):  <span class="hljs-comment"># type: AppConfig</span><br>    app_label = app_config.label  <span class="hljs-comment"># type: <span class="hljs-built_in">str</span></span><br>    db = settings.DB_ROUTING.get(app_config.label, DEFAULT_DB_ALIAS)<br>    argv = [<span class="hljs-string">&quot;manage.py&quot;</span>, <span class="hljs-string">&quot;migrate&quot;</span>, <span class="hljs-string">&quot;--traceback&quot;</span>, <span class="hljs-string">&quot;--database&quot;</span>, db, app_label]<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;python &quot;</span> + <span class="hljs-string">&quot; &quot;</span>.join(argv))<br>    <span class="hljs-keyword">try</span>:<br>        execute_from_command_line(argv)<br>    <span class="hljs-keyword">except</span> CommandError <span class="hljs-keyword">as</span> e:<br>        <span class="hljs-built_in">print</span>(e)<br>    <span class="hljs-keyword">finally</span>:<br>        <span class="hljs-built_in">print</span>()<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;migrate complete&quot;</span>)<br><br></code></pre></td></tr></table></figure>
+<p>一股熟悉的味道……没错，看起来就像是<code>manage.py</code>的魔改版本。代码在<code>migrate</code>某app之前会去配置文件里的<code>DB_ROUTING</code>字典查找该app对应的数据库，再用这个数据库来<code>migrate</code>这个app。运行效果如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python my_migrate.py</span><br>python manage.py migrate --traceback --database default admin<br>Operations to perform:<br>  Apply all migrations: admin<br>Running migrations:<br>  Applying contenttypes.0001_initial... OK<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">... 略</span><br><br>python manage.py migrate --traceback --database db_1 app_1<br><span class="hljs-meta prompt_"># </span><span class="language-bash">... 略</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="大功告成"><a href="#大功告成" class="headerlink" title="大功告成"></a>大功告成</h2><p>于是，这个Django项目的数据库迁移工作终于完成了，太不容易了……验证一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sqlite3 db.sqlite3 .tables</span><br>auth_group                  auth_user_user_permissions<br>auth_group_permissions      django_admin_log<br>auth_permission             django_content_type<br>auth_user                   django_migrations<br>auth_user_groups            django_session<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_1<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables<br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> Tables_in_db_1    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> app_1_model1      <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> django_migrations <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb root<span class="hljs-variable">@127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:db_2<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">show</span> tables<br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> Tables_in_db_2    <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br><span class="hljs-operator">|</span> app_2_model2      <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> django_migrations <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">-------------------+</span><br></code></pre></td></tr></table></figure>
+
+<h1 id="第二关：运行"><a href="#第二关：运行" class="headerlink" title="第二关：运行"></a>第二关：运行</h1><p>数据库迁移（终于）完成后，该运行这个Django项目了：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py runserver</span><br>Watching for file changes with StatReloader<br>Performing system checks...<br>System check identified no issues (0 silenced).<br>You have 2 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): app_1, app_2.<br>Run &#x27;python manage.py migrate&#x27; to apply them.<br>April 23, 2020 - xx:xx:xx<br></code></pre></td></tr></table></figure>
+
+<p>等等，为什么我在上一步已经完成了全部迁移工作，Django还会提示<code>app_1</code>和<code>app_2</code>未迁移？虽然这并不影响运行，但鲜红的提示总是令人不爽。</p>
+<p>从<code>apply_migration()</code>的源码（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/db/migrations/executor.py#L246">executor.py#L246</a>）中可以看出，在<code>migrate</code>命令过程中，每执行完一条迁移任务，Django都会在同数据库的<code>django_migrations</code>表中写入一条迁移完成的标记，用于记录迁移进度。实际上，<code>db_1</code>和<code>db_2</code>的<code>django_migrations</code>也是有对应标记的。</p>
+<p>但从模块<code>check_migrations()</code>的源码（<a target="_blank" rel="noopener" href="https://github.com/django/django/blob/2.2.12/django/core/management/base.py#L453">base.py#L453</a>）中可以看出，在运行<code>runserver</code>命令时，Django只会到默认数据库的<code>django_migrations</code>表中查找迁移进度，<code>db_1</code>和<code>db_2</code>的迁移进度就被无视了……那么，怎样才能让在运行<code>runserver</code>时检查非默认数据库的迁移进度呢？</p>
+<h2 id="自定义check-migrations"><a href="#自定义check-migrations" class="headerlink" title="自定义check_migrations"></a>自定义check_migrations</h2><p>简单来说，就是修改<code>runserver</code>里<code>check_migrations()</code>的行为。先来看看原始的<code>check_migrations()</code>代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">check_migrations</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-keyword">from</span> django.db.migrations.executor <span class="hljs-keyword">import</span> MigrationExecutor<br>    <span class="hljs-keyword">try</span>:<br>        executor = MigrationExecutor(connections[DEFAULT_DB_ALIAS])<br>    <span class="hljs-keyword">except</span> ImproperlyConfigured:<br>        <span class="hljs-comment"># No databases are configured (or the dummy one)</span><br>        <span class="hljs-keyword">return</span><br><br>    plan = executor.migration_plan(executor.loader.graph.leaf_nodes())<br>    <span class="hljs-keyword">if</span> plan:<br>        <span class="hljs-comment"># 提示未migrate的app，省略</span><br>        self.stdout.write(self.style.NOTICE(<span class="hljs-string">&quot;Run &#x27;python manage.py migrate&#x27; to apply them.\n&quot;</span>))<br></code></pre></td></tr></table></figure>
+
+<p>总体逻辑并不复杂，关键在于<code>executor</code>对象的<code>migration_plan()</code>方法。我要做的就是引入<code>db_1</code>和<code>db_2</code>的<code>executor</code>，让每个数据库只检查自己的迁移进度。下面是我自己实现的<code>check_migrations()</code>方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># multi_db/my_runserver.py</span><br><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> defaultdict<br><br><span class="hljs-keyword">from</span> django.conf <span class="hljs-keyword">import</span> settings<br><span class="hljs-keyword">from</span> django.core.management.commands <span class="hljs-keyword">import</span> runserver<br><span class="hljs-keyword">from</span> django.db <span class="hljs-keyword">import</span> connections, DEFAULT_DB_ALIAS<br><span class="hljs-keyword">from</span> django.db.migrations.executor <span class="hljs-keyword">import</span> MigrationExecutor<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyCommand</span>(runserver.Command):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">check_migrations</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-comment"># 为每个数据库连接创建一个executor并放到字典里</span><br>        executors = &#123;&#125;<br>        <span class="hljs-keyword">for</span> alias <span class="hljs-keyword">in</span> connections:<br>            executors[alias] = MigrationExecutor(connections[alias])<br>        default_executor = executors[DEFAULT_DB_ALIAS]<br>        <span class="hljs-comment"># 获取迁移任务列表（nodes）</span><br>        <span class="hljs-comment"># nodes是一个tuple的list，每个tuple的第一个元素是app的名称</span><br>        nodes = default_executor.loader.graph.leaf_nodes()<br>        <span class="hljs-comment"># 按app名称将node分类</span><br>        node_map = defaultdict(<span class="hljs-built_in">list</span>)<br>        <span class="hljs-keyword">for</span> node <span class="hljs-keyword">in</span> nodes:  <span class="hljs-comment"># type: <span class="hljs-built_in">tuple</span></span><br>            alias = settings.DB_ROUTING.get(node[<span class="hljs-number">0</span>], DEFAULT_DB_ALIAS)<br>            node_map[alias].append(node)<br>        <span class="hljs-comment"># 让每个executor检查各自的迁移任务是否完成</span><br>        plan = []<br>        <span class="hljs-keyword">for</span> alias, executor <span class="hljs-keyword">in</span> executors.items():<br>            plan.extend(executor.migration_plan(node_map[alias]))<br><br>        <span class="hljs-keyword">if</span> plan:<br>            <span class="hljs-comment"># 提示未migrate的app，同原函数，省略</span><br>            self.stdout.write(self.style.NOTICE(<span class="hljs-string">&quot;Run &#x27;python manage.py migrate&#x27; to apply them.\n&quot;</span>))<br></code></pre></td></tr></table></figure>
+
+<p>下一步就是让<code>manager.py</code>使用我这个<code>check_migrations()</code>而不是Django内置的<code>check_migrations()</code>。在<code>manager.py</code>的文件头修改一下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python</span><br><span class="hljs-string">&quot;&quot;&quot;Django&#x27;s command-line utility for administrative tasks.&quot;&quot;&quot;</span><br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">import</span> sys<br><br><span class="hljs-keyword">from</span> multi_db.my_runserver <span class="hljs-keyword">import</span> MyCommand<br><span class="hljs-keyword">from</span> django.core.management.commands <span class="hljs-keyword">import</span> runserver<br><br>runserver.Command = MyCommand<br><span class="hljs-comment"># ... 略</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="大功告成-1"><a href="#大功告成-1" class="headerlink" title="大功告成"></a>大功告成</h2><p>运行看看效果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python manage.py runserver</span><br>Watching for file changes with StatReloader<br>Performing system checks...<br><br>System check identified no issues (0 silenced).<br>April 23, 2020 - xx:xx:xx<br></code></pre></td></tr></table></figure>
+
+<p>终于不提示还有<code>unapplied migration</code>了……我哭了，你呢？</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Web%E5%BC%80%E5%8F%91/">#Web开发</a>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+        <a href="/tags/Django/">#Django</a>
+      
+        <a href="/tags/%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93/">#多数据库</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Django多数据库历险记（一）</div>
+      <div>https://www.yooo.ltd/2020/04/23/Django多数据库历险记（一）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年4月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/04/25/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/" title="Django多数据库历险记（二）">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Django多数据库历险记（二）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/04/19/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%EF%BC%88%E7%BB%AD%EF%BC%89/" title="Django视图函数性能分析（续）">
+                        <span class="hidden-mobile">Django视图函数性能分析（续）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

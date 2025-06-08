@@ -1,0 +1,705 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何在Golang里实现一个高性能的TTLMap">
+<meta property="og:url" content="https://www.yooo.ltd/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言TTLMap是一个比较实用的数据结构，特别是在需要缓存数据的场景下。TTLMap的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。 在TTLMap里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/05/24/pprof.webp">
+<meta property="article:published_time" content="2020-05-24T10:17:23.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Golang">
+<meta property="article:tag" content="map">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/05/24/pprof.webp">
+  
+  
+  
+  <title>如何在Golang里实现一个高性能的TTLMap - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="如何在Golang里实现一个高性能的TTLMap"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-05-24 18:17" pubdate>
+          2020年5月24日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          63 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">如何在Golang里实现一个高性能的TTLMap</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><code>TTLMap</code>是一个比较实用的数据结构，特别是在需要缓存数据的场景下。<code>TTLMap</code>的实现现不算复杂，但也有许多需要注意的地方，这也是这篇文章出现的原因。</p>
+<p>在<code>TTLMap</code>里，移除失效的数据有三种策略：立即删除、惰性删除和定期删除策略。立即删除策略会在数据过期时立即将数据删除；惰性删除策略只在碰到过期键时才进行删除操作；定期删除策略则每隔一段时间，主动查找并删除过期键。第一种策略对CPU不友好，第二种策略容易造成内存泄露。<code>Redis</code>对设置了TTL的数据采取的是惰性删除和定期删除策略，而本篇文章会将重点放在性能上，所以只会采取定期删除策略。</p>
+<blockquote>
+<p>注：本篇文章使用<code>go1.13.5 linux/amd64</code></p>
+</blockquote>
+<h1 id="接口定义"><a href="#接口定义" class="headerlink" title="接口定义"></a>接口定义</h1><p>先来看看<code>TTLMap</code>的接口定义：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> TTLMap <span class="hljs-keyword">interface</span> &#123;<br>	Get(key <span class="hljs-type">string</span>) (<span class="hljs-keyword">interface</span>&#123;&#125;, <span class="hljs-type">bool</span>)<br>	Set(key <span class="hljs-type">string</span>, val <span class="hljs-keyword">interface</span>&#123;&#125;, ex time.Duration)<br>	Len() <span class="hljs-type">int</span><br>	clean(tick time.Duration)<br>&#125;<br><br><span class="hljs-keyword">type</span> item <span class="hljs-keyword">struct</span> &#123;<br>	value  <span class="hljs-keyword">interface</span>&#123;&#125;<br>	expire <span class="hljs-type">int64</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>Get()</code>函数负责从<code>TTLMap</code>中获取数据，如数据不存在或已失效则第二个返回值为<code>false</code>，行为和内置的<code>map</code>保持一致。<code>Set()</code>函数负责将数据放入<code>TTLMap</code>，并接收一个<code>time.Duration</code>参数用来标示数据的生命周期。<code>Len()</code>函数返回<code>TTLMap</code>中数据的数量，不过为了性能考虑，一般不区分数据是否已经失效。<code>clean()</code>函数则负责实现上文提到的定期删除策略。</p>
+<h1 id="初步实现（V0版本）"><a href="#初步实现（V0版本）" class="headerlink" title="初步实现（V0版本）"></a>初步实现（V0版本）</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> TTLMapV0 <span class="hljs-keyword">struct</span> &#123;<br>	items <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item<br>	mux   *sync.Mutex<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV0)</span></span> Get(key <span class="hljs-type">string</span>) (<span class="hljs-keyword">interface</span>&#123;&#125;, <span class="hljs-type">bool</span>) &#123;<br>	tm.mux.Lock()<br>	<span class="hljs-keyword">defer</span> tm.mux.Unlock()<br>	<span class="hljs-keyword">if</span> item, ok := tm.items[key]; !ok || time.Now().UnixNano() &gt; item.expire &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, <span class="hljs-literal">false</span><br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-keyword">return</span> item.value, <span class="hljs-literal">true</span><br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV0)</span></span> Set(key <span class="hljs-type">string</span>, val <span class="hljs-keyword">interface</span>&#123;&#125;, ex time.Duration) &#123;<br>	tm.mux.Lock()<br>	tm.items[key] = item&#123;value: val, expire: time.Now().Add(ex).UnixNano()&#125;<br>	tm.mux.Unlock()<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV0)</span></span> Len() <span class="hljs-type">int</span> &#123;<br>	tm.mux.Lock()<br>	<span class="hljs-keyword">defer</span> tm.mux.Unlock()<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(tm.items)<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV0)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-keyword">for</span> <span class="hljs-keyword">range</span> time.Tick(tick) &#123;<br>		tm.mux.Lock()<br>		<span class="hljs-keyword">for</span> key, item := <span class="hljs-keyword">range</span> tm.items &#123;<br>			<span class="hljs-keyword">if</span> time.Now().UnixNano() &gt;= item.expire &#123;<br>				<span class="hljs-built_in">delete</span>(tm.items, key)<br>			&#125;<br>		&#125;<br>		tm.mux.Unlock()<br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV0</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapV0 &#123;<br>	tm := &amp;TTLMapV0&#123;items: <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item&#123;&#125;, mux: <span class="hljs-built_in">new</span>(sync.Mutex)&#125;<br>	<span class="hljs-keyword">go</span> tm.clean(cleanTick)<br>	<span class="hljs-keyword">return</span> tm<br></code></pre></td></tr></table></figure>
+
+<h1 id="防止内存泄露（V1版本）"><a href="#防止内存泄露（V1版本）" class="headerlink" title="防止内存泄露（V1版本）"></a>防止内存泄露（V1版本）</h1><p>上面的V0版本实现在功能上已经基本完整了，但由于<code>clean()</code>函数会一直运行，所以V0版本的<code>TTLMap</code>不会被Golang的垃圾回收机制回收，进而引起内存泄露。所以我们需要对V0版本做出一点改进，并将改进后的<code>TTLMap</code>包裹起来以启动自动回收机制：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> TTLMapV1 <span class="hljs-keyword">struct</span> &#123;<br>	*TTLMapV0<br>	stop <span class="hljs-keyword">chan</span> <span class="hljs-type">bool</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV1)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-keyword">for</span> <span class="hljs-keyword">range</span> time.Tick(tick) &#123;<br>		<span class="hljs-keyword">select</span> &#123;<br>		<span class="hljs-keyword">case</span> &lt;-tm.stop:<br>			<span class="hljs-keyword">return</span><br>		<span class="hljs-keyword">default</span>:<br>			tm.mux.Lock()<br>			<span class="hljs-keyword">for</span> key, item := <span class="hljs-keyword">range</span> tm.items &#123;<br>				<span class="hljs-keyword">if</span> time.Now().UnixNano() &gt;= item.expire &#123;<br>					<span class="hljs-built_in">delete</span>(tm.items, key)<br>				&#125;<br>			&#125;<br>			tm.mux.Unlock()<br>		&#125;<br>	&#125;<br>&#125;<br><br><span class="hljs-keyword">type</span> TTLMapWrapper <span class="hljs-keyword">struct</span> &#123;<br>	TTLMap<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV1</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapWrapper &#123;<br>	tm0 := &amp;TTLMapV0&#123;items: <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item&#123;&#125;, mux: <span class="hljs-built_in">new</span>(sync.Mutex)&#125;<br>	tm1 := &amp;TTLMapV1&#123;TTLMapV0: tm0, stop: <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> <span class="hljs-type">bool</span>)&#125;<br>	<span class="hljs-keyword">go</span> tm1.clean(cleanTick)<br>	tmw := &amp;TTLMapWrapper&#123;TTLMap: tm1&#125;<br>	runtime.SetFinalizer(tmw, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(_ <span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> &#123; tm1.stop &lt;- <span class="hljs-literal">true</span> &#125;)<br>	<span class="hljs-keyword">return</span> tmw<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="验证自动回收是否启用"><a href="#验证自动回收是否启用" class="headerlink" title="验证自动回收是否启用"></a>验证自动回收是否启用</h2><p>为了验证上文的改进是否有效，将代码改动如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV0)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-keyword">defer</span> fmt.Println(<span class="hljs-string">&quot;v0.clean() stopped&quot;</span>)<br>    <span class="hljs-comment">// ...</span><br>&#125;<br><br><span class="hljs-comment">// ...</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV0</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapV0 &#123;<br>	<span class="hljs-comment">// ...</span><br>	runtime.SetFinalizer(tm, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(_ <span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> &#123; fmt.Println(<span class="hljs-string">&quot;v0 gone&quot;</span>) &#125;)<br>	<span class="hljs-keyword">return</span> tm<br>&#125;<br><br><span class="hljs-comment">// ...</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV1)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-keyword">defer</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> &#123; fmt.Println(<span class="hljs-string">&quot;v1.clean() stopped&quot;</span>) &#125;()<br>    <span class="hljs-comment">// ...</span><br>&#125;<br><br><span class="hljs-comment">// ...</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV1</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapWrapper &#123;<br>    <span class="hljs-comment">// ...</span><br>	runtime.SetFinalizer(tm1, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(_ <span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> &#123; fmt.Println(<span class="hljs-string">&quot;v1 gone&quot;</span>) &#125;)<br>	runtime.SetFinalizer(tm0, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(_ <span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> &#123; fmt.Println(<span class="hljs-string">&quot;v1.v0 gone&quot;</span>) &#125;)<br>	<span class="hljs-keyword">return</span> tmw<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后编写测试代码并运行：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">TestTTLMap</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>	<span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> &#123;<br>		NewTTLMapV0(time.Millisecond * <span class="hljs-number">100</span>)<br>		NewTTLMapV1(time.Millisecond * <span class="hljs-number">100</span>)<br>	&#125;()<br>	fmt.Println(<span class="hljs-string">&quot;--&gt; first gc&quot;</span>)<br>	runtime.GC()<br>	time.Sleep(time.Millisecond * <span class="hljs-number">200</span>)<br>	fmt.Println(<span class="hljs-string">&quot;--&gt; second gc&quot;</span>)<br>	runtime.GC()<br>	fmt.Println(<span class="hljs-string">&quot;--&gt; third gc&quot;</span>)<br>	runtime.GC()<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">go <span class="hljs-built_in">test</span> .</span><br>=== RUN   TestTTLMap<br><span class="hljs-meta prompt_">--&gt; </span><span class="language-bash">first gc</span><br>v1.clean() stopped<br><span class="hljs-meta prompt_">--&gt; </span><span class="language-bash">second gc</span><br>v1 gone<br><span class="hljs-meta prompt_">--&gt; </span><span class="language-bash">third gc</span><br>v1.v0 gone<br>--- PASS: TestTTLMap (0.20s)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，改进后的代码确实生效了，未被引用的<code>TTLMap</code>（V1版本）会被自动回收，不会出现内存泄露。</p>
+<blockquote>
+<p>PS：在接下来的版本将省略<code>TTLMapWrapper</code>的实现部分</p>
+</blockquote>
+<h1 id="使用读写锁提高性能（V2版本）"><a href="#使用读写锁提高性能（V2版本）" class="headerlink" title="使用读写锁提高性能（V2版本）"></a>使用读写锁提高性能（V2版本）</h1><p>在之前的版本里，<code>TTLMap</code>使用的并发控制锁都是普通的<code>sync.Mutex</code>，也就是说同一时刻只能有一个<code>Goruntime</code>访问该对象。但<code>TTLMap</code>应用的场景大多是读多写少，所以我们可以使用读写锁，即<code>sync.RWMutex</code>来获得更好性能：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> TTLMapV2 <span class="hljs-keyword">struct</span> &#123;<br>	items <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item<br>	mux   *sync.RWMutex<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV2)</span></span> Get(key <span class="hljs-type">string</span>) (<span class="hljs-keyword">interface</span>&#123;&#125;, <span class="hljs-type">bool</span>) &#123;<br>	tm.mux.RLock()<br>	<span class="hljs-keyword">defer</span> tm.mux.RUnlock()<br>	<span class="hljs-keyword">if</span> item, ok := tm.items[key]; !ok || time.Now().UnixNano() &gt; item.expire &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, <span class="hljs-literal">false</span><br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-keyword">return</span> item.value, <span class="hljs-literal">true</span><br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV2)</span></span> Set(key <span class="hljs-type">string</span>, val <span class="hljs-keyword">interface</span>&#123;&#125;, ex time.Duration) &#123;<br>	<span class="hljs-comment">// ... 同V0版本</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV2)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-comment">// ... 同V0版本</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV2)</span></span> Len() <span class="hljs-type">int</span> &#123;<br>	tm.mux.RLock()<br>	<span class="hljs-keyword">defer</span> tm.mux.RUnlock()<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(tm.items)<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV2</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapV2 &#123;<br>	tm := &amp;TTLMapV2&#123;<span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item&#123;&#125;, <span class="hljs-built_in">new</span>(sync.RWMutex)&#125;<br>	<span class="hljs-keyword">go</span> tm.clean(cleanTick)<br>	<span class="hljs-keyword">return</span> tm<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="使用不精确的时间提高性能（V3版本）"><a href="#使用不精确的时间提高性能（V3版本）" class="headerlink" title="使用不精确的时间提高性能（V3版本）"></a>使用不精确的时间提高性能（V3版本）</h1><p>在之前的版本里，每次调用<code>Get()</code>和<code>Set()</code>函数时都会调用<code>time.Now()</code>以获取精确时间。但在对时间的精确度要求不那么高的场合下，可以缓存<code>time.Now()</code>的结果来获得更好的性能：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> TTLMapV3 <span class="hljs-keyword">struct</span> &#123;<br>	items <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item<br>	mux   *sync.RWMutex<br>	now   <span class="hljs-type">int64</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV3)</span></span> Get(key <span class="hljs-type">string</span>) (<span class="hljs-keyword">interface</span>&#123;&#125;, <span class="hljs-type">bool</span>) &#123;<br>	tm.mux.RLock()<br>	<span class="hljs-keyword">defer</span> tm.mux.RUnlock()<br>	<span class="hljs-keyword">if</span> item, ok := tm.items[key]; !ok || tm.now &gt; item.expire &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, <span class="hljs-literal">false</span><br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-keyword">return</span> item.value, <span class="hljs-literal">true</span><br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV3)</span></span> Set(key <span class="hljs-type">string</span>, val <span class="hljs-keyword">interface</span>&#123;&#125;, ex time.Duration) &#123;<br>	tm.mux.Lock()<br>	tm.items[key] = item&#123;value: val, expire: tm.now + ex.Nanoseconds()&#125;<br>	tm.mux.Unlock()<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV3)</span></span> Len() <span class="hljs-type">int</span> &#123;<br>	<span class="hljs-comment">// ... 同V2版本</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV3)</span></span> clean(tick time.Duration) &#123;<br>	<span class="hljs-keyword">for</span> <span class="hljs-keyword">range</span> time.Tick(tick) &#123;<br>		tm.mux.Lock()<br>		<span class="hljs-keyword">for</span> key, item := <span class="hljs-keyword">range</span> tm.items &#123;<br>			<span class="hljs-keyword">if</span> tm.now &gt;= item.expire &#123;<br>				<span class="hljs-built_in">delete</span>(tm.items, key)<br>			&#125;<br>		&#125;<br>		tm.mux.Unlock()<br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(tm *TTLMapV3)</span></span> updateNow(tick time.Duration) &#123;<br>	<span class="hljs-keyword">for</span> <span class="hljs-keyword">range</span> time.Tick(tick) &#123;<br>		tm.mux.Lock()<br>		tm.now = time.Now().UnixNano()<br>		tm.mux.Unlock()<br>	&#125;<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewTTLMapV3</span><span class="hljs-params">(cleanTick time.Duration)</span></span> *TTLMapV3 &#123;<br>	tm := &amp;TTLMapV3&#123;<span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]item&#123;&#125;,<br>		<span class="hljs-built_in">new</span>(sync.RWMutex), time.Now().UnixNano()&#125;<br>	<span class="hljs-keyword">go</span> tm.clean(cleanTick)<br>	<span class="hljs-keyword">go</span> tm.updateNow(time.Second)<br>	<span class="hljs-keyword">return</span> tm<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="性能测试-amp-结语"><a href="#性能测试-amp-结语" class="headerlink" title="性能测试&amp;结语"></a>性能测试&amp;结语</h1><p>编写测试代码用于测试以上版本的性能并运行：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">BenchmarkTTLMap</span><span class="hljs-params">(b *testing.B)</span></span> &#123;<br>	rand.Seed(time.Now().UnixNano())<br>	key := RandStringBytesRmndr(<span class="hljs-number">20</span>)<br>	tasks := []<span class="hljs-keyword">struct</span> &#123;<br>		name <span class="hljs-type">string</span><br>		ttl  TTLMap<br>	&#125;&#123;<br>		&#123;<span class="hljs-string">&quot;TTLMapV0&quot;</span>, NewTTLMapV0(time.Minute)&#125;,<br>		&#123;<span class="hljs-string">&quot;TTLMapV2&quot;</span>, NewTTLMapV2(time.Minute)&#125;,<br>		&#123;<span class="hljs-string">&quot;TTLMapV3&quot;</span>, NewTTLMapV3(time.Minute)&#125;,<br>	&#125;<br>	<span class="hljs-keyword">for</span> _, task := <span class="hljs-keyword">range</span> tasks &#123;<br>		b.Run(task.name, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(sb *testing.B)</span></span> &#123;<br>			sb.RunParallel(<span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(pb *testing.PB)</span></span> &#123;<br>				<span class="hljs-keyword">for</span> pb.Next() &#123;<br>					task.ttl.Set(key, key, time.Minute)<br>					task.ttl.Get(key)<br>				&#125;<br>			&#125;)<br>		&#125;)<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash">go <span class="hljs-built_in">test</span> -bench .</span>  <br>goos: linux<br>goarch: amd64<br>BenchmarkTTLMap/TTLMapV0-8               3972699               301 ns/op<br>BenchmarkTTLMap/TTLMapV2-8               4972598               241 ns/op<br>BenchmarkTTLMap/TTLMapV3-8               9125235               132 ns/op<br>PASS<br></code></pre></td></tr></table></figure>
+
+<p>可以看出，V2相比V0性能提升了20%左右，而V3相比V0的性能提升幅度更是超过了56%。而从PPROF的分析结果来看，剩下的时间主要消耗在互斥锁上，应该很难有进一步优化的空间了。</p>
+<p><img src="/images/2020/05/24/pprof.webp" srcset="/img/loading.gif" lazyload></p>
+<p>虽然理论上来说用<code>int</code>当<code>Map</code>的键而不是<code>string</code>时会有更好的性能表现，但是从实际测试来看，对于长度为20的<code>string</code>，<code>fnv32</code>等哈希算法的开销还是超过了其能带来的收益，更别提还要考虑潜在的哈希冲突。</p>
+<p>最后要重申一点的是，V2和V3版本的实现省略了V1中提到的<code>TTLMapWrapper</code>部分，所以请不要直接使用V2和V3版本的代码😂</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/golang/go/issues/19780">proposal: a faster, better fnv32 implementation #19780</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.oschina.net/solate/blog/3034188">go benchmark 性能测试</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/76504936">使用runtime.SetFinalizer优雅关闭后台goroutine</a></li>
+<li><a target="_blank" rel="noopener" href="http://redisbook.com/preview/database/review.html">重点回顾-Redis设计与实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go">How to generate a random string of a fixed length in Go?</a></li>
+<li><a target="_blank" rel="noopener" href="https://medium.com/justforfunc/analyzing-the-performance-of-go-functions-with-benchmarks-60b8162e61c6">Analyzing the performance of Go functions with benchmarks</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackimpact.com/blog/practical-golang-benchmarks/#map-access">Practical Go Benchmarks</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Golang/">#Golang</a>
+      
+        <a href="/tags/map/">#map</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>如何在Golang里实现一个高性能的TTLMap</div>
+      <div>https://www.yooo.ltd/2020/05/24/如何在Golang里实现一个高性能的TTLMap/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年5月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/06/13/%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E5%9C%B0%E5%AF%B9100%E4%B8%87%E4%B8%AAUUID%E8%BF%9B%E8%A1%8C%E5%89%8D%E7%BC%80%E5%8C%B9%E9%85%8D%E6%9F%A5%E8%AF%A2/" title="如何高效地对100万个UUID进行前缀匹配查询">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">如何高效地对100万个UUID进行前缀匹配查询</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/05/02/Django%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8E%86%E9%99%A9%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/" title="Django多数据库历险记（番外）">
+                        <span class="hidden-mobile">Django多数据库历险记（番外）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

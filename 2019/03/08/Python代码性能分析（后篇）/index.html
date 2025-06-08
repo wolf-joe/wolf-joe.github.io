@@ -1,0 +1,701 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言在前一篇文章中，我介绍了测量执行Python代码所需要的总体时间的几种方法。而在实际的性能分析场景中，目标代码的逻辑往往比较复杂，光靠总体执行耗时并不能帮助我们快速定位性能瓶颈。这个时候就需要请出Python的标准库：cProfile（官方文档）来对代码进行细致的性能分析了。和前一篇文章一样，本文所使用的测试平台为Ubuntu 18.04+Python 3.6，并使用代码文件slow_func">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python代码性能分析（后篇）">
+<meta property="og:url" content="https://www.yooo.ltd/2019/03/08/Python%E4%BB%A3%E7%A0%81%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%EF%BC%88%E5%90%8E%E7%AF%87%EF%BC%89/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言在前一篇文章中，我介绍了测量执行Python代码所需要的总体时间的几种方法。而在实际的性能分析场景中，目标代码的逻辑往往比较复杂，光靠总体执行耗时并不能帮助我们快速定位性能瓶颈。这个时候就需要请出Python的标准库：cProfile（官方文档）来对代码进行细致的性能分析了。和前一篇文章一样，本文所使用的测试平台为Ubuntu 18.04+Python 3.6，并使用代码文件slow_func">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-03-08.01.png">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-03-08.02.png">
+<meta property="og:image" content="https://www.yooo.ltd/images/2019-03-08.03.png">
+<meta property="article:published_time" content="2019-03-08T08:34:15.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="性能分析">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2019-03-08.01.png">
+  
+  
+  
+  <title>Python代码性能分析（后篇） - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Python代码性能分析（后篇）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2019-03-08 16:34" pubdate>
+          2019年3月8日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          28 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Python代码性能分析（后篇）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在前一篇文章中，我介绍了测量执行Python代码所需要的总体时间的几种方法。而在实际的性能分析场景中，目标代码的逻辑往往比较复杂，光靠总体执行耗时并不能帮助我们快速定位性能瓶颈。这个时候就需要请出Python的标准库：<code>cProfile</code>（<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/profile.html">官方文档</a>）来对代码进行细致的性能分析了。<br>和前一篇文章一样，本文所使用的测试平台为<code>Ubuntu 18.04</code>+<code>Python 3.6</code>，并使用代码文件<code>slow_func.py</code>作为样例进行性能分析，内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># coding:utf-8</span><br><span class="hljs-keyword">import</span> time<br><span class="hljs-keyword">import</span> random<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">func1</span>():<br>    time.sleep(<span class="hljs-number">1</span>)  <span class="hljs-comment"># 等待一秒</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">func2</span>():<br>    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span> ** <span class="hljs-number">24</span>):<br>        random.random()  <span class="hljs-comment"># 生成1600万个随机数</span><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    func1()<br>    func2()<br></code></pre></td></tr></table></figure>
+
+<h1 id="命令行使用cProfile"><a href="#命令行使用cProfile" class="headerlink" title="命令行使用cProfile"></a>命令行使用cProfile</h1><p>对于单独的Python代码文件来说，通过命令行使用cProfile无疑是最方便的选择。<br>执行如下shell命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">python3 -m cProfile -s tottime slow_func.py<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>首先用<code>python3</code>的<code>-m</code>选项调用<code>cProfile</code>模块，然后用<code>cProfile</code>的<code>-s</code>选项让输出结果按<code>tottime</code>进行排序，最后执行<code>slow_func.py</code>文件。<br>完整调用格式为：<code>python -m cProfile [-o output_file] [-s sort_order] myscript.py</code></p>
+</blockquote>
+<p>得到如下结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs shell">        16778563 function calls (16778520 primitive calls) in 3.176 seconds<br><br>  Ordered by: internal time<br><br>  ncalls  tottime  percall  cumtime  percall filename:lineno(function)<br>       1    1.456    1.456    2.172    2.172 slow_func.py:8(func2)<br>       1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;<br>16777216    0.716    0.000    0.716    0.000 &#123;method &#x27;random&#x27; of &#x27;_random.Random&#x27; objects&#125;<br>       1    0.001    0.001    0.001    0.001 &#123;built-in method _imp.create_dynamic&#125;<br>       3    0.000    0.000    0.000    0.000 &#123;built-in method marshal.loads&#125;<br>       # ...省略后续100多行<br></code></pre></td></tr></table></figure>
+<ul>
+<li>输出的第1行表明，脚本文件执行中存在1600多万次的函数调用，共耗费3.268秒。<ul>
+<li>而根据前一篇文章的测试结果，直接执行该脚本文件只需要2秒左右的时间，那多出来的1秒多花在了哪里？这是因为<code>cProfile</code>需要对每一次函数调用进行监控和记录，由于该文件存在较多的函数调用，所以总执行耗时也就增长了许多了。</li>
+</ul>
+</li>
+<li>第3行表明，下表内容按照<code>internal time</code>（内部执行时间，<code>tottime</code>）排序，这是由执行命令中的<code>-s tottime</code>参数决定的。</li>
+<li>第5行为分析结果表的表头，依次为<code>ncalls</code>：调用次数、<code>tottime</code>：内部执行耗时、<code>percall</code>：内部执行耗时&#x2F;调用次数、<code>cumtime</code>：累计执行耗时、<code>percall</code>：累计执行耗时&#x2F;调用次数，以及最后的<code>文件名+行号+函数名称</code>。<ul>
+<li><code>tottime</code>和<code>cumtime</code>的区别在于，<code>tottime</code>不包括子函数执行所花费的时间，而<code>cumtime</code>是包括的。</li>
+</ul>
+</li>
+<li>第6行表明，<code>slow_func.py</code>中第8行的<code>func2</code>函数共执行了1次，内部耗时1.456秒，累计耗时2.172秒。</li>
+<li>第7行表明，Python内置的<code>sleep</code>函数共执行了一次，耗时1.001秒。</li>
+<li>第8行表明，Python内置的<code>random</code>函数共执行了1600多万次，耗时0.716秒。<ul>
+<li>由于<code>random</code>函数是被<code>func2</code>函数调用的，所以这0.716秒和<code>func2</code>函数的内部执行耗时1.456秒，共同组成了<code>func2</code>函数的累计执行耗时：2.172秒。</li>
+</ul>
+</li>
+<li>由于是用<code>cProfile</code>分析整个脚本文件，所以许多Python自身所需的函数调用也被展示在了结果里，所以分析结果表才会有100多行的规模。这个问题可以在下一小节中解决。</li>
+</ul>
+<h1 id="代码里使用cProfile"><a href="#代码里使用cProfile" class="headerlink" title="代码里使用cProfile"></a>代码里使用cProfile</h1><p>从本质上来说，通过命令行使用<code>cProfile</code>相当于在代码里使用<code>cProfile</code>的一个简化操作。而在命令行里分析代码有着明显的局限性：目标代码必须独立成文件、输出格式固定等等。所以，在代码里使用<code>cProfile</code>往往是一个更优的选择。<br>执行如下Python代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> cProfile<br><span class="hljs-keyword">import</span> pstats<br><span class="hljs-keyword">from</span> io <span class="hljs-keyword">import</span> StringIO<br><br><span class="hljs-keyword">from</span> slow_func <span class="hljs-keyword">import</span> func1, func2<br><br>profile = cProfile.Profile()<br>profile.enable()  <span class="hljs-comment"># 分析开始</span><br>func1()<br>func2()<br>profile.disable()  <span class="hljs-comment"># 分析结束</span><br>ram_file = StringIO()<br>sort_by = <span class="hljs-string">&#x27;tottime&#x27;</span><br>stats = pstats.Stats(profile, stream=ram_file)  <span class="hljs-comment"># 读取结果</span><br>stats.strip_dirs().sort_stats(sort_by).print_stats()  <span class="hljs-comment"># 按格式输出至ram_file</span><br><br><span class="hljs-built_in">print</span>(ram_file.getvalue())<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>代码的核心逻辑是使用<code>cProfile</code>模块的<code>Profile</code>类对代码块进行性能分析，分析完成后使用<code>pstats</code>模块的<code>Stats</code>类将分析结果按一定格式写入至内存文件，最后输出该文件里写入的内容。<br>实际上这只是一个较为简单的样例，<code>pstats</code>模块还可以获得函数之间的调用关系、将结果持久化、显示文件路径等等，更完整的说明可以参考<a target="_blank" rel="noopener" href="https://docs.python.org/3.6/library/profile.html">官方文档</a>。</p>
+</blockquote>
+<p>得到如下结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs shell">        16777220 function calls in 3.225 seconds<br><br>  Ordered by: internal time<br><br>  ncalls  tottime  percall  cumtime  percall filename:lineno(function)<br>       1    1.517    1.517    2.224    2.224 slow_func.py:8(func2)<br>       1    1.001    1.001    1.001    1.001 &#123;built-in method time.sleep&#125;<br>16777216    0.707    0.000    0.707    0.000 &#123;method &#x27;random&#x27; of &#x27;_random.Random&#x27; objects&#125;<br>       1    0.000    0.000    1.001    1.001 slow_func.py:5(func1)<br>       1    0.000    0.000    0.000    0.000 &#123;method &#x27;disable&#x27; of &#x27;_lsprof.Profiler&#x27; objects&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="cProfile结果可视化"><a href="#cProfile结果可视化" class="headerlink" title="cProfile结果可视化"></a>cProfile结果可视化</h1><p>一般来说，通过以上两个例子就可以获得完善的性能分析报告了。但通过一些可视化工具对<code>cProfile</code> 的报告进行二次处理，我们可以更清晰地观察函数之间的调用关系、更轻松地找出性能瓶颈，算是一个不错的辅助手段。在这里只介绍一种可视化工具：JetBrain PyCharm自带的<code>Profile</code>工具。</p>
+<ul>
+<li><p>点击Pycharm中<code>Run</code>菜单里的<code>Profile &#39;xxx&#39;项目</code>，即可对当前运行执行方案使用<code>cProfile</code>进行性能分析，如下图：<br><img src="/images/2019-03-08.01.png" srcset="/img/loading.gif" lazyload></p>
+</li>
+<li><p>结果如下图所示。其中，<code>Time</code>对应<code>cProfile</code>中的<code>cumtime</code>，即累计执行耗时；<code>Own Time</code>对应<code>cProfile</code>中的<code>tottime</code>，即内部执行耗时。<br><img src="/images/2019-03-08.02.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/2019-03-08.03.png" srcset="/img/loading.gif" lazyload></p>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">#性能分析</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Python代码性能分析（后篇）</div>
+      <div>https://www.yooo.ltd/2019/03/08/Python代码性能分析（后篇）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2019年3月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/03/11/Django%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" title="Django视图函数性能分析">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Django视图函数性能分析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/03/06/Python%E4%BB%A3%E7%A0%81%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%EF%BC%88%E5%89%8D%E7%AF%87%EF%BC%89/" title="Python代码性能分析（前篇）">
+                        <span class="hidden-mobile">Python代码性能分析（前篇）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

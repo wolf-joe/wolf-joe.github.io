@@ -1,0 +1,762 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta property="og:type" content="website">
+<meta property="og:title" content="OrangeWolf的博客">
+<meta property="og:url" content="https://www.yooo.ltd/page/2/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="OrangeWolf">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="我写故我在"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          style="margin-top: 0">
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/01/16/install-lxml-on-mac/" target="_self">
+          macOS安装lxml报错&#39;Python.h&#39; file not found
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/01/16/install-lxml-on-mac/" target="_self">
+        <div>
+          背景 macOS环境：Ventura 13.0 (Apple Silicon) Python版本：3.9.6  lxml是笔者常用的html内容解析库。但笔者在macOS上安装lxml时碰到了如下报错： 1pip3 install lxml  12345...src/lxml/etree.c:96:10: fatal error: &#x27;Python.h&#x27; file not fou
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-01-16 17:26" pubdate>
+              2023-01-16
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Python/">#Python</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/31/2022-annual-summary/" target="_self">
+          2022年度总结
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/31/2022-annual-summary/" target="_self">
+        <div>
+          前言不知不觉中又过了一年。2022年，我在那些对自己最重要的事情上有什么进展呢？我是否依然坚定地走在我自己的那条路上？ 或许，这篇文章能让问题的答案更加清晰。 1. 身体健康 今年去了约100次健身房（公司总打卡305次、私教30+次），深蹲做组突破1倍体重；疫情宅家期间使用跳绳、哑铃锻炼。 4月份首次尝试参加爬山活动，之后陆续去了三次，第四次爬上了北京最高峰。 购置电动升降桌、升降台避免久坐；拔
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-31 16:14" pubdate>
+              2022-12-31
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+            
+              <a href="/tags/%E6%80%BB%E7%BB%93/">#总结</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/31/h2-2-modem-ip6tables/" target="_self">
+          H2-2光猫配置IPv6防火墙
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/31/h2-2-modem-ip6tables/" target="_self">
+        <div>
+          1. 背景IPv6相比IPv4的一大优势是IP地址空间充足。以笔者的中国移动宽带为例，光猫可以从运营商处获得2409开头的/64公网网段，连接至光猫的设备可自动获得公网IPv6地址：  但处于安全考虑，光猫的IPv6防火墙会默认禁用所有入站连接，导致其它公网设备无法直连光猫防火墙内部的设备：  幸运的是，笔者使用的中国移动H2-2光猫在网上有大量使用教程，可以通过配置IPv6防火墙的方式解决这个问
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-31 11:41" pubdate>
+              2022-12-31
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%BD%91%E7%BB%9C/">#网络</a>
+            
+              <a href="/tags/IPv6/">#IPv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/" target="_self">
+          偷天换日：屏蔽光猫的IP地址自动分配
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/" target="_self">
+        <div>
+          1. 背景 在之前的文章[1]中，笔者苦于安卓对IPv6的支持不佳，所以在手机已root的情况下使用tasker应用+命令行让安卓设备连接指定wifi后禁用IPv6。但这种方案并不完美：  首先需要保证tasker应用始终在后台运行（笔者会定时进入清空后台的深度省电模式） 其次tasker并不能保证每次都禁用IPv6成功（可能和笔者选择只运行一条命令有关）  所以笔者的目光还是转向了更为彻底的解决
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-28 21:53" pubdate>
+              2022-12-28
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%BD%91%E7%BB%9C/">#网络</a>
+            
+              <a href="/tags/IPv6/">#IPv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/" target="_self">
+          用Prometheus监控硬盘SMART信息
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/" target="_self">
+        <div>
+          1. 背景笔者的NAS（或者说ALL IN ONE主机）内有两块3.5寸的机械硬盘。群晖、TrueNAS等系统内置了比较完善的监控，可通过SMART信息（参数、温度、通电时长等）观察硬盘健康状况。可惜笔者使用的是Ubuntu系统，只能定期通过命令行进行检查。为了更方便地掌握硬盘的健康状况，笔者决定搭建一套关于硬盘的监控解决方案。 2. 思路 由于笔者已经搭建了一套Prometheus监控套件，所以
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-23 09:02" pubdate>
+              2022-12-23
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/" target="_self">
+          安卓对指定WiFi禁用IPv6
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/" target="_self">
+        <div>
+          1. 背景这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：  后来由于某些设备有连接公网 IPv6 地址的需求，所以笔者将二级 NAT 改成了无线 AP ，所有设备直连宽带网关以拿到 IPv6 地址：  OP 的安卓设备在之前的网络架构中将旁路由作为网关。但在新的网络架构中，由于安卓设备无法设置静态 IPv6 ，所以 IPv6 流量无法经过旁
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-17 10:07" pubdate>
+              2022-12-17
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%95%B0%E7%A0%81/">#数码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/" target="_self">
+          改善室内空气质量-加湿篇
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/" target="_self">
+        <div>
+          1. 前言在前一篇文章[1]中，笔者通过新风大幅优化了室内PM2.5和CO2指标。冬季的北京空气十分干燥，室外空气湿度可能低至20%。而低湿度的空气被新风源源不断送入室内，让室内空气湿度始终维持在较低的水平。考虑到舒适的室内湿度为40%~60%[2]，同时也为了解决低湿度带来的皮肤容易干燥、起床后口鼻不舒服等问题，笔者决定采取手段提升室内湿度。 2. 方案选择室内加湿器是比较直接的选择。笔者了解后
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-10 17:45" pubdate>
+              2022-12-10
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+            
+              <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/" target="_self">
+          改善室内空气质量-新风篇
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/" target="_self">
+        <div>
+          1. 背景在上一篇文章[1]中，笔者搭建了一套空气质量监控方案。但随之而来的是持续的告警以及糟糕的空气。最极端的时候，笔者能从监控上观察到超过100的室内PM2.5浓度。         在下决心改善室内空气质量后，摆在笔者面前的有两个选择：空气净化器和新风。两者都可以降低室内PM2.5，但前者只能被动净化流入室内的室外空气（先污染后治理），而后者能主动净化室外空气并送入屋内，除了能降低室内PM2
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-09 13:04" pubdate>
+              2022-12-09
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+            
+              <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/" target="_self">
+          监控室内空气质量
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/" target="_self">
+        <div>
+          1. 背景爱否出品的新风消费报告[1]里提到了一个概念：室内空气的四个终极目标是恒温、恒湿、恒净、恒氧。笔者对此深感认同，可惜笔者生活的北京并没有足够宜人的气候[2]：  空气质量指数[3]也堪忧：  更糟糕的是，为了保证室内空气含氧量，笔者的窗户常年是半开的。这就导致室内空气很容易受室外影响，不仅容易积灰，而且往往要等空气质量显著糟糕时笔者才会想到要关窗。 为了能更好地评估室内空气质量，并指导改
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-12-05 12:53" pubdate>
+              2022-12-05
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+            
+              <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/" target="_self">
+          用Afterburner和Grafana监控PC性能
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/" target="_self">
+        <div>
+          背景监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是node_exporter+Prometheus+Grafana的经典三件套，整体效果令人满意：    整体架构 Grafana面板        同时笔者在使用PC时偶尔还会使用MSI Afterburner（以下简称Afterburner）来观察PC性能：  但Afterburner的监控功能并不易用（特别是在高分辨率下），如果
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-08-20 15:18" pubdate>
+              2022-08-20
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Golang/">#Golang</a>
+            
+              <a href="/tags/%E7%9B%91%E6%8E%A7/">#监控</a>
+            
+              <a href="/tags/%E7%94%9F%E6%B4%BB/">#生活</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#board">3</a><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><a class="extend next" rel="next" href="/page/3/#board"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

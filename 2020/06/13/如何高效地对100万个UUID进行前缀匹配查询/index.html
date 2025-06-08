@@ -1,0 +1,705 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言 在《Redis实战》这本书的第六章中，作者介绍了如何使用Redis的ZSET来实现通讯录自动补全（即前缀匹配查询）。这部分内容激发了我的兴趣，于是我借助这个机会抛出问题：如何高效地对100万个UUID进行前缀匹配，并尝试用这篇文章来解答。 数据准备首先是数据准备工作：生成100万个UUID、将其写入至Redis和MariaDB（后者可作为对比）。顺便一提，Redis和MariaDB均在笔者电">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何高效地对100万个UUID进行前缀匹配查询">
+<meta property="og:url" content="https://www.yooo.ltd/2020/06/13/%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E5%9C%B0%E5%AF%B9100%E4%B8%87%E4%B8%AAUUID%E8%BF%9B%E8%A1%8C%E5%89%8D%E7%BC%80%E5%8C%B9%E9%85%8D%E6%9F%A5%E8%AF%A2/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言 在《Redis实战》这本书的第六章中，作者介绍了如何使用Redis的ZSET来实现通讯录自动补全（即前缀匹配查询）。这部分内容激发了我的兴趣，于是我借助这个机会抛出问题：如何高效地对100万个UUID进行前缀匹配，并尝试用这篇文章来解答。 数据准备首先是数据准备工作：生成100万个UUID、将其写入至Redis和MariaDB（后者可作为对比）。顺便一提，Redis和MariaDB均在笔者电">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/06/13/redis-logo.png">
+<meta property="og:image" content="https://www.yooo.ltd/images/2020/06/13/compare.png">
+<meta property="article:published_time" content="2020-06-13T05:28:10.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.yooo.ltd/images/2020/06/13/redis-logo.png">
+  
+  
+  
+  <title>如何高效地对100万个UUID进行前缀匹配查询 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="如何高效地对100万个UUID进行前缀匹配查询"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-06-13 13:28" pubdate>
+          2020年6月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          40 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">如何高效地对100万个UUID进行前缀匹配查询</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><img src="/images/2020/06/13/redis-logo.png" srcset="/img/loading.gif" lazyload></p>
+<p>在《Redis实战》这本书的第六章中，作者介绍了如何使用Redis的ZSET来实现通讯录自动补全（即前缀匹配查询）。这部分内容激发了我的兴趣，于是我借助这个机会抛出问题：如何高效地对100万个UUID进行前缀匹配，并尝试用这篇文章来解答。</p>
+<h1 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h1><p>首先是数据准备工作：生成100万个UUID、将其写入至Redis和MariaDB（后者可作为对比）。顺便一提，Redis和MariaDB均在笔者电脑上通过Docker部署，版本分别为Redis 6.0和MariaDB 10.4。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-comment"># 生成100万个UUID</span></span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;0..999999&#125;; <span class="hljs-keyword">do</span> uuidgen; <span class="hljs-keyword">done</span> &gt; uuids_1m.txt</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">du</span> uuids_1m.txt -h</span><br>36M	uuids_1m.txt<br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">head</span> -n2 uuid_1m.txt</span><br>25e2cc59-b117-4961-9bc6-a63c5b1770db<br>e9f833b9-630d-47cb-b2ae-69c6d1bc2bde<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">redis&gt; </span><span class="language-bash">zcount uuids -inf +inf</span><br>(integer) 1000000<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs sql"># MariaDB表结构，在uuid字段加了索引<br><span class="hljs-keyword">create</span> <span class="hljs-keyword">table</span> uuids (<br>    id <span class="hljs-type">int</span> <span class="hljs-keyword">primary</span> key auto_increment,<br>    uuid <span class="hljs-type">char</span>(<span class="hljs-number">36</span>) <span class="hljs-keyword">not</span> <span class="hljs-keyword">null</span>,<br>    key idx_uuid (uuid)<br>);<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs sql">mariadb<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">select</span> <span class="hljs-built_in">count</span>(<span class="hljs-operator">*</span>) <span class="hljs-keyword">from</span> uuids;<br><span class="hljs-operator">+</span><span class="hljs-comment">----------+</span><br><span class="hljs-operator">|</span> <span class="hljs-built_in">count</span>(<span class="hljs-operator">*</span>) <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----------+</span><br><span class="hljs-operator">|</span> <span class="hljs-number">1000000</span>  <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">----------+</span><br>mariadb<span class="hljs-operator">&gt;</span> <span class="hljs-keyword">select</span> table_name, data_length, index_length <span class="hljs-keyword">from</span> information_schema.tables <span class="hljs-keyword">where</span> table_name<span class="hljs-operator">=</span><span class="hljs-string">&#x27;uuids&#x27;</span>;<br><span class="hljs-operator">+</span><span class="hljs-comment">------------+-------------+--------------+</span><br><span class="hljs-operator">|</span> table_name <span class="hljs-operator">|</span> data_length <span class="hljs-operator">|</span> index_length <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------+-------------+--------------+</span><br><span class="hljs-operator">|</span> uuids      <span class="hljs-operator">|</span> <span class="hljs-number">64569344</span>    <span class="hljs-operator">|</span> <span class="hljs-number">78397440</span>     <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------+-------------+--------------+</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，在插入100万条UUID数据后，MariaDB数据表的大小超过了60MB，索引的大小超过了70MB。同时，数据准备完成后，Redis和MariaDB的内存占用从刚部署时的5M和80M上升至了120M和270M。</p>
+<h1 id="Python遍历查询"><a href="#Python遍历查询" class="headerlink" title="Python遍历查询"></a>Python遍历查询</h1><p>数据准备完成后，下面要做的就是进行前缀匹配查询。最直接的方式应该是遍历查询了，实现起来也简单，但<code>O(n)</code>的时间复杂实在是让人不敢恭维，代码贴出来权当消遣。</p>
+<p>为了更符合前缀匹配查询的定义，我在读取完UUID后还会对数据进行一次排序操作，而这个排序的时间消耗是不会被统计到后续的性能对比中的，这对下一节的二分查询同样适用。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">uuids = []<br><span class="hljs-comment"># .. 读取uuid</span><br>uuids.sort()<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">traverse</span>(<span class="hljs-params">prefix: <span class="hljs-built_in">str</span>, limit=<span class="hljs-number">10</span></span>):<br>    start = <span class="hljs-number">0</span><br>    <span class="hljs-keyword">while</span> start &lt; <span class="hljs-built_in">len</span>(uuids) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> uuids[start].startswith(prefix):<br>        start += <span class="hljs-number">1</span><br>    ans = []<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start, <span class="hljs-built_in">min</span>(start + limit, <span class="hljs-built_in">len</span>(uuids))):<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> uuids[i].startswith(prefix):<br>            <span class="hljs-keyword">break</span><br>        ans.append(uuids[i])<br>    <span class="hljs-keyword">return</span> ans<br></code></pre></td></tr></table></figure>
+
+<h1 id="Python二分查询"><a href="#Python二分查询" class="headerlink" title="Python二分查询"></a>Python二分查询</h1><p>遍历查询最大的问题在于其<code>O(n)</code>的时间复杂度。但只要目标数据是有序的，那就到时间复杂度只有<code>O(log n)</code>的二分查询上场的时候了。对于前缀匹配查询来说，查询以<code>abcd</code>开头的字符串，本质上是查询比<code>abcczzzz...</code>大的字符串。而在代码中，我用<code>0xffff</code>这个边界符号来代替前文提到的那一串<code>zzzz....</code>，这对UUID这种不超过ASCII码范围的字符串来说已经足够了。</p>
+<p>同时，代码里二分查找的结果（<code>start</code>）是第一个大于要找的字符串的元素的下标，这点需要注意。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">bin_search</span>(<span class="hljs-params">prefix: <span class="hljs-built_in">str</span>, limit=<span class="hljs-number">10</span></span>):<br>    target = prefix[:-<span class="hljs-number">1</span>] + <span class="hljs-built_in">chr</span>(<span class="hljs-built_in">ord</span>(prefix[-<span class="hljs-number">1</span>]) - <span class="hljs-number">1</span>) + <span class="hljs-built_in">chr</span>(<span class="hljs-number">0xffff</span>)<br>    left, right = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(uuids) - <span class="hljs-number">1</span><br>    <span class="hljs-keyword">while</span> left &lt;= right:<br>        mid = (left + right) // <span class="hljs-number">2</span><br>        <span class="hljs-keyword">if</span> uuids[mid] == target:<br>            start = left + <span class="hljs-number">1</span><br>            <span class="hljs-keyword">break</span><br>        <span class="hljs-keyword">elif</span> uuids[mid] &lt; target:<br>            left = mid + <span class="hljs-number">1</span><br>        <span class="hljs-keyword">else</span>:<br>            right = mid - <span class="hljs-number">1</span><br>    <span class="hljs-keyword">else</span>:<br>        start = left<br>    ans = []<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start, <span class="hljs-built_in">min</span>(start + limit, <span class="hljs-built_in">len</span>(uuids))):<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> uuids[i].startswith(prefix):<br>            <span class="hljs-keyword">break</span><br>        ans.append(uuids[i])<br>    <span class="hljs-keyword">return</span> ans<br></code></pre></td></tr></table></figure>
+
+<h1 id="Redis-ZSET查询"><a href="#Redis-ZSET查询" class="headerlink" title="Redis+ZSET查询"></a>Redis+ZSET查询</h1><p>Redis+ZSET查询的原理和二分查询原理的类似。Redis中的ZSET默认会按照元素的分值进行排序，但如果两个元素的分值一致，那就按元素本身排序。换言之，在ZSET里存放多个分值一致的UUID，从中任意取出一段UUID，这些UUID必然是有序的。</p>
+<p>而为了进行前缀匹配查询，我们需要在ZSET里插入两个边界元素，用来标示开始和结束。对于前缀<code>abcd</code>来说，这两个边界元素就是<code>abcc0xffff</code>和<code>abcd0xffff</code>，ZSET里这两个边界元素之间的数据就是我们想要查询的结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">redis_zset</span>(<span class="hljs-params">prefix: <span class="hljs-built_in">str</span>, limit=<span class="hljs-number">10</span></span>):<br>    identifier = <span class="hljs-built_in">str</span>(uuid4())<br>    start = prefix[:-<span class="hljs-number">1</span>] + <span class="hljs-built_in">chr</span>(<span class="hljs-built_in">ord</span>(prefix[-<span class="hljs-number">1</span>]) - <span class="hljs-number">1</span>)<br>    start += <span class="hljs-built_in">chr</span>(<span class="hljs-number">0xffff</span>) + identifier<br>    end = prefix + <span class="hljs-built_in">chr</span>(<span class="hljs-number">0xffff</span>) + identifier<br>    conn.zadd(<span class="hljs-string">&quot;uuids&quot;</span>, &#123;start: <span class="hljs-number">0</span>, end: <span class="hljs-number">0</span>&#125;)  <span class="hljs-comment"># 所有UUID的分值都是0</span><br>    si = conn.zrank(<span class="hljs-string">&quot;uuids&quot;</span>, start) + <span class="hljs-number">1</span><br>    ei = conn.zrank(<span class="hljs-string">&quot;uuids&quot;</span>, end) - <span class="hljs-number">1</span><br>    ei = <span class="hljs-built_in">min</span>(si + limit - <span class="hljs-number">1</span>, ei)<br>    pipe = conn.pipeline()<br>    pipe.zrange(<span class="hljs-string">&quot;uuids&quot;</span>, si, ei)<br>    pipe.zrem(<span class="hljs-string">&quot;uuids&quot;</span>, start, end)<br>    zr = pipe.execute()[<span class="hljs-number">0</span>]  <span class="hljs-comment"># type: <span class="hljs-type">List</span>[<span class="hljs-built_in">bytes</span>]</span><br>    ans = [uuid.decode(<span class="hljs-string">&quot;utf-8&quot;</span>) <span class="hljs-keyword">for</span> uuid <span class="hljs-keyword">in</span> zr]<br>    <span class="hljs-keyword">return</span> [uuid <span class="hljs-keyword">for</span> uuid <span class="hljs-keyword">in</span> ans <span class="hljs-keyword">if</span> <span class="hljs-built_in">chr</span>(<span class="hljs-number">0xffff</span>) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> uuid]<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，查询过程还是很复杂的：要先插入边界元素，再找出两个边界元素的位置，再用边界元素的位置获取查询结果。而且由于过程复杂，这种方法实际的性能表现并不能让人满意，这个之后再分析。</p>
+<blockquote>
+<p>这段代码有很大的隐患：没有考虑多个查询同时执行的情况。更完善的实现请参考《Redis实战》第六章：使用Redis构建应用程序组件</p>
+</blockquote>
+<h1 id="MariaDB-Like查询"><a href="#MariaDB-Like查询" class="headerlink" title="MariaDB+Like查询"></a>MariaDB+Like查询</h1><p>最后介绍一种简单粗暴的查询方法：MariaDB+Like查询，一条SQL解决。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">mysql_like</span>(<span class="hljs-params">prefix: <span class="hljs-built_in">str</span>, limit=<span class="hljs-number">10</span></span>):<br>    sql = <span class="hljs-string">&quot;select uuid from uuids where uuid like %s order by uuid limit %s&quot;</span><br>    cursor.execute(sql, (prefix + <span class="hljs-string">&#x27;%&#x27;</span>, limit))<br>    <span class="hljs-keyword">return</span> [uuid <span class="hljs-keyword">for</span> uuid, <span class="hljs-keyword">in</span> cursor.fetchall()]<br></code></pre></td></tr></table></figure>
+
+<h1 id="验证-amp-性能测试"><a href="#验证-amp-性能测试" class="headerlink" title="验证&amp;性能测试"></a>验证&amp;性能测试</h1><p>用<code>5678e</code>这个前缀来验证四种查询方法的正确性。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">[<span class="hljs-string">&#x27;5678e37b-6e7c-4760-89aa-1dc4c2b547c5&#x27;</span>, <span class="hljs-string">&#x27;5678e967-4d5d-4e26-8ed1-bd8819b5b62c&#x27;</span>]<br>traverse(<span class="hljs-string">&#x27;5678e&#x27;</span>): <span class="hljs-number">0.108424</span>s<br>[<span class="hljs-string">&#x27;5678e37b-6e7c-4760-89aa-1dc4c2b547c5&#x27;</span>, <span class="hljs-string">&#x27;5678e967-4d5d-4e26-8ed1-bd8819b5b62c&#x27;</span>]<br>bin_search(<span class="hljs-string">&#x27;5678e&#x27;</span>): <span class="hljs-number">0.000020</span>s<br>[<span class="hljs-string">&#x27;5678e37b-6e7c-4760-89aa-1dc4c2b547c5&#x27;</span>, <span class="hljs-string">&#x27;5678e967-4d5d-4e26-8ed1-bd8819b5b62c&#x27;</span>]<br>redis_zset(<span class="hljs-string">&#x27;5678e&#x27;</span>): <span class="hljs-number">0.002244</span>s<br>[<span class="hljs-string">&#x27;5678e37b-6e7c-4760-89aa-1dc4c2b547c5&#x27;</span>, <span class="hljs-string">&#x27;5678e967-4d5d-4e26-8ed1-bd8819b5b62c&#x27;</span>]<br>mysql_like(<span class="hljs-string">&#x27;5678e&#x27;</span>): <span class="hljs-number">0.000773</span>s<br></code></pre></td></tr></table></figure>
+
+<p>从耗时来看，<code>O(n)</code>的遍历查询妥妥垫底，<code>O(log n)</code>的二分查询秒杀全场，MariaDB的查询速度则远远甩开了Redis。当然，单次特定条件查询不能说明什么问题，下面来看看10000次随机前缀（长度为1~8的随机字符串）匹配查询所需要的时间：</p>
+<p><img src="/images/2020/06/13/compare.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li><p>不出所料，二分查询的速度是最快的，毕竟是在内存中以<code>O(log n)</code>的时间复杂度来查找数据。</p>
+</li>
+<li><p>MariaDB查找的速度比二分查找的速度慢上十倍，但性能依然出乎我的意料。InnoDB的B+树索引无疑是最大功臣，定位到特定前缀的首个UUID只需要<code>O(log n)</code>的时间复杂度，之后就只需要顺序读取数据。同时，100万个UUID的索引小到可以全部放入内存，这进一步提高了性能。</p>
+</li>
+<li><p>Redis这个以快著称的KV数据库反而最慢，但仔细想想也无可厚非。为了进行一次查询，我们需要执行如下操作：<code>ZADD</code>添加边界元素、<code>ZRANK</code>确定位置、<code>ZRANGE</code>提取结果、<code>ZREM</code>移除边界元素。而这些操作的时间复杂度都达到甚至超过了<code>O(log n)</code>，速度当然快不起来。只能说《Redis实战》这本书提供了这样一个思路，但在具体实现上还是要更慎重。</p>
+</li>
+</ul>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>读完文章后可能会有读者大呼上当：100万的数据集也太小了吧？数据的插入和删除怎么解决？前缀树呢？好吧，这篇文章确实没有回答这些问题。直接在内存中进行二分查询性能确实非常好，但插入和删除数据的时间复杂度来到了<code>O(n)</code>，同时也对超过内存容量限制的数据集无能为力。但是我觉得，前者可以通过分离数据的修改和查询解决（在数据库中修改，缓存到内存后查询），后者可以通过水平扩展解决（每个进程&#x2F;机器缓存部分数据集），同时笔者水平有限，所以没有回答更深入的问题。</p>
+<p>文章最后，衷心感谢黄健宏老师的著作《Redis设计与实现》和译作《Redis实战》。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Redis/">#Redis</a>
+      
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">#数据库</a>
+      
+        <a href="/tags/%E7%AE%97%E6%B3%95/">#算法</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>如何高效地对100万个UUID进行前缀匹配查询</div>
+      <div>https://www.yooo.ltd/2020/06/13/如何高效地对100万个UUID进行前缀匹配查询/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/06/14/%E5%A6%82%E4%BD%95%E5%9C%A8Python%E4%B8%AD%E5%BC%95%E8%B5%B7%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" title="如何在Python中引起内存泄露">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">如何在Python中引起内存泄露</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/05/24/%E5%A6%82%E4%BD%95%E5%9C%A8Golang%E9%87%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84TTLMap/" title="如何在Golang里实现一个高性能的TTLMap">
+                        <span class="hidden-mobile">如何在Golang里实现一个高性能的TTLMap</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

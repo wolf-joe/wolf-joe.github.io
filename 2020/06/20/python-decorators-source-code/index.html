@@ -1,0 +1,733 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python部分内置函数装饰器源码浅析">
+<meta property="og:url" content="https://www.yooo.ltd/2020/06/20/python-decorators-source-code/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="前言这是这个博客里第一篇带有源码Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。  注：本篇文章所用环境为CPython3.6  functools.wrapswraps这个内置函数装饰器在笔者的上一篇文章里有过介绍，功能很单纯（拷贝__nam">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-20T05:01:20.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Python部分内置函数装饰器源码浅析 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Python部分内置函数装饰器源码浅析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-06-20 13:01" pubdate>
+          2020年6月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          90 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Python部分内置函数装饰器源码浅析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这是这个博客里第一篇带有<code>源码</code>Tag的文章。在过去的一个月，笔者深刻地认识到自己在技术深度方面有很大的不足，所以在未来的学习道路上，笔者会尽量多地阅读开源软件的源代码，并将自己的理解以文章的形式表达出来。如有错漏，请各位读者不吝指教。</p>
+<blockquote>
+<p>注：本篇文章所用环境为CPython3.6</p>
+</blockquote>
+<h1 id="functools-wraps"><a href="#functools-wraps" class="headerlink" title="functools.wraps"></a>functools.wraps</h1><p><code>wraps</code>这个内置函数装饰器在笔者的<a href="/2020/06/19/%E8%AF%BB%E3%80%8A%E6%B5%81%E7%95%85%E7%9A%84Python%E3%80%8B%EF%BC%9A%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E4%B8%8E%E9%97%AD%E5%8C%85/#functool-wraps">上一篇文章</a>里有过介绍，功能很单纯（拷贝<code>__name__</code>、<code>__doc__</code>等属性），源码也很短（不到50行）。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">deco</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;inner(<span class="hljs-subst">&#123;args&#125;</span>, <span class="hljs-subst">&#123;kwargs&#125;</span>)&#x27;</span>)<br><br>    <span class="hljs-keyword">return</span> inner<br><br><span class="hljs-meta">@deco</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">target</span>(<span class="hljs-params">name: <span class="hljs-built_in">str</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;target doc&quot;&quot;&quot;</span><br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;target(name=<span class="hljs-subst">&#123;name&#125;</span>)&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>在不用<code>wraps</code>装饰器的情况下，<code>target</code>的<code>__name__</code>和<code>__doc__</code>属性都来自<code>deco()</code>里的<code>inner</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;__doc__  :&#x27;</span>, target.__doc__)   <span class="hljs-comment"># __doc__  : inner doc</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;__name__ :&#x27;</span>, target.__name__)  <span class="hljs-comment"># __name__ : inner</span><br>target(name=<span class="hljs-string">&#x27;bob&#x27;</span>)                    <span class="hljs-comment"># inner((), &#123;&#x27;name&#x27;: &#x27;bob&#x27;&#125;)</span><br></code></pre></td></tr></table></figure>
+
+<p>这一点也不奇怪，因为此时<code>target</code>是<code>deco()</code>的返回值，其<code>__name__</code>等属性自然也不会是来自被装饰的原始<code>target</code>。但从调用者的角度来说，这是很让人费解的。所以Python内置了<code>wraps</code>装饰器，可以拷贝被装饰函数的部分属性，让装饰后的函数<code>看起来</code>和装饰前一样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">deco</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br><span class="hljs-meta">    @functools.wraps(<span class="hljs-params">func</span>)</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;inner(<span class="hljs-subst">&#123;args&#125;</span>, <span class="hljs-subst">&#123;kwargs&#125;</span>)&#x27;</span>)<br><br>    <span class="hljs-keyword">return</span> inner<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;__doc__  :&#x27;</span>, target.__doc__)   <span class="hljs-comment"># __doc__  : target doc</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;__name__ :&#x27;</span>, target.__name__)  <span class="hljs-comment"># __name__ : target</span><br>target(name=<span class="hljs-string">&#x27;bob&#x27;</span>)                    <span class="hljs-comment"># inner((), &#123;&#x27;name&#x27;: &#x27;bob&#x27;&#125;)</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p><code>wraps</code>装饰器的入口函数在<code>functools.py</code>的第<a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L74">74行</a>，函数很短小：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">wraps</span>(<span class="hljs-params">wrapped,</span><br><span class="hljs-params">          assigned = WRAPPER_ASSIGNMENTS,</span><br><span class="hljs-params">          updated = WRAPPER_UPDATES</span>):<br>    <span class="hljs-string">&quot;&quot;&quot; ... 省略</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> partial(update_wrapper, wrapped=wrapped,<br>                   assigned=assigned, updated=updated)<br></code></pre></td></tr></table></figure>
+
+<p><a href="/2020/06/19/%E8%AF%BB%E3%80%8A%E6%B5%81%E7%95%85%E7%9A%84Python%E3%80%8B%EF%BC%9A%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E4%B8%8E%E9%97%AD%E5%8C%85/#%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8">上一篇文章</a>我介绍过，带参数的函数装饰器会返回一个函数，用返回的函数来对目标函数进行装饰。于是，上面提到的<code>deco()</code>函数就可以转换为如下形式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">deco</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>    <span class="hljs-comment"># @functools.wraps(func)</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;inner(<span class="hljs-subst">&#123;args&#125;</span>, <span class="hljs-subst">&#123;kwargs&#125;</span>)&#x27;</span>)<br>	<br>    <span class="hljs-comment"># 关键的两行</span><br>    tmp = partial(update_wrapper, wrapped=func,<br>                  assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES)<br>    inner = tmp(inner)<br><br>    <span class="hljs-keyword">return</span> inner<br></code></pre></td></tr></table></figure>
+
+<p>由于<code>functools.partial</code>的功能只是固定参数，所以以上提到的关键的两行可以转换为如下形式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">inner = update_wrapper(inner, wrapped=func, assigned=WRAPPER_ASSIGNMENTS,<br>                       updated=WRAPPER_UPDATES)<br></code></pre></td></tr></table></figure>
+
+<p>再让我们把目光聚集在<code>update_wrapper()</code>函数的源码上（<code>functools.py</code><a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L44">第44行</a>）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python">WRAPPER_ASSIGNMENTS = (<span class="hljs-string">&#x27;__module__&#x27;</span>, <span class="hljs-string">&#x27;__name__&#x27;</span>, <span class="hljs-string">&#x27;__qualname__&#x27;</span>, <span class="hljs-string">&#x27;__doc__&#x27;</span>,<br>                       <span class="hljs-string">&#x27;__annotations__&#x27;</span>)<br>WRAPPER_UPDATES = (<span class="hljs-string">&#x27;__dict__&#x27;</span>,)<br><span class="hljs-keyword">def</span> <span class="hljs-title function_">update_wrapper</span>(<span class="hljs-params">wrapper,</span><br><span class="hljs-params">                   wrapped,</span><br><span class="hljs-params">                   assigned = WRAPPER_ASSIGNMENTS,</span><br><span class="hljs-params">                   updated = WRAPPER_UPDATES</span>):<br>    <span class="hljs-string">&quot;&quot;&quot; ... 省略</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    <span class="hljs-keyword">for</span> attr <span class="hljs-keyword">in</span> assigned:<br>        <span class="hljs-keyword">try</span>:<br>            value = <span class="hljs-built_in">getattr</span>(wrapped, attr)<br>        <span class="hljs-keyword">except</span> AttributeError:<br>            <span class="hljs-keyword">pass</span><br>        <span class="hljs-keyword">else</span>:<br>            <span class="hljs-built_in">setattr</span>(wrapper, attr, value)<br>    <span class="hljs-keyword">for</span> attr <span class="hljs-keyword">in</span> updated:<br>        <span class="hljs-built_in">getattr</span>(wrapper, attr).update(<span class="hljs-built_in">getattr</span>(wrapped, attr, &#123;&#125;))<br>    <span class="hljs-comment"># Issue #17482: set __wrapped__ last so we don&#x27;t inadvertently copy it</span><br>    <span class="hljs-comment"># from the wrapped function when updating __dict__</span><br>    wrapper.__wrapped__ = wrapped<br>    <span class="hljs-comment"># Return the wrapper so this can be used as a decorator via partial()</span><br>    <span class="hljs-keyword">return</span> wrapper<br></code></pre></td></tr></table></figure>
+
+<p>结合前两段代码，<code>functools.wraps</code>所做的事情就比较清晰了：通过<code>getattr()</code>从被装饰的函数中提取<code>__module__</code>、<code>__name__</code>等属性，再通过<code>setattr()</code>将提取到的属性赋值给装饰后的函数。也就是说，<code>deco()</code>装饰器最后可以转换为如下形式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">deco</span>(<span class="hljs-params">func: <span class="hljs-type">Callable</span></span>) -&gt; <span class="hljs-type">Callable</span>:<br>    <span class="hljs-comment"># @functools.wraps(func)</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">inner</span>(<span class="hljs-params">*args, **kwargs</span>):<br>        <span class="hljs-string">&quot;&quot;&quot;inner doc&quot;&quot;&quot;</span><br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;inner(<span class="hljs-subst">&#123;args&#125;</span>, <span class="hljs-subst">&#123;kwargs&#125;</span>)&#x27;</span>)<br><br>	<span class="hljs-comment"># 节省空间，不考虑AttributeError</span><br>    <span class="hljs-built_in">setattr</span>(inner, <span class="hljs-string">&#x27;__module__&#x27;</span>, <span class="hljs-built_in">getattr</span>(func, <span class="hljs-string">&#x27;__module__&#x27;</span>)) <br>    <span class="hljs-comment"># ... 省略</span><br>    <span class="hljs-built_in">getattr</span>(inner, <span class="hljs-string">&#x27;__dict__&#x27;</span>).update(<span class="hljs-built_in">getattr</span>(func, <span class="hljs-string">&#x27;__dict__&#x27;</span>, &#123;&#125;))<br>    inner.__wrapped__ = func<br><br>    <span class="hljs-keyword">return</span> inner<br></code></pre></td></tr></table></figure>
+
+<p>不考虑注释，<code>functools.wraps</code>的代码总共只有23行，可以说是相当短小了🤣</p>
+<h1 id="functools-lru-cache"><a href="#functools-lru-cache" class="headerlink" title="functools.lru_cache"></a>functools.lru_cache</h1><p><code>lru_cache</code>是个非常实用的装饰器，这个装饰器可以将函数的结果缓存起来，避免传入相同的参数时重复计算。<code>lru</code>代表这个装饰器在缓存结果时采用<code>最近最少使用</code>算法，在缓存的结果到达一定数量时抛弃那些很久没命中过的缓存。</p>
+<p><code>lru_cache</code>接收两个参数：<code>maxsize</code>和<code>typed</code>。前者用于指定缓存结果数量上限，而后者用于判断缓存是是否考虑参数类型。比如<code>func(1)</code>和<code>func(1.0)</code>在默认情况下会共用缓存，但当<code>typed</code>为<code>True</code>时，这两个函数就会分开缓存。</p>
+<h2 id="使用示例-1"><a href="#使用示例-1" class="headerlink" title="使用示例"></a>使用示例</h2><p>递归计算<code>fibonacci</code>数列这种需要多次重复计算的场景特别适合使用<code>lru_cache</code>装饰器。比如下面这个实现：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fibonacci</span>(<span class="hljs-params">k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:<br>    <span class="hljs-keyword">return</span> k <span class="hljs-keyword">if</span> k &lt; <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> fibonacci(k - <span class="hljs-number">1</span>) + fibonacci(k - <span class="hljs-number">2</span>)<br></code></pre></td></tr></table></figure>
+
+<p>当计算<code>fibonacci(6)</code>时，总共需要调用25次<code>fibonacci()</code>函数，其中8次是<code>fibonacci(1)</code>。但使用<code>lru_cache</code>装饰器后，只需要调用7次<code>fibonacci()</code>函数即可得出计算结果，而且只需要在原函数上加上一行代码即可实现：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@functools.lru_cache()</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">fibonacci</span>(<span class="hljs-params">k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:<br>    <span class="hljs-keyword">return</span> k <span class="hljs-keyword">if</span> k &lt; <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> fibonacci(k - <span class="hljs-number">1</span>) + fibonacci(k - <span class="hljs-number">2</span>)<br></code></pre></td></tr></table></figure>
+
+<p>比较有意思的是，使用了<code>lru_cache</code>装饰器的函数还会被”附赠”两个方法：<code>cache_info</code>和<code>cache_clear</code>，分别用于展示缓存情况和清空缓存：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span>fibonacci(<span class="hljs-number">6</span>)<br><span class="hljs-number">8</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>fibonacci.cache_info()<br>CacheInfo(hits=<span class="hljs-number">4</span>, misses=<span class="hljs-number">7</span>, maxsize=<span class="hljs-number">128</span>, currsize=<span class="hljs-number">7</span>)<br><span class="hljs-meta">&gt;&gt;&gt; </span>fibonacci.cache_clear()<br><span class="hljs-meta">&gt;&gt;&gt; </span>fibonacci.cache_info()<br>CacheInfo(hits=<span class="hljs-number">0</span>, misses=<span class="hljs-number">0</span>, maxsize=<span class="hljs-number">128</span>, currsize=<span class="hljs-number">0</span>)<br></code></pre></td></tr></table></figure>
+
+<h2 id="源码-1"><a href="#源码-1" class="headerlink" title="源码"></a>源码</h2><p><code>functool.lru_cache</code>在CPython里有两种实现，一种基于C语言（<code>_functool._lru_cache_wrapper</code>），另一种基于Python（<code>functool._lru_cache_wraper</code>）。后者只有在前者无法导入时才会启用，但本篇文章还是聚焦于后者的源码。</p>
+<p><code>lru_cache</code>装饰器的入口函数在<code>functools.py</code>第<a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L448">448行</a>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python">_CacheInfo = namedtuple(<span class="hljs-string">&quot;CacheInfo&quot;</span>, [<span class="hljs-string">&quot;hits&quot;</span>, <span class="hljs-string">&quot;misses&quot;</span>, <span class="hljs-string">&quot;maxsize&quot;</span>, <span class="hljs-string">&quot;currsize&quot;</span>])<br><span class="hljs-comment"># ... 略</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">lru_cache</span>(<span class="hljs-params">maxsize=<span class="hljs-number">128</span>, typed=<span class="hljs-literal">False</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot; ... 略</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    <span class="hljs-keyword">if</span> maxsize <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">isinstance</span>(maxsize, <span class="hljs-built_in">int</span>):<br>        <span class="hljs-keyword">raise</span> TypeError(<span class="hljs-string">&#x27;Expected maxsize to be an integer or None&#x27;</span>)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decorating_function</span>(<span class="hljs-params">user_function</span>):<br>        wrapper = _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo)<br>        <span class="hljs-keyword">return</span> update_wrapper(wrapper, user_function)<br><br>    <span class="hljs-keyword">return</span> decorating_function<br></code></pre></td></tr></table></figure>
+
+<p>和<code>wraps</code>一样，<code>lru_cache</code>也是一个带参数的装饰器。同时，<code>lru_cache</code>还用到了上一节提到的<code>update_wrapper()</code>函数，自动将被装饰函数的属性拷贝到新函数中。这段代码的关键是<code>wrapper = _lru_cache_wrapper(...)</code>，那就让我们来看看<code>_lru_cache_wrapper</code>函数的源码结构（<code>functools.py</code>第<a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.6/Lib/functools.py#L485">485行</a>）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_lru_cache_wrapper</span>(<span class="hljs-params">user_function, maxsize, typed, _CacheInfo</span>):<br>    <span class="hljs-comment"># 初始化变量，省略</span><br><br>    <span class="hljs-keyword">if</span> maxsize == <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwds</span>):<br>            <span class="hljs-comment"># No caching -- just a statistics update after a successful call</span><br>            <span class="hljs-comment"># ... 省略</span><br>    <span class="hljs-keyword">elif</span> maxsize <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwds</span>):<br>            <span class="hljs-comment"># Simple caching without ordering or size limit</span><br>            <span class="hljs-comment"># ... 省略</span><br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwds</span>):<br>            <span class="hljs-comment"># Size limited caching that tracks accesses by recency</span><br>            <span class="hljs-comment"># ... 省略</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cache_info</span>():<br>        <span class="hljs-string">&quot;&quot;&quot;Report cache statistics&quot;&quot;&quot;</span><br>        <span class="hljs-comment"># ... 省略</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cache_clear</span>():<br>        <span class="hljs-string">&quot;&quot;&quot;Clear the cache and cache statistics&quot;&quot;&quot;</span><br>        <span class="hljs-comment"># ... 省略</span><br><br>    wrapper.cache_info = cache_info<br>    wrapper.cache_clear = cache_clear<br>    <span class="hljs-keyword">return</span> wrapper<br></code></pre></td></tr></table></figure>
+
+<p>所以，当某个函数使用了<code>lru_cache</code>装饰器后，调用这个函数时被执行的实际上是源码里定义的各个<code>wrapper</code>，<code>cache_info()</code>和<code>cache_clear()</code>这两个方法也是在源码里为<code>wrapper</code>加上的。接下来，就让我们具体分析源码里定义的各个模块。</p>
+<h3 id="maxsize为0"><a href="#maxsize为0" class="headerlink" title="maxsize为0"></a>maxsize为0</h3><p>当<code>maxsize</code>为0时，<code>lru_cache</code>不会缓存任何结果，除了调用原始函数并返回结果外，只增加<code>misses</code>（缓存未命中）计数器。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_lru_cache_wrapper</span>(<span class="hljs-params">user_function, maxsize, typed, _CacheInfo</span>):<br>    <span class="hljs-comment"># ...</span><br>    hits = misses = <span class="hljs-number">0</span><br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-keyword">if</span> maxsize == <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwds</span>):<br>            <span class="hljs-comment"># No caching -- just a statistics update after a successful call</span><br>            <span class="hljs-keyword">nonlocal</span> misses<br>            result = user_function(*args, **kwds)<br>            misses += <span class="hljs-number">1</span><br>            <span class="hljs-keyword">return</span> result<br>    <span class="hljs-comment"># ...</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="maxsize为None"><a href="#maxsize为None" class="headerlink" title="maxsize为None"></a>maxsize为None</h3><p>当<code>maxsize</code>为<code>None</code>时，<code>lru_cache</code>会无限制地缓存结果，<code>lru</code>算法并不会生效。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_lru_cache_wrapper</span>(<span class="hljs-params">user_function, maxsize, typed, _CacheInfo</span>):<br>    <span class="hljs-comment"># Constants shared by all lru cache instances:</span><br>    sentinel = <span class="hljs-built_in">object</span>()          <span class="hljs-comment"># unique object used to signal cache misses</span><br>    make_key = _make_key         <span class="hljs-comment"># build a key from the function arguments</span><br>    cache = &#123;&#125;<br>    hits = misses = <span class="hljs-number">0</span><br>    cache_get = cache.get    <span class="hljs-comment"># bound method to lookup a key or return None</span><br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-keyword">elif</span> maxsize <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<br>        <span class="hljs-keyword">def</span> <span class="hljs-title function_">wrapper</span>(<span class="hljs-params">*args, **kwds</span>):<br>            <span class="hljs-comment"># Simple caching without ordering or size limit</span><br>            <span class="hljs-keyword">nonlocal</span> hits, misses<br>            key = make_key(args, kwds, typed)<br>            result = cache_get(key, sentinel)<br>            <span class="hljs-keyword">if</span> result <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> sentinel:<br>                hits += <span class="hljs-number">1</span><br>                <span class="hljs-keyword">return</span> result<br>            result = user_function(*args, **kwds)<br>            cache[key] = result<br>            misses += <span class="hljs-number">1</span><br>            <span class="hljs-keyword">return</span> result<br>    <span class="hljs-comment"># ...</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，<code>lru_cache</code>首先会通过函数的参数生成<code>key</code>值（<code>make_key</code>），再用<code>key</code>值去缓存池（<code>dict</code>）里查找结果。如果命中缓存，则返回缓存并增加<code>hits</code>计数器；否则调用函数返回结果，将结果加入缓存池并增加<code>misses</code>（缓存未命中）计数器。</p>
+<h3 id="make-key"><a href="#make-key" class="headerlink" title="_make_key"></a>_make_key</h3><p>再让我们将目光转到<code>_make_key</code>上来。这个函数会通过函数的参数、<code>typed</code>的值来为函数调用生成<code>key</code>值，用于在缓存池里查找或缓存结果。其源码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">_HashedSeq</span>(<span class="hljs-title class_ inherited__">list</span>):<br>    <span class="hljs-string">&quot;&quot;&quot; ... 省略</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br><br>    __slots__ = <span class="hljs-string">&#x27;hashvalue&#x27;</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, tup, <span class="hljs-built_in">hash</span>=<span class="hljs-built_in">hash</span></span>):<br>        self[:] = tup<br>        self.hashvalue = <span class="hljs-built_in">hash</span>(tup)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__hash__</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-keyword">return</span> self.hashvalue<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">_make_key</span>(<span class="hljs-params">args, kwds, typed,</span><br><span class="hljs-params">             kwd_mark = (<span class="hljs-params"><span class="hljs-built_in">object</span>(<span class="hljs-params"></span>),</span>),</span><br><span class="hljs-params">             fasttypes = &#123;<span class="hljs-built_in">int</span>, <span class="hljs-built_in">str</span>, <span class="hljs-built_in">frozenset</span>, <span class="hljs-built_in">type</span>(<span class="hljs-params"><span class="hljs-literal">None</span></span>)&#125;,</span><br><span class="hljs-params">             <span class="hljs-built_in">tuple</span>=<span class="hljs-built_in">tuple</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">type</span>, <span class="hljs-built_in">len</span>=<span class="hljs-built_in">len</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot; ... 省略</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    key = args<br>    <span class="hljs-keyword">if</span> kwds:<br>        key += kwd_mark<br>        <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> kwds.items():<br>            key += item<br>    <span class="hljs-keyword">if</span> typed:<br>        key += <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">type</span>(v) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> args)<br>        <span class="hljs-keyword">if</span> kwds:<br>            key += <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">type</span>(v) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> kwds.values())<br>    <span class="hljs-keyword">elif</span> <span class="hljs-built_in">len</span>(key) == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">type</span>(key[<span class="hljs-number">0</span>]) <span class="hljs-keyword">in</span> fasttypes:<br>        <span class="hljs-keyword">return</span> key[<span class="hljs-number">0</span>]<br>    <span class="hljs-keyword">return</span> _HashedSeq(key)<br></code></pre></td></tr></table></figure>
+
+<p>从这段源码可以看出，当函数的参数只有一个、<code>typed</code>为<code>False</code>、且类型为<code>int</code>、<code>str</code>等时，<code>_make_key</code>会直接将该参数作为<code>key</code>值返回。否则，<code>_make_key</code>会生成一个<code>_HashedSeq</code>来存储函数的参数，当<code>typed</code>为<code>True</code>时还会存储参数的类型，且<code>*args</code>和<code>**kwargs</code>这两种参数之间会插入一个<code>object</code>用作分隔。下面这几个例子能帮助理解这段源码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> _make_key<br><span class="hljs-meta">&gt;&gt;&gt; </span>_make_key((<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;123&#x27;</span>), &#123;<span class="hljs-string">&#x27;name&#x27;</span>: <span class="hljs-string">&#x27;bob&#x27;</span>&#125;, <span class="hljs-literal">False</span>)<br>[<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;123&#x27;</span>, &lt;<span class="hljs-built_in">object</span> <span class="hljs-built_in">object</span> at ...&gt;, <span class="hljs-string">&#x27;name&#x27;</span>, <span class="hljs-string">&#x27;bob&#x27;</span>]<br><span class="hljs-meta">&gt;&gt;&gt; </span>_make_key((<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;123&#x27;</span>), &#123;<span class="hljs-string">&#x27;name&#x27;</span>: <span class="hljs-string">&#x27;bob&#x27;</span>&#125;, <span class="hljs-literal">True</span>)<br>[<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;123&#x27;</span>, &lt;<span class="hljs-built_in">object</span> <span class="hljs-built_in">object</span> at ...&gt;, <span class="hljs-string">&#x27;name&#x27;</span>, <span class="hljs-string">&#x27;bob&#x27;</span>, &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;int&#x27;</span>&gt;, &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;str&#x27;</span>&gt;, &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;str&#x27;</span>&gt;]<br><span class="hljs-meta">&gt;&gt;&gt; </span>_make_key((<span class="hljs-number">1</span>,), &#123;&#125;, <span class="hljs-literal">False</span>)<br><span class="hljs-number">1</span><br><span class="hljs-meta">&gt;&gt;&gt; </span>_make_key((<span class="hljs-number">1</span>,), &#123;&#125;, <span class="hljs-literal">True</span>)<br>[<span class="hljs-number">1</span>, &lt;<span class="hljs-keyword">class</span> <span class="hljs-string">&#x27;int&#x27;</span>&gt;]<br></code></pre></td></tr></table></figure>
+
+<h4 id="谁错了？"><a href="#谁错了？" class="headerlink" title="谁错了？"></a>谁错了？</h4><p>理解了这段源码之后，又会出现新的问题：不管<code>typed</code>为<code>True</code>还是<code>False</code>，对于单参数<code>1</code>和<code>1.0</code>，<code>_make_key()</code>得到的结果的哈希值都不一致：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> _make_key<br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">hash</span>(_make_key((<span class="hljs-number">1</span>,), &#123;&#125;, <span class="hljs-literal">False</span>))    <span class="hljs-comment"># 1</span><br><span class="hljs-number">1</span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">hash</span>(_make_key((<span class="hljs-number">1.0</span>,), &#123;&#125;, <span class="hljs-literal">False</span>))  <span class="hljs-comment"># [1.0]</span><br><span class="hljs-number">3430019387558</span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">hash</span>(_make_key((<span class="hljs-number">1</span>,), &#123;&#125;, <span class="hljs-literal">True</span>))     <span class="hljs-comment"># [1, &lt;class &#x27;int&#x27;&gt;]</span><br><span class="hljs-number">3713082220284583106</span><br><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-built_in">hash</span>(_make_key((<span class="hljs-number">1.0</span>,), &#123;&#125;, <span class="hljs-literal">True</span>))   <span class="hljs-comment"># [1.0, &lt;class &#x27;float&#x27;&gt;]</span><br><span class="hljs-number">3713082219329796056</span><br></code></pre></td></tr></table></figure>
+
+<p>但此时如果使用<code>lru_cache</code>，就会发现<code>lru_cache</code>是将单参数<code>1</code>和<code>1.0</code>一起缓存的，和本文一开始对<code>lru_cache</code>的描述一致：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@functools.lru_cache()</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">test</span>(<span class="hljs-params">val</span>):<br>    <span class="hljs-built_in">print</span>(val)<br><br>test(<span class="hljs-number">1</span>)    <span class="hljs-comment"># 输出1</span><br>test(<span class="hljs-number">1.0</span>)  <span class="hljs-comment"># 已缓存，不输出</span><br></code></pre></td></tr></table></figure>
+
+<p>所以这到底是哪里出了问题？答案就是前文提到的C语言实现和Python实现的区别。C语言实现的<code>_lru_cache_wrapper()</code>并不使用Python实现的<code>_make_key()</code>，而CPython默认使用的是前者，所以会造成这里提到的问题。</p>
+<p>此时如果将修改CPython内置的<code>functools.py</code>，只使用Python实现的<code>_lru_cache_wrapper()</code>，就会发现结果是符合预期的。<code>1</code>和<code>1.0</code>通过<code>_make_key()</code>得到的哈希值不同，自然也就会分开缓存：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">try</span>:<br>    <span class="hljs-comment"># 不使用C语言实现的版本</span><br>    <span class="hljs-comment"># from _functools import _lru_cache_wrapper</span><br>    <span class="hljs-keyword">pass</span><br><span class="hljs-keyword">except</span> ImportError:<br>    <span class="hljs-keyword">pass</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@functools.lru_cache()</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">test</span>(<span class="hljs-params">val</span>):<br>    <span class="hljs-built_in">print</span>(val)<br><br>test(<span class="hljs-number">1</span>)    <span class="hljs-comment"># 输出1</span><br>test(<span class="hljs-number">1.0</span>)  <span class="hljs-comment"># 输出1.0</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="maxsize为正整数"><a href="#maxsize为正整数" class="headerlink" title="maxsize为正整数"></a>maxsize为正整数</h3><p>当<code>maxsize</code>为正整数时，<code>lru_cache</code>不能无限制地缓存函数结果，必须用<code>lru</code>算法清除缓存。遗憾的是，由于受限于篇幅，且笔者并没有弄懂这部分的代码（这才是重点吧……），所以这部分源码就先按下不表。</p>
+<h3 id="cache-info和cache-clear"><a href="#cache-info和cache-clear" class="headerlink" title="cache_info和cache_clear"></a>cache_info和cache_clear</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_lru_cache_wrapper</span>(<span class="hljs-params">user_function, maxsize, typed, _CacheInfo</span>):<br>    <span class="hljs-comment"># ...</span><br>    hits = misses = <span class="hljs-number">0</span><br>    full = <span class="hljs-literal">False</span><br>    cache_len = cache.__len__  <span class="hljs-comment"># get cache size without calling len()</span><br>    lock = RLock()           <span class="hljs-comment"># because linkedlist updates aren&#x27;t threadsafe</span><br>    root = []                <span class="hljs-comment"># root of the circular doubly linked list</span><br>    root[:] = [root, root, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>]     <span class="hljs-comment"># initialize by pointing to self</span><br>    <span class="hljs-comment"># ...</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cache_info</span>():<br>        <span class="hljs-string">&quot;&quot;&quot;Report cache statistics&quot;&quot;&quot;</span><br>        <span class="hljs-keyword">with</span> lock:<br>            <span class="hljs-keyword">return</span> _CacheInfo(hits, misses, maxsize, cache_len())<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cache_clear</span>():<br>        <span class="hljs-string">&quot;&quot;&quot;Clear the cache and cache statistics&quot;&quot;&quot;</span><br>        <span class="hljs-keyword">nonlocal</span> hits, misses, full<br>        <span class="hljs-keyword">with</span> lock:<br>            cache.clear()<br>            root[:] = [root, root, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>]<br>            hits = misses = <span class="hljs-number">0</span><br>            full = <span class="hljs-literal">False</span><br></code></pre></td></tr></table></figure>
+
+<p>这两个函数的作用比较单纯，分别是返回当前缓存状态和清空缓存。源码也简单易懂，这里就不过多介绍。其中<code>root</code>、<code>lock</code>、<code>full</code>等变量是只有在<code>maxsize</code>为正整数，或者说启用<code>lru</code>算法时才需要的，本文介绍的、针对其它情况的源码不需要这几个变量。</p>
+<h1 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h1><p>本来笔者还想分析<code>singledispatch</code>装饰器的源码的，但一个<code>lru_cache</code>就把笔者折腾得够呛，这还是跳过了最复杂的<code>lru</code>算法的情况下……路漫漫其修远兮啊。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Python/">#Python</a>
+      
+        <a href="/tags/%E6%BA%90%E7%A0%81/">#源码</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Python部分内置函数装饰器源码浅析</div>
+      <div>https://www.yooo.ltd/2020/06/20/python-decorators-source-code/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年6月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/04/python-parameters-and-arguments/" title="Python中的函数参数与参数传递">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Python中的函数参数与参数传递</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/19/fluent-python-chap-7/" title="读《流畅的Python》：函数装饰器与闭包">
+                        <span class="hidden-mobile">读《流畅的Python》：函数装饰器与闭包</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,784 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/favicon.webp">
+  <link rel="icon" href="/favicon.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="OrangeWolf">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源IP地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="偷天换日2.0：篡改光猫的IPv6地址自动分配">
+<meta property="og:url" content="https://www.yooo.ltd/2023/02/17/modify-slaac/index.html">
+<meta property="og:site_name" content="OrangeWolf的博客">
+<meta property="og:description" content="1. 背景 这是一篇神奇的文章。在这篇文章里，你将会看到：  如何将一台双口linux设备变成一台交换机 如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包 如何修改IPv6数据包中的来源IP地址并发送以太网帧   下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：         但光猫的DNS存在DNS污染、无法自定义解析规则等问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-default.svg">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230217094605079.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-expect.svg">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/ipv6-stateless-address-autoconfiguration.gif">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221228232047709.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230218.slaac-plan.svg">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230218111856330.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230218.network_arch.svg">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230218113942408.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219103231373.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219102422222.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219201849810.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219202107580.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210347954.webp">
+<meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210512956.webp">
+<meta property="article:published_time" content="2023-02-17T00:46:38.000Z">
+<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:author" content="OrangeWolf">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="IPv6">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-default.svg">
+  
+  
+  
+  <title>偷天换日2.0：篡改光猫的IPv6地址自动分配 - OrangeWolf的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.yooo.ltd","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>OrangeWolf的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221206233108563.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="偷天换日2.0：篡改光猫的IPv6地址自动分配"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-02-17 08:46" pubdate>
+          2023年2月17日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          50 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">偷天换日2.0：篡改光猫的IPv6地址自动分配</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h1><blockquote>
+<p>这是一篇神奇的文章。在这篇文章里，你将会看到：</p>
+<ul>
+<li>如何将一台双口linux设备变成一台交换机</li>
+<li>如何修改ICMPv6数据包中的DNS信息并发送IPv6数据包</li>
+<li>如何修改IPv6数据包中的来源IP地址并发送以太网帧</li>
+</ul>
+</blockquote>
+<p>下图是笔者的网络架构（部分）。PC自动从光猫处获取IPv6地址，并将其网关&#x2F;DNS指向光猫：</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-default.svg" srcset="/img/loading.gif" lazyload alt="笔者家庭网络架构"></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230217094605079.webp" srcset="/img/loading.gif" lazyload style="zoom:33%;" /></th>
+</tr>
+</thead>
+</table>
+<p>但光猫的DNS存在DNS污染、无法自定义解析规则等问题，且安卓设备无法手动设置IPv6的DNS，所以笔者在之前的文章<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="[安卓对指定WiFi禁用IPv6](/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/)">[1]</span></a></sup><sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span class="hint--top hint--rounded" aria-label="[偷天换日：屏蔽光猫的IP地址自动分配](/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/)">[2]</span></a></sup>里直接禁用了光猫的IPv6地址自动分配，家庭局域网内基本只使用IPv4。</p>
+<p>但禁用IPv6始终是个缺憾。有没有可能实现，<strong>在保留光猫IPv6地址自动分配的基础上，实现自定义DNS</strong>呢？这是本文想要讨论的问题。</p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230217.slaac-expect.svg" srcset="/img/loading.gif" lazyload alt="预期网络架构"></p>
+<h1 id="2-思路"><a href="#2-思路" class="headerlink" title="2. 思路"></a>2. 思路</h1><p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/ipv6-stateless-address-autoconfiguration.gif" srcset="/img/loading.gif" lazyload></p>
+<p>基于上面的动图回顾一下IPv6 SLAAC地址自动分配的原理：</p>
+<ul>
+<li>PC1向局域网广播ICMPv6 <strong>Router Solicitation</strong>（RS）数据包</li>
+<li>路由器收到RS包后广播ICMPv6 <strong>Router Advertisement</strong> (RA)数据包</li>
+<li>PC1收到RA数据包后得知IPv6网段前缀，并生成自己的IPv6地址</li>
+</ul>
+<p>具体到笔者的环境，光猫发出的RA包里还携带了附加的DNS服务器地址信息：</p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/image-20221228232047709.webp" srcset="/img/loading.gif" lazyload></p>
+<p>那么实现自定义DNS的思路就比较明确了：</p>
+<ul>
+<li>PC正常向局域网广播RS数据包</li>
+<li>增加一台软交换机，让PC无法直接收到光猫广播的RA数据包</li>
+<li>软交换机收到光猫广播的RA数据包后，修改其中的DNS信息，并重新进行广播</li>
+<li>PC收到修改后的RA数据包，生成自己的IPv6地址</li>
+</ul>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230218.slaac-plan.svg" srcset="/img/loading.gif" lazyload alt="改造思路"></p>
+<h1 id="3-设置软交换机"><a href="#3-设置软交换机" class="headerlink" title="3. 设置软交换机"></a>3. 设置软交换机</h1><p>笔者使用广受好评的友善NanoPi R2S作为这里的软交换机，系统则使用的是友善Ubuntu Core 20.04改版。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230218111856330.webp" srcset="/img/loading.gif" lazyload alt="友善R2S"></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/svg/20230218.network_arch.svg" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>将光猫和PC分别连接至R2S的两个网口后，在Ubuntu上配置一个连接两个网口的网桥，即可让R2S化身一台软交换机（详细说明见Ubuntu社区文档：<a target="_blank" rel="noopener" href="https://help.ubuntu.com/community/NetworkConnectionBridge">NetworkConnectionBridge - Community Help Wiki</a>）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo apt-get install bridge-utils<br>sudo vim /etc/network/interfaces.d/br0<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-string">auto</span> <span class="hljs-string">br0</span><br><span class="hljs-string">iface</span> <span class="hljs-string">br0</span> <span class="hljs-string">inet</span> <span class="hljs-string">static</span><br>   <span class="hljs-string">address</span> <span class="hljs-number">192.168</span><span class="hljs-number">.1</span><span class="hljs-number">.5</span><br>   <span class="hljs-string">netmask</span> <span class="hljs-number">255.255</span><span class="hljs-number">.255</span><span class="hljs-number">.0</span><br>   <span class="hljs-string">gateway</span> <span class="hljs-number">192.168</span><span class="hljs-number">.1</span><span class="hljs-number">.1</span><br>   <span class="hljs-comment"># dns-nameservers 192.168.1.1</span><br>   <span class="hljs-string">bridge_ports</span> <span class="hljs-string">eth0</span> <span class="hljs-string">eth1</span><br>   <span class="hljs-string">bridge_stp</span> <span class="hljs-string">off</span><br>   <span class="hljs-string">bridge_fd</span> <span class="hljs-number">0</span><br>   <span class="hljs-string">bridge_maxwait</span> <span class="hljs-number">0</span><br><span class="hljs-string">iface</span> <span class="hljs-string">br0</span> <span class="hljs-string">inet6</span> <span class="hljs-string">auto</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo /etc/init.d/networking restart<br></code></pre></td></tr></table></figure>
+
+<p>配置好后可通过<code>brctl</code>命令可以看到效果：</p>
+<p><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230218113942408.webp" srcset="/img/loading.gif" lazyload></p>
+<p>同时，我们还可以通过<code>ebtables</code>禁止来自光猫的RA包广播到网桥上的其它设备：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo ebtables -A FORWARD -p IPv6 -s &#123;光猫MAC地址&#125; --ip6-proto ipv6-icmp --ip6-icmp-type router-advertisement -j DROP<br></code></pre></td></tr></table></figure>
+
+<h1 id="4-修改ICMPv6数据包"><a href="#4-修改ICMPv6数据包" class="headerlink" title="4. 修改ICMPv6数据包"></a>4. 修改ICMPv6数据包</h1><p>接着我们需要在这台软交换机上对ICMPv6 RA数据包进行加工。整体逻辑并不复杂：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">for &#123;<br>	监听ICMPv6数据包<br>	过滤RA数据包<br>	修改其中的DNS信息<br>	广播修改后的RA数据包<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Golang的官方包<a target="_blank" rel="noopener" href="https://pkg.go.dev/golang.org/x/net/icmp">golang.org&#x2F;x&#x2F;net&#x2F;icmp</a>能很方便做到这一点：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> (<br>    mcastIP = net.ParseIP(<span class="hljs-string">&quot;ff02::1&quot;</span>) <span class="hljs-comment">// 组播ip</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;    <br>    c, err := icmp.ListenPacket(<span class="hljs-string">&quot;ip6:ipv6-icmp&quot;</span>, <span class="hljs-string">&quot;::&quot;</span>) <span class="hljs-comment">// 监听ICMPv6数据包</span><br>    ...<br>    <span class="hljs-keyword">for</span> &#123;<br>        <span class="hljs-comment">// 监听ICMPv6数据包</span><br>        rb := <span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">1500</span>)<br>		n, peer, err := c.ReadFrom(rb)<br>        ...<br>        <span class="hljs-keyword">var</span> zone <span class="hljs-type">string</span><br>		<span class="hljs-keyword">if</span> parts := strings.SplitN(peer.String(), <span class="hljs-string">&quot;%&quot;</span>, <span class="hljs-number">2</span>); <span class="hljs-built_in">len</span>(parts) == <span class="hljs-number">2</span> &#123;<br>			zone = parts[<span class="hljs-number">1</span>]<br>		&#125;<br>        ...<br>        <span class="hljs-comment">// 过滤RA数据包</span><br>        <span class="hljs-keyword">const</span> ProtocolIPv6ICMP = <span class="hljs-number">58</span><br>        rm, err := icmp.ParseMessage(ProtocolIPv6ICMP, rb[:n])<br>        ...<br>        <span class="hljs-keyword">if</span> rm.Type != ipv6.ICMPTypeRouterAdvertisement &#123;<br>			<span class="hljs-keyword">continue</span><br>		&#125;<br>        body, err = rm.Body.Marshal(<span class="hljs-type">int</span>(ipv6.ICMPTypeRouterAdvertisement))<br>        ...<br>        <span class="hljs-comment">// 修改其中的DNS信息</span><br>        err = replaceDNS(body)<br>        ...<br>        rm.Body = &amp;icmp.RawBody&#123;Data: body&#125;<br>        <br>        <span class="hljs-comment">// 广播修改后的RA数据包</span><br>        wb, err := rm.Marshal(<span class="hljs-literal">nil</span>)<br>		...<br>		_, err = c.WriteTo(wb, &amp;net.IPAddr&#123;IP: mcastIP, Zone: zone&#125;)<br>        ...<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>问题的关键在于如何修改RA数据包中的DNS。虽然通过分析Wireshark抓包，我们可以获得DNS在RA数据包中的具体位置（数组下标），但这种依赖Magic Number的代码显然缺少通用性。</p>
+<p>维基百科<sup id="fnref:4" class="footnote-ref"><a href="#fn:4" rel="footnote"><span class="hint--top hint--rounded" aria-label="[ICMPv6 - Wikipedia](https://en.wikipedia.org/wiki/ICMPv6)">[4]</span></a></sup>和RFC6106<sup id="fnref:5" class="footnote-ref"><a href="#fn:5" rel="footnote"><span class="hint--top hint--rounded" aria-label="[RFC 6106: IPv6 Router Advertisement Options for DNS Configuration](https://www.rfc-editor.org/rfc/rfc6106)">[5]</span></a></sup>介绍了RA数据包、DNS Option的具体格式：</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219103231373.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219102422222.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>于是我们知道，RA数据包的16字节后是Options区域（<code>icmp</code>库已去除了前4个字节）、Option的前两个字节分别是类型和Option长度（以8字节为单位）。所以，我们可以通过下列代码查找并替换RA包中的DNS地址：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> (<br>    routerIP = net.ParseIP(<span class="hljs-string">&quot;fe80::1&quot;</span>) <span class="hljs-comment">// 光猫ip</span><br>    dnsIP = net.ParseIP(<span class="hljs-string">&quot;fe80::xx&quot;</span>) <span class="hljs-comment">// 自定义dns服务器ip</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">replaceDNS</span><span class="hljs-params">(body []<span class="hljs-type">byte</span>)</span></span> <span class="hljs-type">error</span> &#123;<br>	<span class="hljs-keyword">for</span> idx := <span class="hljs-number">12</span>; idx &lt; <span class="hljs-built_in">len</span>(body)<span class="hljs-number">-1</span>; idx += <span class="hljs-type">int</span>(body[idx+<span class="hljs-number">1</span>]) * <span class="hljs-number">8</span> &#123; <span class="hljs-comment">// 遍历所有option</span><br>		<span class="hljs-keyword">const</span> optTypeDNS = <span class="hljs-number">25</span><br>		<span class="hljs-keyword">if</span> optType := body[idx]; optType == optTypeDNS &#123; <span class="hljs-comment">// 定位dns option</span><br>			ipL, ipR := idx+<span class="hljs-number">8</span>, idx+<span class="hljs-number">8</span>+<span class="hljs-number">16</span><br>			<span class="hljs-keyword">if</span> oldDNS := body[ipL:ipR]; !reflect.DeepEqual(oldDNS, []<span class="hljs-type">byte</span>(routerIP)) &#123; <span class="hljs-comment">// 防止递归替换</span><br>				<span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dns in RA (%s) not equal %s&quot;</span>, net.IP(oldDNS), routerIP)<br>			&#125;<br>			_ = <span class="hljs-built_in">append</span>(body[ipL:ipL], dnsIP...) <span class="hljs-comment">// 原地替换dns ip</span><br>			<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span><br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;dns option not found&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="5-修改IPv6数据包"><a href="#5-修改IPv6数据包" class="headerlink" title="5. 修改IPv6数据包"></a>5. 修改IPv6数据包</h1><p>Wireshark抓包的结果显示PC确实收到了修改后的RA数据包，但PC却并没有像预想的那样正常获取到IPv6地址。</p>
+<table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219201849810.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219202107580.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>由于PC收到的是软交换机重新广播的RA包，所以其IPv6数据包首部的来源IP地址变成了软交换机的IPv6地址（<code>fe80::1c:xx</code>），而不是原始RA包中的光猫IPv6地址（<code>fe80::1</code>）。此时笔者有了一个大胆的猜想，是不是这个来源IP地址的问题呢？如果是的话，我们只要能再修改这个值，就能让PC正常获取到IPv6地址了。</p>
+<p>要修改这个地址，我们需要做两件事情：</p>
+<ol>
+<li><p>重新计算ICMPv6包的校验和。维基<sup id="fnref:4" class="footnote-ref"><a href="#fn:4" rel="footnote"><span class="hint--top hint--rounded" aria-label="[ICMPv6 - Wikipedia](https://en.wikipedia.org/wiki/ICMPv6)">[4]</span></a></sup>上介绍校验和需要构造包含来源&#x2F;目标IP地址的<code>pseudo-header</code>，还好上文提到的<code>icmp</code>库已经封装了这个功能：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> (<br>    routerIP = net.ParseIP(<span class="hljs-string">&quot;fe80::1&quot;</span>) <span class="hljs-comment">// 光猫ip</span><br>    mcastIP = net.ParseIP(<span class="hljs-string">&quot;ff02::1&quot;</span>) <span class="hljs-comment">// 组播ip</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    ...<br>    <span class="hljs-keyword">for</span> &#123;<br>       ...<br>        <span class="hljs-comment">// 修改其中的DNS信息</span><br>        err = replaceDNS(body)<br>        ...<br>        rm.Body = &amp;icmp.RawBody&#123;Data: body&#125;<br>        <br>        <span class="hljs-comment">// 自定义pseudo-header，重计算校验和</span><br>        head := icmp.IPv6PseudoHeader(routerIP, mcastIP)<br>        wb, err := rm.Marshal(head)<br>        <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>            ...<br>        &#125;<br>        <span class="hljs-comment">// 广播修改后的RA数据包</span><br>        err = sendMsg(zone, wb)<br>        ...<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>避免系统自动设置来源IP地址，比如直接发送构造好的以太网数据帧。经过一番搜寻，笔者发现stackoverflow上<sup id="fnref:7" class="footnote-ref"><a href="#fn:7" rel="footnote"><span class="hint--top hint--rounded" aria-label="[IPv6 - Wikipedia](https://en.wikipedia.org/wiki/IPv6)">[7]</span></a></sup>已经有人提供了类似的demo，笔者只需要参考IPv6数据包的格式<sup id="fnref:8" class="footnote-ref"><a href="#fn:8" rel="footnote"><span class="hint--top hint--rounded" aria-label="[go - Send custom ethernet packet using raw socket - Stack Overflow](https://stackoverflow.com/questions/70655602/send-custom-ethernet-packet-using-raw-socket)">[8]</span></a></sup>组装IPv6数据即可：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">sendMsg</span><span class="hljs-params">(zone <span class="hljs-type">string</span>, icmpBody []<span class="hljs-type">byte</span>)</span></span> <span class="hljs-type">error</span> &#123;<br>    <span class="hljs-comment">// 指定来源mac地址&amp;目标mac地址</span><br>	iface, err := net.InterfaceByName(zone)<br>	<span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>		<span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;get link by name failed: %w&quot;</span>, err)<br>	&#125;<br>	srcMac := iface.HardwareAddr<br>	dstMac := []<span class="hljs-type">byte</span>&#123;<span class="hljs-number">0x33</span>, <span class="hljs-number">0x33</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x01</span>&#125; <span class="hljs-comment">// IPv6mcast_01</span><br>	<span class="hljs-comment">// 组装以太网帧头部</span><br>	data := []<span class="hljs-type">byte</span>&#123;<br>		dstMac[<span class="hljs-number">0</span>], dstMac[<span class="hljs-number">1</span>], dstMac[<span class="hljs-number">2</span>], dstMac[<span class="hljs-number">3</span>], dstMac[<span class="hljs-number">4</span>], dstMac[<span class="hljs-number">5</span>],<br>		srcMac[<span class="hljs-number">0</span>], srcMac[<span class="hljs-number">1</span>], srcMac[<span class="hljs-number">2</span>], srcMac[<span class="hljs-number">3</span>], srcMac[<span class="hljs-number">4</span>], srcMac[<span class="hljs-number">5</span>],<br>		<span class="hljs-number">0x86</span>, <span class="hljs-number">0xdd</span>, <span class="hljs-comment">// Type: IPv6</span><br>	&#125;<br>	<span class="hljs-comment">// 组装IPv6头部</span><br>	length := <span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">2</span>)<br>	binary.BigEndian.PutUint16(length, <span class="hljs-type">uint16</span>(<span class="hljs-built_in">len</span>(icmpBody)))<br>	data = <span class="hljs-built_in">append</span>(data, []<span class="hljs-type">byte</span>&#123;<br>		<span class="hljs-number">0x60</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-comment">// ipv6.version</span><br>		length[<span class="hljs-number">0</span>], length[<span class="hljs-number">1</span>], <span class="hljs-comment">// Payload Length</span><br>		<span class="hljs-number">0x3a</span>, <span class="hljs-comment">// Next Header: ICMPv6 (58)</span><br>		<span class="hljs-number">0xff</span>, <span class="hljs-comment">// Hop Limit: 255</span><br>	&#125;...)<br>	data = <span class="hljs-built_in">append</span>(data, routerIP...) <span class="hljs-comment">// 来源ip地址</span><br>	data = <span class="hljs-built_in">append</span>(data, mcastIP...) <span class="hljs-comment">// 目标ip地址</span><br>    <span class="hljs-comment">// 组装ICMPv6数据</span><br>	data = <span class="hljs-built_in">append</span>(data, icmpBody...)<br><br>	<span class="hljs-comment">// 发送以太网帧</span><br>	fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, <span class="hljs-type">int</span>(htons(syscall.ETH_P_ALL)))<br>	<span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>		<span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;call socket failed: %w&quot;</span>, err)<br>	&#125;<br>	addr := syscall.SockaddrLinklayer&#123;<br>		Ifindex: iface.Index,<br>		Halen:   <span class="hljs-number">6</span>, <span class="hljs-comment">// Ethernet address length is 6 bytes</span><br>		Addr:    [<span class="hljs-number">8</span>]<span class="hljs-type">byte</span>&#123;dstMac[<span class="hljs-number">0</span>], dstMac[<span class="hljs-number">1</span>], dstMac[<span class="hljs-number">2</span>], dstMac[<span class="hljs-number">3</span>], dstMac[<span class="hljs-number">4</span>], dstMac[<span class="hljs-number">5</span>]&#125;,<br>	&#125;<br>	err = syscall.Sendto(fd, data, <span class="hljs-number">0</span>, &amp;addr)<br>	<span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>		<span class="hljs-keyword">return</span> fmt.Errorf(<span class="hljs-string">&quot;call sendto failed: %w&quot;</span>, err)<br>	&#125;<br>	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span><br>&#125;<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="6-效果"><a href="#6-效果" class="headerlink" title="6. 效果"></a>6. 效果</h1><table>
+<thead>
+<tr>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210347954.webp" srcset="/img/loading.gif" lazyload></th>
+<th><img src="https://picutres-1251933829.cos.ap-beijing.myqcloud.com/picgo/image-20230219210512956.webp" srcset="/img/loading.gif" lazyload></th>
+</tr>
+</thead>
+</table>
+<p>最后的效果证明笔者的猜想没错。在手动将IPv6数据包的来源IP地址设置为<code>fe80::1</code>后，PC正常获取到了IPv6地址，并设置了自定义DNS。唯一美中不足的是，PC的首选DNS地址地址还是光猫。不过我们还可以在软交换机上打个补丁，禁止向光猫发送DNS请求：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo ebtables -A FORWARD -p IPv6 -d &#123;光猫MAC地址&#125; --ip6-protocol udp --ip6-destination-port 53 -j DROP<br></code></pre></td></tr></table></figure>
+
+<p>这样，PC就只能使用备用DNS，也就是我们自定义的DNS了。</p>
+<p>尽管最终效果并不完美，这篇文章的解决方案也并不实用（软路由+桥接才是终极解决方案），但相比于结果，笔者更享受的是发现问题、解决问题的过程。能写出这篇文章真是太棒了！</p>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a href="/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/">安卓对指定WiFi禁用IPv6</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a href="/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/">偷天换日：屏蔽光猫的IP地址自动分配</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://help.ubuntu.com/community/NetworkConnectionBridge">NetworkConnectionBridge - Community Help Wiki</a>
+<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/ICMPv6">ICMPv6 - Wikipedia</a>
+<a href="#fnref:4" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:5" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6106">RFC 6106: IPv6 Router Advertisement Options for DNS Configuration</a>
+<a href="#fnref:5" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:7" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/IPv6">IPv6 - Wikipedia</a>
+<a href="#fnref:7" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:8" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/70655602/send-custom-ethernet-packet-using-raw-socket">go - Send custom ethernet packet using raw socket - Stack Overflow</a>
+<a href="#fnref:8" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%BD%91%E7%BB%9C/">#网络</a>
+      
+        <a href="/tags/IPv6/">#IPv6</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>偷天换日2.0：篡改光猫的IPv6地址自动分配</div>
+      <div>https://www.yooo.ltd/2023/02/17/modify-slaac/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>OrangeWolf</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年2月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/22/beijing-to-shanghai/" title="北京到上海搬家小记">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">北京到上海搬家小记</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/01/16/install-lxml-on-mac/" title="macOS安装lxml报错&#39;Python.h&#39; file not found">
+                        <span class="hidden-mobile">macOS安装lxml报错&#39;Python.h&#39; file not found</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#waline', function() {
+      Fluid.utils.createCssLink('https://lib.baomitu.com/waline/2.14.1/waline.min.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/waline/2.14.1/waline.min.js', function() {
+        var options = Object.assign(
+          {"serverURL":"https://waline.yooo.ltd/","path":"window.location.pathname","meta":["nick","mail","link"],"requiredMeta":["nick"],"lang":"zh-CN","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"dark":"html[data-user-color-scheme=\"dark\"]","wordLimit":0,"pageSize":10},
+          {
+            el: '#waline',
+            path: window.location.pathname
+          }
+        )
+        Waline.init(options);
+        Fluid.utils.waitElementVisible('#waline .vcontent', () => {
+          var imgSelector = '#waline .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
