@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607082747333.png">
 <meta property="og:image" content="https://picutres-1251933829.cos.ap-beijing.myqcloud.com//picgo/image-20240607085753410.png">
 <meta property="article:published_time" content="2024-06-07T00:10:58.000Z">
-<meta property="article:modified_time" content="2025-06-08T13:57:30.536Z">
+<meta property="article:modified_time" content="2025-06-12T12:54:20.948Z">
 <meta property="article:author" content="OrangeWolf">
 <meta property="article:tag" content="云原生">
 <meta name="twitter:card" content="summary_large_image">
@@ -222,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.4k 字
+          5k 字
         
       </span>
     
@@ -233,7 +233,7 @@
         
         
         
-          37 分钟
+          42 分钟
         
       </span>
     
@@ -317,6 +317,17 @@
 
 <h2 id="3-2-查看Node信息"><a href="#3-2-查看Node信息" class="headerlink" title="3.2 查看Node信息"></a>3.2 查看Node信息</h2><p>此时如果我们查看节点信息（<code>sudo kubectl describe node xxx</code>），会发现注解<code>flannel.alpha.coreos.com/public-ip</code>依然是节点另一张网卡的IP。目前影响未知。</p>
 <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs stylus">Annotations:        alpha<span class="hljs-selector-class">.kubernetes</span>.io/provided-node-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/backend-data: &#123;<span class="hljs-string">&quot;VNI&quot;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&quot;VtepMAC&quot;</span>:<span class="hljs-string">&quot;xx&quot;</span>&#125;<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/backend-type: vxlan<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/kube-subnet-manager: true<br>                    flannel<span class="hljs-selector-class">.alpha</span><span class="hljs-selector-class">.coreos</span>.com/public-ip: <span class="hljs-number">10</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    k3s.io/external-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span><br>                    k3s.io/hostname: xx<br>                    k3s.io/internal-ip: <span class="hljs-number">100</span><span class="hljs-selector-class">.x</span><span class="hljs-selector-class">.x</span>.x<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-3-配置flannel"><a href="#3-3-配置flannel" class="headerlink" title="3.3 配置flannel"></a>3.3 配置flannel</h2><p>在后续的使用中笔者发现，flannel负责处理集群内的网络流量。笔者的k3s节点间通过100.x.x.x的虚拟局域网进行通信，但flannel用的却是物理网卡，所以物理跨局域网的pod间通信无法实现（如192.x.x.x节点上的pod想访问10.x.x.x的dns或其它服务）。</p>
+<p>为了解决这个问题，需要手动指定flannel使用的网卡为虚拟局域网的网卡（如tailscale0）</p>
+<p>在主节点上修改配置<code>/etc/systemd/system/k3s.service</code>:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">ExecStart</span>=/usr/local/bin/k3s \<br>    ...省略<br>    --flannel-external-ip --flannel-iface &quot;tailscale0&quot; \<br></code></pre></td></tr></table></figure>
+
+<p>在从节点上修改配置<code>/etc/systemd/system/k3s-agent.service</code>:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">ExecStart</span>=/usr/local/bin/k3s \<br>   ...省略<br>   --flannel-iface &quot;tailscale0&quot; \<br></code></pre></td></tr></table></figure>
+
+<p>然后各自重启服务即可：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo systemctl daemon-reload<br>sudo systemctl restart k3s # 主节点<br>sudo systemctl restart k3s-agent # 从节点<br></code></pre></td></tr></table></figure>
 
 <h1 id="4-设置静态CPU调度策略"><a href="#4-设置静态CPU调度策略" class="headerlink" title="4. 设置静态CPU调度策略"></a>4. 设置静态CPU调度策略</h1><p>Docker&#x2F;K8S体系下，CPU默认是按时间片调度的。容器获取到CPU时间片后，可以在不同的CPU核心中切换。这在IO密集型场景中可以提升资源利用率。</p>
 <p>但笔者的场景是计算密集型，切换CPU核心会导致性能下降，所以需要将容器和CPU进行绑定。</p>
