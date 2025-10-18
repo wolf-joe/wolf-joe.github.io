@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>OrangeWolf的博客</title>
+  
+  <subtitle>写码之人</subtitle>
+  <link href="https://www.yooo.ltd/atom.xml" rel="self"/>
+  
+  <link href="https://www.yooo.ltd/"/>
+  <updated>2025-06-08T15:19:43.425Z</updated>
+  <id>https://www.yooo.ltd/</id>
+  
+  <author>
+    <name>OrangeWolf</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>k3s集群使用本地DNS缓存（node local dns）</title>
+    <link href="https://www.yooo.ltd/2025/06/08/k3s-with-nodelocaldns/"/>
+    <id>https://www.yooo.ltd/2025/06/08/k3s-with-nodelocaldns/</id>
+    <published>2025-06-08T14:04:19.000Z</published>
+    <updated>2025-06-08T15:19:43.425Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h1&gt;&lt;p&gt;K3s集群内集成了CoreDNS作为kube-dns，默认IP为10.43.0.10。当Pod的dns类型为&lt;code&gt;ClusterFir</summary>
+      
+    
+    
+    
+    
+    <category term="云原生" scheme="https://www.yooo.ltd/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2024年度总结</title>
+    <link href="https://www.yooo.ltd/2024/12/30/2024-summary/"/>
+    <id>https://www.yooo.ltd/2024/12/30/2024-summary/</id>
+    <published>2024-12-30T12:51:48.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;2024年，我在长沙度过了完整的一年。即将28岁的关口，我回望过去的一年，发现自己似乎没怎么变，但好在更认清了自己一些。&lt;/p&gt;
+&lt;h1 i</summary>
+      
+    
+    
+    
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+    <category term="总结" scheme="https://www.yooo.ltd/tags/%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>大模型Tools(Function Calling)实用性分析 - 以媒体信息解析为例</title>
+    <link href="https://www.yooo.ltd/2024/09/21/parcticality-analysis-of-llm-tools/"/>
+    <id>https://www.yooo.ltd/2024/09/21/parcticality-analysis-of-llm-tools/</id>
+    <published>2024-09-21T02:00:35.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;一、背景&quot;&gt;&lt;a href=&quot;#一、背景&quot; class=&quot;headerlink&quot; title=&quot;一、背景&quot;&gt;&lt;/a&gt;一、背景&lt;/h1&gt;&lt;p&gt;作为一个喜欢收集影视资源的人，笔者面临的一个任务是：从文件名中解析出格式化的媒体信息（信息源统一为&lt;a href=&quot;http</summary>
+      
+    
+    
+    
+    
+    <category term="大模型" scheme="https://www.yooo.ltd/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/"/>
+    
+    <category term="媒体刮削" scheme="https://www.yooo.ltd/tags/%E5%AA%92%E4%BD%93%E5%88%AE%E5%89%8A/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>自建Docker Hub镜像服务</title>
+    <link href="https://www.yooo.ltd/2024/06/08/self-host-docker-hub-mirror/"/>
+    <id>https://www.yooo.ltd/2024/06/08/self-host-docker-hub-mirror/</id>
+    <published>2024-06-08T01:36:11.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-前言&quot;&gt;&lt;a href=&quot;#1-前言&quot; class=&quot;headerlink&quot; title=&quot;1. 前言&quot;&gt;&lt;/a&gt;1. 前言&lt;/h1&gt;&lt;p&gt;&lt;img src=&quot;https://picutres-1251933829.cos.ap-beijing.myqclou</summary>
+      
+    
+    
+    
+    
+    <category term="Docker" scheme="https://www.yooo.ltd/tags/Docker/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>多机K3S集群搭建踩坑记</title>
+    <link href="https://www.yooo.ltd/2024/06/07/multi-node-k3s-cluster/"/>
+    <id>https://www.yooo.ltd/2024/06/07/multi-node-k3s-cluster/</id>
+    <published>2024-06-07T00:10:58.000Z</published>
+    <updated>2025-06-12T12:54:20.948Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;由于笔者需要部署一些计算服务并实现扩展灵活、可用性高，所以决定用K8S体系来代替原有的Docker部署。K8S对于个人来</summary>
+      
+    
+    
+    
+    
+    <category term="云原生" scheme="https://www.yooo.ltd/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2023年度总结</title>
+    <link href="https://www.yooo.ltd/2024/01/01/2023%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
+    <id>https://www.yooo.ltd/2024/01/01/2023%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/</id>
+    <published>2024-01-01T03:15:44.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;2023年对我影响最大的一本书是《纳瓦尔宝典》，书里对“智慧”的定义是“知道个人行为的长期后果”。对于我而言，这个定义有时候还要加上“我为什</summary>
+      
+    
+    
+    
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+    <category term="总结" scheme="https://www.yooo.ltd/tags/%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>将txt格式电子书转换为kindle格式</title>
+    <link href="https://www.yooo.ltd/2023/12/27/txt-to-kindle/"/>
+    <id>https://www.yooo.ltd/2023/12/27/txt-to-kindle/</id>
+    <published>2023-12-27T01:47:42.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h1&gt;&lt;p&gt;笔者有时候会阅读一些txt格式的电子书；同时为了护眼，笔者倾向于在kindle上阅读电子书。但作为纯文本格式，txt在kindle上的阅读体</summary>
+      
+    
+    
+    
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+    <category term="多媒体" scheme="https://www.yooo.ltd/tags/%E5%A4%9A%E5%AA%92%E4%BD%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>简易Docker日志持久化&amp;中心化方案 Loki</title>
+    <link href="https://www.yooo.ltd/2023/12/26/docker-log-center/"/>
+    <id>https://www.yooo.ltd/2023/12/26/docker-log-center/</id>
+    <published>2023-12-26T07:18:55.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;笔者在家庭服务器上运行了一组业务Docker容器，有查看容器日志的需求。&lt;code&gt;docker logs&lt;/code&gt;只能查看单个容器的日</summary>
+      
+    
+    
+    
+    
+    <category term="docker" scheme="https://www.yooo.ltd/tags/docker/"/>
+    
+    <category term="grafana" scheme="https://www.yooo.ltd/tags/grafana/"/>
+    
+    <category term="日志" scheme="https://www.yooo.ltd/tags/%E6%97%A5%E5%BF%97/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>北京到上海搬家小记</title>
+    <link href="https://www.yooo.ltd/2023/04/22/beijing-to-shanghai/"/>
+    <id>https://www.yooo.ltd/2023/04/22/beijing-to-shanghai/</id>
+    <published>2023-04-22T01:26:40.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;经过一番慎重考虑，笔者最终选择上海作为未来一段时间工作和生活的地方。&lt;/p&gt;
+&lt;p&gt;接下来最大的挑战来自于搬家：上千公里</summary>
+      
+    
+    
+    
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>偷天换日2.0：篡改光猫的IPv6地址自动分配</title>
+    <link href="https://www.yooo.ltd/2023/02/17/modify-slaac/"/>
+    <id>https://www.yooo.ltd/2023/02/17/modify-slaac/</id>
+    <published>2023-02-17T00:46:38.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;blockquote&gt;
+&lt;p&gt;这是一篇神奇的文章。在这篇文章里，你将会看到：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如何将一台双口lin</summary>
+      
+    
+    
+    
+    
+    <category term="网络" scheme="https://www.yooo.ltd/tags/%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="IPv6" scheme="https://www.yooo.ltd/tags/IPv6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>macOS安装lxml报错&#39;Python.h&#39; file not found</title>
+    <link href="https://www.yooo.ltd/2023/01/16/install-lxml-on-mac/"/>
+    <id>https://www.yooo.ltd/2023/01/16/install-lxml-on-mac/</id>
+    <published>2023-01-16T09:26:06.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h1&gt;&lt;blockquote&gt;
+&lt;p&gt;macOS环境：Ventura 13.0 (Apple Silicon)&lt;/p&gt;
+&lt;p&gt;Python版本：3.9.</summary>
+      
+    
+    
+    
+    
+    <category term="Python" scheme="https://www.yooo.ltd/tags/Python/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2022年度总结</title>
+    <link href="https://www.yooo.ltd/2022/12/31/2022-annual-summary/"/>
+    <id>https://www.yooo.ltd/2022/12/31/2022-annual-summary/</id>
+    <published>2022-12-31T08:14:10.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;不知不觉中又过了一年。2022年，我在那些对自己最重要的事情上有什么进展呢？我是否依然坚定地走在我自己的那条路上？&lt;/p&gt;
+&lt;p&gt;或许，这篇</summary>
+      
+    
+    
+    
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+    <category term="总结" scheme="https://www.yooo.ltd/tags/%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>H2-2光猫配置IPv6防火墙</title>
+    <link href="https://www.yooo.ltd/2022/12/31/h2-2-modem-ip6tables/"/>
+    <id>https://www.yooo.ltd/2022/12/31/h2-2-modem-ip6tables/</id>
+    <published>2022-12-31T03:41:51.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;IPv6相比IPv4的一大优势是IP地址空间充足。以笔者的中国移动宽带为例，光猫可以从运营商处获得2409开头的&lt;cod</summary>
+      
+    
+    
+    
+    
+    <category term="网络" scheme="https://www.yooo.ltd/tags/%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="IPv6" scheme="https://www.yooo.ltd/tags/IPv6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>偷天换日：屏蔽光猫的IP地址自动分配</title>
+    <link href="https://www.yooo.ltd/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/"/>
+    <id>https://www.yooo.ltd/2022/12/28/%E5%81%B7%E5%A4%A9%E6%8D%A2%E6%97%A5%EF%BC%9A%E5%B1%8F%E8%94%BD%E5%85%89%E7%8C%AB%E7%9A%84IP%E5%9C%B0%E5%9D%80%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D/</id>
+    <published>2022-12-28T13:53:51.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;&lt;img src=&quot;https://picutres-1251933829.cos.ap-beijing.myqclou</summary>
+      
+    
+    
+    
+    
+    <category term="网络" scheme="https://www.yooo.ltd/tags/%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="IPv6" scheme="https://www.yooo.ltd/tags/IPv6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>用Prometheus监控硬盘SMART信息</title>
+    <link href="https://www.yooo.ltd/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/"/>
+    <id>https://www.yooo.ltd/2022/12/23/%E7%94%A8Prometheus%E7%9B%91%E6%8E%A7%E7%A1%AC%E7%9B%98SMART%E4%BF%A1%E6%81%AF/</id>
+    <published>2022-12-23T01:02:55.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;笔者的NAS（或者说ALL IN ONE主机）内有两块3.5寸的机械硬盘。群晖、TrueNAS等系统内置了比较完善的监控</summary>
+      
+    
+    
+    
+    
+    <category term="监控" scheme="https://www.yooo.ltd/tags/%E7%9B%91%E6%8E%A7/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>安卓对指定WiFi禁用IPv6</title>
+    <link href="https://www.yooo.ltd/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/"/>
+    <id>https://www.yooo.ltd/2022/12/17/%E5%AE%89%E5%8D%93%E5%AF%B9%E6%8C%87%E5%AE%9AWiFi%E7%A6%81%E7%94%A8IPv6/</id>
+    <published>2022-12-17T02:07:12.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;这是笔者之前的家庭网络架构，所有设备集中在宽带网关的二级 NAT 下，同时有一台旁路由设备用于透明代理：&lt;/p&gt;
+&lt;p&gt;</summary>
+      
+    
+    
+    
+    
+    <category term="数码" scheme="https://www.yooo.ltd/tags/%E6%95%B0%E7%A0%81/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>改善室内空气质量-加湿篇</title>
+    <link href="https://www.yooo.ltd/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/"/>
+    <id>https://www.yooo.ltd/2022/12/10/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E5%8A%A0%E6%B9%BF%E7%AF%87/</id>
+    <published>2022-12-10T09:45:58.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-前言&quot;&gt;&lt;a href=&quot;#1-前言&quot; class=&quot;headerlink&quot; title=&quot;1. 前言&quot;&gt;&lt;/a&gt;1. 前言&lt;/h1&gt;&lt;p&gt;在前一篇文章&lt;sup id=&quot;fnref:1&quot; class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#fn:1&quot;</summary>
+      
+    
+    
+    
+    
+    <category term="监控" scheme="https://www.yooo.ltd/tags/%E7%9B%91%E6%8E%A7/"/>
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>改善室内空气质量-新风篇</title>
+    <link href="https://www.yooo.ltd/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/"/>
+    <id>https://www.yooo.ltd/2022/12/09/%E6%94%B9%E5%96%84%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F-%E6%96%B0%E9%A3%8E%E7%AF%87/</id>
+    <published>2022-12-09T05:04:56.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;在上一篇文章&lt;sup id=&quot;fnref:1&quot; class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#fn:1&quot;</summary>
+      
+    
+    
+    
+    
+    <category term="监控" scheme="https://www.yooo.ltd/tags/%E7%9B%91%E6%8E%A7/"/>
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>监控室内空气质量</title>
+    <link href="https://www.yooo.ltd/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/"/>
+    <id>https://www.yooo.ltd/2022/12/05/%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%86%85%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F/</id>
+    <published>2022-12-05T04:53:01.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1. 背景&quot;&gt;&lt;/a&gt;1. 背景&lt;/h1&gt;&lt;p&gt;爱否出品的新风消费报告&lt;sup id=&quot;fnref:1&quot; class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#</summary>
+      
+    
+    
+    
+    
+    <category term="监控" scheme="https://www.yooo.ltd/tags/%E7%9B%91%E6%8E%A7/"/>
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>用Afterburner和Grafana监控PC性能</title>
+    <link href="https://www.yooo.ltd/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/"/>
+    <id>https://www.yooo.ltd/2022/08/20/%E7%94%A8Afterburner%E5%92%8CGrafana%E7%9B%91%E6%8E%A7PC%E6%80%A7%E8%83%BD/</id>
+    <published>2022-08-20T07:18:01.000Z</published>
+    <updated>2025-06-08T13:57:30.536Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h1&gt;&lt;p&gt;监控Linux服务器性能已经有比较成熟的解决方案了：笔者用的是&lt;code&gt;node_exporter&lt;/code&gt;+&lt;code&gt;Promet</summary>
+      
+    
+    
+    
+    
+    <category term="Golang" scheme="https://www.yooo.ltd/tags/Golang/"/>
+    
+    <category term="监控" scheme="https://www.yooo.ltd/tags/%E7%9B%91%E6%8E%A7/"/>
+    
+    <category term="生活" scheme="https://www.yooo.ltd/tags/%E7%94%9F%E6%B4%BB/"/>
+    
+  </entry>
+  
+</feed>
